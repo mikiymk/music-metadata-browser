@@ -85,10 +85,12 @@
   },
   "dependencies": {
     "@tokenizer/token": "^0.3.0",
+    "@tsconfig/strictest": "^1.0.1",
     "content-type": "^1.0.4",
     "debug": "^4.3.4",
     "file-type": "16.5.3",
     "media-typer": "^1.1.0",
+    "prettier": "^2.6.2",
     "strtok3": "^6.3.0",
     "token-types": "^4.2.0"
   },

@@ -1,8 +1,11 @@
 {
+  "extends": "@tsconfig/strictest/tsconfig.json",
   "compilerOptions": {
     "inlineSources": false,
-    "module": "commonjs",
+    "module": "es2022",
     "moduleResolution": "node",
-    "target": "ES2017"
-  }
+    "outDir": "./dest",
+    "target": "es2022"
+  },
+  "include": ["lib/**/*.ts", "test/**/*.ts", "doc-gen/**/*.ts", "example/**/*.ts"]
 }
