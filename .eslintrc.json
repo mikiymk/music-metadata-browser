@@ -19,8 +19,6 @@
     "eslint-plugin-unicorn"
   ],
   "rules": {
-    "arrow-parens": ["error", "as-needed"],
-    "comma-dangle": "error",
     "complexity": "off",
     "curly": "off",
     "default-case": "off",
@@ -40,20 +38,6 @@
       "undefined"
     ],
     "id-match": "error",
-    "indent": [
-      "error",
-      2,
-      {
-        "ObjectExpression": "first",
-        "FunctionDeclaration": {
-          "parameters": "first"
-        },
-        "FunctionExpression": {
-          "parameters": "first"
-        },
-        "SwitchCase": 1
-      }
-    ],
     "max-classes-per-file": "off",
     "max-len": ["error", { "code": 200 }],
     "new-parens": "error",
