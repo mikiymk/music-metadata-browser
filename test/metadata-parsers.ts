@@ -1,7 +1,8 @@
-import * as fs from "fs";
+import { createReadStream, readFileSync } from "fs";
 
-import * as mm from "../lib";
-import { IAudioMetadata, IOptions } from "../lib/type";
+import { parseFile, parseStream, parseBuffer } from "../lib";
+
+import type { IAudioMetadata, IOptions } from "../lib/type";
 
 type ParseFileMethod = (
   filePath: string,
@@ -21,14 +22,14 @@ export const Parsers: IParser[] = [
   {
     description: "parseFile",
     initParser: (filePath: string, mimeType?: string, options?: IOptions) => {
-      return mm.parseFile(filePath, options);
+      return parseFile(filePath, options);
     },
   },
   {
     description: "parseStream",
     initParser: (filePath: string, mimeType?: string, options?: IOptions) => {
-      const stream = fs.createReadStream(filePath);
-      return mm.parseStream(stream, { mimeType }, options).then((metadata) => {
+      const stream = createReadStream(filePath);
+      return parseStream(stream, { mimeType }, options).then((metadata) => {
         stream.close();
         return metadata;
       });
@@ -37,9 +38,9 @@ export const Parsers: IParser[] = [
   {
     description: "parseBuffer",
     initParser: (filePath: string, mimeType?: string, options?: IOptions) => {
-      const buffer = fs.readFileSync(filePath);
+      const buffer = readFileSync(filePath);
       const array = new Uint8Array(buffer);
-      return mm.parseBuffer(array, { mimeType }, options);
+      return parseBuffer(array, { mimeType }, options);
     },
   },
 ];

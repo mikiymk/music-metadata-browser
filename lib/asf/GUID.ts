@@ -120,8 +120,8 @@ export default class GUID {
   public static AudioMedia = new GUID("F8699E40-5B4D-11CF-A8FD-00805F5C442B");
   public static VideoMedia = new GUID("BC19EFC0-5B4D-11CF-A8FD-00805F5C442B");
   public static CommandMedia = new GUID("59DACFC0-59E6-11D0-A3AC-00A0C90348F6");
-  public static JFIF_Media = new GUID("B61BE100-5B4E-11CF-A8FD-00805F5C442B");
-  public static Degradable_JPEG_Media = new GUID(
+  public static JFIFMedia = new GUID("B61BE100-5B4E-11CF-A8FD-00805F5C442B");
+  public static DegradableJPEGMedia = new GUID(
     "35907DE0-E415-11CF-A917-00805F5C442B"
   );
   public static FileTransferMedia = new GUID(
@@ -129,7 +129,7 @@ export default class GUID {
   );
   public static BinaryMedia = new GUID("3AFB65E2-47EF-40F2-AC2C-70A90D71D343");
 
-  public static ASF_Index_Placeholder_Object = new GUID(
+  public static ASFIndexPlaceholderObject = new GUID(
     "D9AADE20-7C17-4F9C-BC28-8555DD98E2A2"
   );
 
@@ -180,13 +180,14 @@ export default class GUID {
         return "video";
       case GUID.CommandMedia.str:
         return "command";
-      case GUID.Degradable_JPEG_Media.str:
+      case GUID.DegradableJPEGMedia.str:
         return "degradable-jpeg";
       case GUID.FileTransferMedia.str:
         return "file-transfer";
       case GUID.BinaryMedia.str:
         return "binary";
     }
+    return;
   }
 
   /**

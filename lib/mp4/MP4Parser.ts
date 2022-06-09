@@ -1,13 +1,21 @@
 import initDebug from "debug";
-import * as Token from "token-types";
-import { IGetToken } from "@tokenizer/token";
+import {
+  integerType as Token_integerType,
+  BufferType,
+  UINT8,
+  UINT32_BE,
+  StringType,
+} from "token-types";
 
 import { BasicParser } from "../common/BasicParser";
 import { Genres } from "../id3v1/ID3v1Parser";
-import { IChapter, ITrackInfo, TrackType } from "../type";
+import { TrackType } from "../type";
 
 import { Atom } from "./Atom";
 import * as AtomToken from "./AtomToken";
+
+import type { IChapter, ITrackInfo } from "../type";
+import type { IGetToken } from "@tokenizer/token";
 
 const debug = initDebug("music-metadata:parser:MP4");
 const tagFormat = "iTunes";
@@ -136,7 +144,7 @@ export class MP4Parser extends BasicParser {
       (signed ? "INT" : "UINT") +
       array.length * 8 +
       (array.length > 1 ? "_BE" : "");
-    const token: IGetToken<number | BigInt> = Token[integerType];
+    const token: IGetToken<number | BigInt> = Token_integerType;
     if (!token) {
       throw new Error(
         'Token for integer type not found: "' + integerType + '"'
@@ -327,7 +335,7 @@ export class MP4Parser extends BasicParser {
 
           default:
             const dataAtom = await this.tokenizer.readToken<Buffer>(
-              new Token.BufferType(payLoadLength)
+              new BufferType(payLoadLength)
             );
             this.addWarning(
               "Unsupported meta-item: " +
@@ -363,14 +371,14 @@ export class MP4Parser extends BasicParser {
         switch (tagKey) {
           case "trkn":
           case "disk":
-            const num = Token.UINT8.get(dataAtom.value, 3);
-            const of = Token.UINT8.get(dataAtom.value, 5);
+            const num = UINT8.get(dataAtom.value, 3);
+            const of = UINT8.get(dataAtom.value, 5);
             // console.log("  %s[data] = %s/%s", tagKey, num, of);
             this.addTag(tagKey, num + "/" + of);
             break;
 
           case "gnre":
-            const genreInt = Token.UINT8.get(dataAtom.value, 1);
+            const genreInt = UINT8.get(dataAtom.value, 1);
             const genreStr = Genres[genreInt - 1];
             // console.log("  %s[data] = %s", tagKey, genreStr);
             this.addTag(tagKey, genreStr);
@@ -463,9 +471,9 @@ export class MP4Parser extends BasicParser {
       const td = this.getTrackDescription();
 
       const trackIds: number[] = [];
-      while (len >= Token.UINT32_BE.len) {
-        trackIds.push(await this.tokenizer.readNumber(Token.UINT32_BE));
-        len -= Token.UINT32_BE.len;
+      while (len >= UINT32_BE.len) {
+        trackIds.push(await this.tokenizer.readNumber(UINT32_BE));
+        len -= UINT32_BE.len;
       }
 
       td.chapterList = trackIds;
@@ -580,9 +588,7 @@ export class MP4Parser extends BasicParser {
     },
 
     date: async (len: number) => {
-      const date = await this.tokenizer.readToken(
-        new Token.StringType(len, "utf-8")
-      );
+      const date = await this.tokenizer.readToken(new StringType(len, "utf-8"));
       this.addTag("date", date);
     },
   };

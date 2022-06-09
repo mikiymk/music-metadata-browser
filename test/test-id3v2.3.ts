@@ -1,22 +1,24 @@
-import { assert } from "chai";
-import * as path from "path";
-import * as strtok from "strtok3";
+import { join } from "path";
 
-import { ID3v2Parser } from "../lib/id3v2/ID3v2Parser";
-import { MetadataCollector } from "../lib/common/MetadataCollector";
+import { assert } from "chai";
+import { fromFile } from "strtok3";
+
 import * as mm from "../lib";
+import { MetadataCollector } from "../lib/common/MetadataCollector";
+import { ID3v2Parser } from "../lib/id3v2/ID3v2Parser";
+
 import { samplePath } from "./util";
 
 describe("Extract metadata from ID3v2.3 header", () => {
   it("should parse a raw ID3v2.3 header", () => {
-    const filePath = path.join(
+    const filePath = join(
       samplePath,
       "MusicBrainz - Beth Hart - Sinner's Prayer.id3v23"
     );
 
     const metadata = new MetadataCollector({});
 
-    return strtok.fromFile(filePath).then((tokenizer) => {
+    return fromFile(filePath).then((tokenizer) => {
       return new ID3v2Parser().parse(metadata, tokenizer, {}).then(() => {
         assert.strictEqual(33, metadata.native["ID3v2.3"].length);
 
@@ -27,7 +29,7 @@ describe("Extract metadata from ID3v2.3 header", () => {
   });
 
   it("parse a ID3v2.3", async () => {
-    const filePath = path.join(samplePath, "id3v2.3.mp3");
+    const filePath = join(samplePath, "id3v2.3.mp3");
 
     function checkFormat(format) {
       assert.deepEqual(format.tagTypes, ["ID3v2.3", "ID3v1"], "format.type");
@@ -152,7 +154,7 @@ describe("Extract metadata from ID3v2.3 header", () => {
       /**
        * Kept 25 frames from original MP3; concatenated copied last 128 bytes to restore ID3v1.0 header
        */
-      const filePath = path.join(samplePath, "04-Strawberry.mp3");
+      const filePath = join(samplePath, "04-Strawberry.mp3");
 
       function checkFormat(format: mm.IFormat) {
         assert.strictEqual(
@@ -204,7 +206,7 @@ describe("Extract metadata from ID3v2.3 header", () => {
     });
 
     it("should decode PeakValue without data", async () => {
-      const filePath = path.join(samplePath, "issue_56.mp3");
+      const filePath = join(samplePath, "issue_56.mp3");
 
       const metadata = await mm.parseFile(filePath, { duration: true });
       assert.deepEqual(
@@ -222,10 +224,7 @@ describe("Extract metadata from ID3v2.3 header", () => {
    * Specification: http://id3.org/id3v2.3.0#line-290
    */
   it("slash delimited fields", async () => {
-    const filePath = path.join(
-      samplePath,
-      "Their - They're - Therapy - 1sec.mp3"
-    );
+    const filePath = join(samplePath, "Their - They're - Therapy - 1sec.mp3");
 
     const metadata = await mm.parseFile(filePath);
     assert.isDefined(metadata.native["ID3v2.3"], "Expect ID3v2.3 tag");
@@ -238,7 +237,7 @@ describe("Extract metadata from ID3v2.3 header", () => {
   });
 
   it("null delimited fields (non-standard)", async () => {
-    const filePath = path.join(samplePath, "mp3", "null-separator.id3v2.3.mp3");
+    const filePath = join(samplePath, "mp3", "null-separator.id3v2.3.mp3");
 
     const { format, common, native, quality } = await mm.parseFile(filePath);
 
@@ -273,7 +272,7 @@ describe("Extract metadata from ID3v2.3 header", () => {
   describe("4.2.1 Text information frames", () => {
     // http://id3.org/id3v2.3.0#line-299
     it("TCON: Content type (genres)", async () => {
-      const filePath = path.join(samplePath, "mp3", "tcon.mp3");
+      const filePath = join(samplePath, "mp3", "tcon.mp3");
       const { format, common } = await mm.parseFile(filePath);
       assert.strictEqual(format.container, "MPEG", "format.container");
       assert.strictEqual(format.codec, "MPEG 2 Layer 3", "format.codec");
@@ -288,9 +287,7 @@ describe("Extract metadata from ID3v2.3 header", () => {
   describe("Decode frames", () => {
     // http://id3.org/id3v2.3.0#URL_link_frames_-_details
     it("4.3.1 WCOM: Commercial information", async () => {
-      const metadata = await mm.parseFile(
-        path.join(samplePath, "id3v2-lyrics.mp3")
-      );
+      const metadata = await mm.parseFile(join(samplePath, "id3v2-lyrics.mp3"));
       const id3v23 = mm.orderTags(metadata.native["ID3v2.3"]);
       /* eslint-disable max-len */
       assert.deepEqual(
@@ -303,7 +300,7 @@ describe("Extract metadata from ID3v2.3 header", () => {
       // http://id3.org/id3v2.3.0#User_defined_URL_link_frame
       it("decoding #1", async () => {
         const metadata = await mm.parseFile(
-          path.join(samplePath, "bug-unkown encoding.mp3")
+          join(samplePath, "bug-unkown encoding.mp3")
         );
         const id3v23 = mm.orderTags(metadata.native["ID3v2.3"]);
         assert.deepEqual(id3v23.WXXX[0], {
@@ -313,7 +310,7 @@ describe("Extract metadata from ID3v2.3 header", () => {
       });
 
       it("decoding #2", async () => {
-        const filePath = path.join(samplePath, "mp3", "issue-453.mp3");
+        const filePath = join(samplePath, "mp3", "issue-453.mp3");
 
         const metadata = await mm.parseFile(filePath);
         assert.deepEqual(metadata.format.tagTypes, ["ID3v2.3", "ID3v1"]);
@@ -329,7 +326,7 @@ describe("Extract metadata from ID3v2.3 header", () => {
     // http://id3.org/id3v2.3.0#Music_CD_identifier
     it("4.5 MCDI: Music CD identifier", async () => {
       const metadata = await mm.parseFile(
-        path.join(samplePath, "04-Strawberry.mp3")
+        join(samplePath, "04-Strawberry.mp3")
       );
       const id3v23 = mm.orderTags(metadata.native["ID3v2.3"]);
       assert.equal(id3v23.MCDI[0].length, 804, "TOC");
@@ -338,7 +335,7 @@ describe("Extract metadata from ID3v2.3 header", () => {
     // http://id3.org/id3v2.3.0#General_encapsulated_object
     // Issue: https://github.com/Borewit/music-metadata/issues/406
     it("4.16 GEOB: General encapsulated object", async () => {
-      const filePath = path.join(samplePath, "mp3", "issue-406-geob.mp3");
+      const filePath = join(samplePath, "mp3", "issue-406-geob.mp3");
 
       const { format, common, native } = await mm.parseFile(filePath);
 
@@ -366,7 +363,7 @@ describe("Extract metadata from ID3v2.3 header", () => {
     describe("TXXX", async () => {
       it("Handle empty TXXX", async () => {
         const { format, quality, common } = await mm.parseFile(
-          path.join(samplePath, "mp3", "issue-471.mp3")
+          join(samplePath, "mp3", "issue-471.mp3")
         );
 
         assert.strictEqual(format.container, "MPEG", "format.container");
@@ -394,7 +391,7 @@ describe("Extract metadata from ID3v2.3 header", () => {
 
     describe("PRIV", async () => {
       it("Handle empty PRIV tag", async () => {
-        const filePath = path.join(samplePath, "mp3", "issue-691.mp3");
+        const filePath = join(samplePath, "mp3", "issue-691.mp3");
         const { format, common, quality } = await mm.parseFile(filePath);
 
         assert.strictEqual(format.container, "MPEG", "format.container");
@@ -415,7 +412,7 @@ describe("Extract metadata from ID3v2.3 header", () => {
     });
 
     it("Handle ID32.2 tag ID's in ID32.3 header", async () => {
-      const filePath = path.join(samplePath, "mp3", "issue-795.mp3");
+      const filePath = join(samplePath, "mp3", "issue-795.mp3");
 
       const { native, quality, common } = await mm.parseFile(filePath);
       assert.isDefined(native["ID3v2.3"], "native['ID3v2.3']");

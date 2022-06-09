@@ -1,11 +1,12 @@
 import initDebug from "debug";
 import { StringType, UINT8 } from "token-types";
-import { IGetToken } from "strtok3/lib/core";
 
-import * as util from "../common/Util";
-import { BasicParser } from "../common/BasicParser";
 import { APEv2Parser } from "../apev2/APEv2Parser";
-import { IRandomReader } from "../type";
+import { BasicParser } from "../common/BasicParser";
+import { trimRightNull } from "../common/Util";
+
+import type { IRandomReader } from "../type";
+import type { IGetToken } from "strtok3/lib/core";
 
 const debug = initDebug("music-metadata:parser:ID3v1");
 
@@ -262,7 +263,7 @@ class Id3v1StringType extends StringType {
 
   public get(buf: Buffer, off: number): string {
     let value = super.get(buf, off);
-    value = util.trimRightNull(value);
+    value = trimRightNull(value);
     value = value.trim();
     return value.length > 0 ? value : undefined;
   }

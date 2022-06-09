@@ -1,9 +1,11 @@
 import { assert } from "chai";
 
 import { parseStream } from "../lib";
-import { IHttpClient, HttpClient } from "./http-client";
 
-import { IFileInfo } from "strtok3";
+import { HttpClient } from "./http-client";
+
+import type { IHttpClient } from "./http-client";
+import type { IFileInfo } from "strtok3";
 
 interface IHttpClientTest {
   readonly name: string;

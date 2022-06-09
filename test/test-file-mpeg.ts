@@ -1,11 +1,13 @@
-import { assert } from "chai";
-import * as fs from "fs";
-import * as path from "path";
+import { writeFileSync, unlinkSync, readFileSync } from "fs";
+import { join } from "path";
 
-import { samplePath, SourceStream } from "./util";
-import { ID3v24TagMapper } from "../lib/id3v2/ID3v24TagMapper";
-import { Parsers } from "./metadata-parsers";
+import { assert } from "chai";
+
 import * as mm from "../lib";
+import { ID3v24TagMapper } from "../lib/id3v2/ID3v24TagMapper";
+
+import { Parsers } from "./metadata-parsers";
+import { samplePath, SourceStream } from "./util";
 
 const t = assert;
 
@@ -31,7 +33,7 @@ describe("Parse MPEG", () => {
      *
      * Using CBR calculation: 23392.29375; same as Mutagen
      */
-    const filePath = path.join(
+    const filePath = join(
       samplePath,
       "1971 - 003 - Sweet - Co-Co - CannaPower.mp2"
     );
@@ -90,13 +92,13 @@ describe("Parse MPEG", () => {
     it("should sync efficient, from a file", async function () {
       this.timeout(10000); // It takes a log time to parse, due to sync errors and assumption it is VBR (which is caused by the funny 224 kbps frame)
 
-      const tmpFilePath = path.join(samplePath, "zeroes.mp3");
+      const tmpFilePath = join(samplePath, "zeroes.mp3");
 
-      fs.writeFileSync(tmpFilePath, buf);
+      writeFileSync(tmpFilePath, buf);
       try {
         await mm.parseFile(tmpFilePath, { duration: true });
       } finally {
-        fs.unlinkSync(tmpFilePath);
+        unlinkSync(tmpFilePath);
       }
     });
   });
@@ -110,7 +112,7 @@ describe("Parse MPEG", () => {
        */
       this.timeout(15000); // It takes a long time to parse, due to sync errors and assumption it is VBR (which is caused by the funny 224 kbps frame)
 
-      const filePath = path.join(samplePath, "04 - You Don't Know.mp3");
+      const filePath = join(samplePath, "04 - You Don't Know.mp3");
 
       function checkFormat(format) {
         t.deepEqual(format.tagTypes, ["ID3v2.3", "ID3v1"], "format.tagTypes");
@@ -194,7 +196,7 @@ describe("Parse MPEG", () => {
     it("should decode 07 - I'm Cool.mp3", async function () {
       // 'LAME3.91' found on position 81BCF=531407
 
-      const filePath = path.join(samplePath, "07 - I'm Cool.mp3");
+      const filePath = join(samplePath, "07 - I'm Cool.mp3");
 
       this.timeout(15000); // It takes a long time to parse
 
@@ -280,7 +282,7 @@ describe("Parse MPEG", () => {
        File is VBR. Average bitrate is 309 kbps.
        Exact length: 00:00
        ------------------------------------------------------------------------*/
-      const filePath = path.join(samplePath, "outofbounds.mp3");
+      const filePath = join(samplePath, "outofbounds.mp3");
 
       function checkFormat(format) {
         t.deepEqual(format.tagTypes, ["ID3v2.3", "ID3v1"], "format.type");
@@ -299,7 +301,7 @@ describe("Parse MPEG", () => {
     });
   });
 
-  const issueDir = path.join(samplePath);
+  const issueDir = join(samplePath);
 
   /**
    * Related to issue #39
@@ -325,9 +327,7 @@ describe("Parse MPEG", () => {
     }
 
     it("should parse multiple tag headers: ID3v2.3, ID3v2.4 & ID3v1", async () => {
-      const metadata = await mm.parseFile(
-        path.join(issueDir, "id3-multi-02.mp3")
-      );
+      const metadata = await mm.parseFile(join(issueDir, "id3-multi-02.mp3"));
       checkFormat(metadata.format, 230.29551020408164);
     });
 
@@ -336,9 +336,7 @@ describe("Parse MPEG", () => {
      */
     it("should decode mp3_01 with 2x ID3v2.4 header", async () => {
       // ToDo: currently second ID3v2.4 is overwritten. Either make both headers accessible or generate warning
-      const metadata = await mm.parseFile(
-        path.join(issueDir, "id3-multi-01.mp3")
-      );
+      const metadata = await mm.parseFile(join(issueDir, "id3-multi-01.mp3"));
       checkFormat(metadata.format, 0.1306122448979592);
     });
   });
@@ -376,7 +374,7 @@ describe("Parse MPEG", () => {
 
     it("from 'Yeahs-It's Blitz!.mp3'", async () => {
       const metadata = await mm.parseFile(
-        path.join(issueDir, "02-Yeahs-It's Blitz! 2.mp3"),
+        join(issueDir, "02-Yeahs-It's Blitz! 2.mp3"),
         {
           duration: false,
         }
@@ -396,10 +394,9 @@ describe("Parse MPEG", () => {
     });
 
     it("from 'id3v2-lyrics.mp3'", async () => {
-      const metadata = await mm.parseFile(
-        path.join(issueDir, "id3v2-lyrics.mp3"),
-        { duration: false }
-      );
+      const metadata = await mm.parseFile(join(issueDir, "id3v2-lyrics.mp3"), {
+        duration: false,
+      });
       const idv23 = mm.orderTags(metadata.native["ID3v2.3"]);
       // Native rating value
       assert.deepEqual(
@@ -417,7 +414,7 @@ describe("Parse MPEG", () => {
     });
 
     it("decode POPM without a counter field", async () => {
-      const filePath = path.join(issueDir, "issue-100.mp3");
+      const filePath = join(issueDir, "issue-100.mp3");
 
       const metadata = await mm.parseFile(filePath, { duration: true });
       const idv23 = mm.orderTags(metadata.native["ID3v2.3"]);
@@ -435,7 +432,7 @@ describe("Parse MPEG", () => {
 
   describe("Calculate / read duration", () => {
     describe("VBR read from Xing header", () => {
-      const filePath = path.join(issueDir, "id3v2-xheader.mp3");
+      const filePath = join(issueDir, "id3v2-xheader.mp3");
 
       Parsers.forEach((parser) => {
         it(parser.description, async () => {
@@ -448,9 +445,9 @@ describe("Parse MPEG", () => {
     });
 
     it("VBR: based on frame count if duration flag is set", async () => {
-      const filePath = path.join(issueDir, "Dethklok-mergeTagHeaders.mp3");
+      const filePath = join(issueDir, "Dethklok-mergeTagHeaders.mp3");
       // Wrap stream around buffer, to prevent the `stream.path` is provided
-      const buffer = fs.readFileSync(filePath);
+      const buffer = readFileSync(filePath);
       const stream = new SourceStream(buffer);
 
       const metadata = await mm.parseStream(
@@ -463,7 +460,7 @@ describe("Parse MPEG", () => {
   });
 
   it("It should be able to decode MPEG 2.5 Layer III", async () => {
-    const filePath = path.join(issueDir, "mp3", "issue-347.mp3");
+    const filePath = join(issueDir, "mp3", "issue-347.mp3");
     const { format } = await mm.parseFile(filePath);
     assert.strictEqual(format.container, "MPEG", "format.container");
     assert.strictEqual(format.codec, "MPEG 2.5 Layer 3", "format.codec");

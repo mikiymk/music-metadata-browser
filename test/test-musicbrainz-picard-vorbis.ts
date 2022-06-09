@@ -1,12 +1,14 @@
-import { assert } from "chai";
-import * as path from "path";
+import { join } from "path";
 
-import * as mm from "../lib";
+import { assert } from "chai";
+
+import { parseFile, orderTags } from "../lib";
+
 import { samplePath } from "./util";
 
 it("MusicBrains/Picard tags in FLAC", async () => {
   const filename = "MusicBrainz-Picard-tags.flac";
-  const filePath = path.join(samplePath, filename);
+  const filePath = join(samplePath, filename);
 
   function checkFormat(format) {
     assert.deepEqual(format.duration, 271.7733333333333, "format.duration");
@@ -174,12 +176,12 @@ it("MusicBrains/Picard tags in FLAC", async () => {
   }
 
   // Run with default options
-  const metadata = await mm.parseFile(filePath);
+  const metadata = await parseFile(filePath);
   assert.isDefined(metadata, "metadata");
   assert.isDefined(metadata.common, "should include common tags");
   assert.isDefined(metadata.native, "metadata.common");
   assert.isDefined(metadata.native.vorbis, "should include native Vorbis tags");
   checkFormat(metadata.format);
-  checkNativeTags(mm.orderTags(metadata.native.vorbis));
+  checkNativeTags(orderTags(metadata.native.vorbis));
   checkCommonTags(metadata.common);
 });

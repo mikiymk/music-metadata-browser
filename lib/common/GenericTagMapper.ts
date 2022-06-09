@@ -1,6 +1,6 @@
-import * as generic from "./GenericTagTypes";
-import { ITag } from "../type";
-import {
+import type { ITag } from "../type";
+import type * as generic from "./GenericTagTypes";
+import type {
   INativeMetadataCollector,
   IWarningCollector,
 } from "./MetadataCollector";
@@ -25,13 +25,13 @@ export interface IGenericTagMapper {
   mapGenericTag(
     tag: ITag,
     warnings: INativeMetadataCollector
-  ): generic.IGenericTag;
+  ): generic.IGenericTag | null;
 }
 
 export class CommonTagMapper implements IGenericTagMapper {
   public static maxRatingScore = 1;
 
-  public static toIntOrNull(str: string): number {
+  public static toIntOrNull(str: string): number | null {
     const cleaned = parseInt(str, 10);
     return isNaN(cleaned) ? null : cleaned;
   }
@@ -42,8 +42,8 @@ export class CommonTagMapper implements IGenericTagMapper {
   public static normalizeTrack(origVal: number | string) {
     const split = origVal.toString().split("/");
     return {
-      no: parseInt(split[0], 10) || null,
-      of: parseInt(split[1], 10) || null,
+      no: parseInt(split[0] ?? "", 10) || null,
+      of: parseInt(split[1] ?? "", 10) || null,
     };
   }
 
@@ -62,7 +62,7 @@ export class CommonTagMapper implements IGenericTagMapper {
   public mapGenericTag(
     tag: ITag,
     warnings: IWarningCollector
-  ): generic.IGenericTag {
+  ): generic.IGenericTag | null {
     tag = { id: tag.id, value: tag.value }; // clone object
 
     this.postMap(tag, warnings);
@@ -77,7 +77,7 @@ export class CommonTagMapper implements IGenericTagMapper {
    * @tag  Native header tag
    * @return common tag name (alias)
    */
-  protected getCommonName(tag: string): generic.GenericTagId {
+  protected getCommonName(tag: string): generic.GenericTagId | undefined {
     return this.tagMap[tag];
   }
 

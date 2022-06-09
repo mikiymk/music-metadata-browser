@@ -1,17 +1,19 @@
-import { assert } from "chai";
-import * as path from "path";
+import { join } from "path";
 
-import * as mm from "../lib";
+import { assert } from "chai";
+
+import { parseFile, orderTags } from "../lib";
+
 import { samplePath } from "./util";
 
 const t = assert;
 
 it("ID3v2.4", async () => {
   const filename = "29 - Dominator.mp3";
-  const filePath = path.join(samplePath, filename);
+  const filePath = join(samplePath, filename);
 
-  const metadata = await mm.parseFile(filePath);
-  const nativeTags = mm.orderTags(metadata.native["ID3v2.3"]);
+  const metadata = await parseFile(filePath);
+  const nativeTags = orderTags(metadata.native["ID3v2.3"]);
 
   t.equal(nativeTags.UFID.length, 1);
 

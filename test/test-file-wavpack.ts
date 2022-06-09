@@ -1,12 +1,13 @@
+import { join } from "path";
+
 import { assert } from "chai";
-import * as path from "path";
 
 import { Parsers } from "./metadata-parsers";
 import { samplePath } from "./util";
 
 const t = assert;
 
-const wavpackSamplePath = path.join(samplePath, "wavpack");
+const wavpackSamplePath = join(samplePath, "wavpack");
 
 describe("Parse WavPack (audio/x-wavpack)", () => {
   describe("codec: WavPack", () => {
@@ -26,7 +27,7 @@ describe("Parse WavPack (audio/x-wavpack)", () => {
       );
     }
 
-    const wv1 = path.join(
+    const wv1 = join(
       wavpackSamplePath,
       "MusicBrainz - Beth Hart - Sinner's Prayer.wv"
     );
@@ -50,7 +51,7 @@ describe("Parse WavPack (audio/x-wavpack)", () => {
       t.deepEqual(format.tagTypes, [], "format.tagTypes");
     }
 
-    const wv1 = path.join(wavpackSamplePath, "DSD128.wv");
+    const wv1 = join(wavpackSamplePath, "DSD128.wv");
 
     Parsers.forEach((parser) => {
       it(parser.description, async () => {
@@ -71,7 +72,7 @@ describe("Parse WavPack (audio/x-wavpack)", () => {
       t.approximately(format.bitrate, 4810400, 1);
     }
 
-    const wv1 = path.join(wavpackSamplePath, "DSD128 high compression.wv");
+    const wv1 = join(wavpackSamplePath, "DSD128 high compression.wv");
 
     Parsers.forEach((parser) => {
       it(parser.description, async () => {

@@ -1,16 +1,18 @@
-import { assert } from "chai";
-import * as path from "path";
+import { join } from "path";
 
-import * as mm from "../lib";
+import { assert } from "chai";
+
+import { parseFile } from "../lib";
+
 import { samplePath } from "./util";
 
 const t = assert;
 
 it("should be able to read id3v2 files with extended headers", () => {
   const filename = "id3v2-xheader.mp3";
-  const filePath = path.join(samplePath, filename);
+  const filePath = join(samplePath, filename);
 
-  return mm.parseFile(filePath, { duration: true }).then((metadata) => {
+  return parseFile(filePath, { duration: true }).then((metadata) => {
     t.strictEqual(
       metadata.format.numberOfSamples,
       10944,

@@ -1,16 +1,18 @@
-import { assert } from "chai";
-import * as path from "path";
+import { join } from "path";
 
-import * as mm from "../lib";
+import { assert } from "chai";
+
+import { parseFile } from "../lib";
+
 import { samplePath } from "./util";
 
 describe("Parse Philips DSDIFF", () => {
-  const dsdiffamplePath = path.join(samplePath, "dsdiff");
+  const dsdiffamplePath = join(samplePath, "dsdiff");
 
   it("parse: DSD64.dff", async () => {
-    const filePath = path.join(dsdiffamplePath, "DSD64.dff");
+    const filePath = join(dsdiffamplePath, "DSD64.dff");
 
-    const { format, common } = await mm.parseFile(filePath, {
+    const { format, common } = await parseFile(filePath, {
       duration: false,
     });
 

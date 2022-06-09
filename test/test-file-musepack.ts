@@ -1,14 +1,15 @@
+import { join } from "path";
+
 import { assert } from "chai";
-import * as path from "path";
 
 import { Parsers } from "./metadata-parsers";
 import { samplePath } from "./util";
 
 describe("Parse Musepack (.mpc)", () => {
-  const mpcSamplePath = path.join(samplePath, "mpc");
+  const mpcSamplePath = join(samplePath, "mpc");
 
   describe("Parse Musepack, SV7 with APEv2 header", () => {
-    const filePath = path.join(mpcSamplePath, "apev2.sv7.mpc");
+    const filePath = join(mpcSamplePath, "apev2.sv7.mpc");
 
     Parsers.forEach((parser) => {
       it(parser.description, async () => {
@@ -40,7 +41,7 @@ describe("Parse Musepack (.mpc)", () => {
     /**
      * In this sample the APEv2 header is not present, only the APEv2 footer
      */
-    const filePath = path.join(mpcSamplePath, "apev2-no-header.sv7.mpc");
+    const filePath = join(mpcSamplePath, "apev2-no-header.sv7.mpc");
 
     Parsers.forEach((parser) => {
       it(parser.description, async () => {
@@ -63,10 +64,7 @@ describe("Parse Musepack (.mpc)", () => {
   });
 
   describe("Parse Musepack, SV8 with APEv2 header", () => {
-    const filePath = path.join(
-      mpcSamplePath,
-      "bach-goldberg-variatians-05.sv8.mpc"
-    );
+    const filePath = join(mpcSamplePath, "bach-goldberg-variatians-05.sv8.mpc");
 
     Parsers.forEach((parser) => {
       it(parser.description, async () => {

@@ -1,4 +1,6 @@
-import { DataType, IContainerType } from "./types";
+import { DataType } from "./types";
+
+import type { IContainerType } from "./types";
 
 /**
  * Elements of document type description

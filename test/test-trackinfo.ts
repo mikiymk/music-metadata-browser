@@ -1,20 +1,22 @@
-import { assert } from "chai";
-import * as path from "path";
+import { join } from "path";
 
+import { assert } from "chai";
+
+import { parseFile } from "../lib";
 import { TrackType } from "../lib/type";
-import * as mm from "../lib";
+
 import { samplePath } from "./util";
 
-const path_samples = path.join(samplePath);
+const path_samples = join(samplePath);
 
 describe("format.trackInfo", () => {
   describe("Containers", () => {
     describe("ASF", () => {
-      const path_asf = path.join(path_samples, "asf");
+      const path_asf = join(path_samples, "asf");
 
       it("wma", async () => {
-        const filePath = path.join(path_asf, "issue_57.wma");
-        const { format } = await mm.parseFile(filePath);
+        const filePath = join(path_asf, "issue_57.wma");
+        const { format } = await parseFile(filePath);
 
         assert.includeDeepOrderedMembers(
           format.trackInfo,
@@ -29,8 +31,8 @@ describe("format.trackInfo", () => {
       });
 
       it("elephant.asf", async () => {
-        const filePath = path.join(path_asf, "elephant.asf");
-        const { format } = await mm.parseFile(filePath);
+        const filePath = join(path_asf, "elephant.asf");
+        const { format } = await parseFile(filePath);
 
         assert.includeDeepOrderedMembers(
           format.trackInfo,
@@ -51,12 +53,12 @@ describe("format.trackInfo", () => {
 
     describe("Matroska", () => {
       it("WebM", async () => {
-        const filePath = path.join(
+        const filePath = join(
           path_samples,
           "matroska",
           "big-buck-bunny_trailer-short.vp8.webm"
         );
-        const { format } = await mm.parseFile(filePath);
+        const { format } = await parseFile(filePath);
 
         assert.includeDeepOrderedMembers(
           format.trackInfo,
@@ -98,12 +100,12 @@ describe("format.trackInfo", () => {
       });
 
       it("matroska-test-w1-test5-short.mkv", async () => {
-        const filePath = path.join(
+        const filePath = join(
           path_samples,
           "matroska",
           "matroska-test-w1-test5-short.mkv"
         );
-        const { format } = await mm.parseFile(filePath);
+        const { format } = await parseFile(filePath);
 
         assert.includeDeepOrderedMembers(
           format.trackInfo,
@@ -259,12 +261,12 @@ describe("format.trackInfo", () => {
 
     describe("MPEG-4", () => {
       it('.mp4: "Mr. Pickles S02E07 My Dear Boy.mp4"', async () => {
-        const filePath = path.join(
+        const filePath = join(
           path_samples,
           "mp4",
           "Mr. Pickles S02E07 My Dear Boy.mp4"
         );
-        const { format } = await mm.parseFile(filePath);
+        const { format } = await parseFile(filePath);
 
         assert.includeDeepOrderedMembers(
           format.trackInfo,

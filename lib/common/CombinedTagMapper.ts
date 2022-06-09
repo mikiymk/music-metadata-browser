@@ -1,16 +1,17 @@
-import { ID3v1TagMapper } from "../id3v1/ID3v1TagMap";
-import { ID3v24TagMapper } from "../id3v2/ID3v24TagMapper";
-import { AsfTagMapper } from "../asf/AsfTagMapper";
-import { IGenericTag, TagType } from "./GenericTagTypes";
-import { ID3v22TagMapper } from "../id3v2/ID3v22TagMapper";
 import { APEv2TagMapper } from "../apev2/APEv2TagMapper";
-import { IGenericTagMapper } from "./GenericTagMapper";
+import { AsfTagMapper } from "../asf/AsfTagMapper";
+import { ID3v1TagMapper } from "../id3v1/ID3v1TagMap";
+import { ID3v22TagMapper } from "../id3v2/ID3v22TagMapper";
+import { ID3v24TagMapper } from "../id3v2/ID3v24TagMapper";
+import { MatroskaTagMapper } from "../matroska/MatroskaTagMapper";
 import { MP4TagMapper } from "../mp4/MP4TagMapper";
 import { VorbisTagMapper } from "../ogg/vorbis/VorbisTagMapper";
 import { RiffInfoTagMapper } from "../riff/RiffInfoTagMap";
-import { ITag } from "../type";
-import { INativeMetadataCollector } from "./MetadataCollector";
-import { MatroskaTagMapper } from "../matroska/MatroskaTagMapper";
+
+import type { ITag } from "../type";
+import type { IGenericTagMapper } from "./GenericTagMapper";
+import type { IGenericTag, TagType } from "./GenericTagTypes";
+import type { INativeMetadataCollector } from "./MetadataCollector";
 
 export class CombinedTagMapper {
   public tagMappers: { [index: string]: IGenericTagMapper } = {};
@@ -46,7 +47,7 @@ export class CombinedTagMapper {
   ): IGenericTag {
     const tagMapper = this.tagMappers[tagType];
     if (tagMapper) {
-      return this.tagMappers[tagType].mapGenericTag(tag, warnings);
+      return tagMapper.mapGenericTag(tag, warnings);
     }
     throw new Error("No generic tag mapper defined for tag-format: " + tagType);
   }

@@ -1,12 +1,14 @@
+import { join } from "path";
+
 import { assert } from "chai";
-import * as path from "path";
 
 import * as mm from "../lib";
+
 import { Parsers } from "./metadata-parsers";
 import { samplePath } from "./util";
 
 describe("Parse MP3 files", () => {
-  const mp3SamplePath = path.join(samplePath, "mp3");
+  const mp3SamplePath = join(samplePath, "mp3");
 
   describe("Test patterns for ISO/MPEG ", () => {
     it("ISO/MPEG 1 Layer 1", async () => {
@@ -24,7 +26,7 @@ describe("Parse MP3 files", () => {
 
       for (const sample of samples) {
         const { format } = await mm.parseFile(
-          path.join(mp3SamplePath, "layer1", sample.filename),
+          join(mp3SamplePath, "layer1", sample.filename),
           { duration: true }
         );
         assert.strictEqual(format.container, "MPEG", "format.container");
@@ -65,7 +67,7 @@ describe("Parse MP3 files", () => {
 
       for (const sample of samples) {
         const { format } = await mm.parseFile(
-          path.join(mp3SamplePath, "layer2", sample.filename),
+          join(mp3SamplePath, "layer2", sample.filename),
           { duration: true }
         );
         assert.strictEqual(format.container, "MPEG", "format.container");
@@ -124,7 +126,7 @@ describe("Parse MP3 files", () => {
 
       for (const sample of samples) {
         const { format } = await mm.parseFile(
-          path.join(mp3SamplePath, "layer3", sample.filename),
+          join(mp3SamplePath, "layer3", sample.filename),
           { duration: true }
         );
         assert.strictEqual(format.container, "MPEG", "format.container");
@@ -157,7 +159,7 @@ describe("Parse MP3 files", () => {
   it("should handle audio-frame-header-bug", function () {
     this.timeout(15000); // It takes a long time to parse
 
-    const filePath = path.join(samplePath, "audio-frame-header-bug.mp3");
+    const filePath = join(samplePath, "audio-frame-header-bug.mp3");
 
     return mm.parseFile(filePath, { duration: true }).then((result) => {
       // FooBar: 3:20.556 (8.844.527 samples); 44100 Hz => 200.5561678004535 seconds
@@ -173,7 +175,7 @@ describe("Parse MP3 files", () => {
   it("should be able to parse: Sleep Away.mp3", function () {
     this.timeout(15000); // Parsing this file can take a bit longer
 
-    const filePath = path.join(mp3SamplePath, "Sleep Away.mp3");
+    const filePath = join(mp3SamplePath, "Sleep Away.mp3");
 
     return mm.parseFile(filePath, { duration: true }).then((metadata) => {
       const { format, common } = metadata;
@@ -198,7 +200,7 @@ describe("Parse MP3 files", () => {
 
   // https://github.com/Borewit/music-metadata/issues/381
   it("should be able to handle empty ID3v2 tag", async () => {
-    const filePath = path.join(mp3SamplePath, "issue-381.mp3");
+    const filePath = join(mp3SamplePath, "issue-381.mp3");
 
     const { format } = await mm.parseFile(filePath);
 
@@ -208,7 +210,7 @@ describe("Parse MP3 files", () => {
 
   // https://github.com/Borewit/music-metadata/issues/398
   it("Handle empty picture tag", async () => {
-    const filePath = path.join(mp3SamplePath, "empty-picture-tag.mp3");
+    const filePath = join(mp3SamplePath, "empty-picture-tag.mp3");
 
     const { format, common, quality } = await mm.parseFile(filePath);
     assert.strictEqual(format.container, "MPEG", "format.container");
@@ -228,7 +230,7 @@ describe("Parse MP3 files", () => {
 
   // https://github.com/Borewit/music-metadata/issues/979
   it("Handle odd number of octets for 16 bit unicide string", async () => {
-    const filePath = path.join(mp3SamplePath, "issue-979.mp3"); // TLEN as invalid encode 16 bit unicode string
+    const filePath = join(mp3SamplePath, "issue-979.mp3"); // TLEN as invalid encode 16 bit unicode string
 
     const { format, common, quality } = await mm.parseFile(filePath, {
       duration: true,
@@ -255,7 +257,7 @@ describe("Parse MP3 files", () => {
 
   // https://github.com/Borewit/music-metadata/issues/430
   it("Handle preceding ADTS frame with (invalid) frame length of 0 bytes", async () => {
-    const filePath = path.join(mp3SamplePath, "adts-0-frame.mp3");
+    const filePath = join(mp3SamplePath, "adts-0-frame.mp3");
 
     const { format, common } = await mm.parseFile(filePath, { duration: true });
 
@@ -273,7 +275,7 @@ describe("Parse MP3 files", () => {
   });
 
   it("Able to handle corrupt LAME header", async () => {
-    const filePath = path.join(mp3SamplePath, "issue-554.mp3");
+    const filePath = join(mp3SamplePath, "issue-554.mp3");
 
     const { format, quality } = await mm.parseFile(filePath, {
       duration: true,
@@ -292,7 +294,7 @@ describe("Parse MP3 files", () => {
   });
 
   describe("should handle incomplete MP3 file", () => {
-    const filePath = path.join(samplePath, "incomplete.mp3");
+    const filePath = join(samplePath, "incomplete.mp3");
 
     function checkFormat(format: mm.IFormat) {
       assert.deepEqual(
@@ -329,7 +331,7 @@ describe("Parse MP3 files", () => {
 
   describe("Duration flag behaviour", () => {
     describe("MP3/CBR without Xing header", () => {
-      const filePath = path.join(mp3SamplePath, "Sleep Away.mp3");
+      const filePath = join(mp3SamplePath, "Sleep Away.mp3");
 
       describe("duration=false", () => {
         Parsers.forEach((parser) => {
@@ -367,7 +369,7 @@ describe("Parse MP3 files", () => {
 
   describe("MP3 with APEv2 footer header", () => {
     it("should be able to parse APEv2 header", async () => {
-      const filePath = path.join(samplePath, "issue_56.mp3");
+      const filePath = join(samplePath, "issue_56.mp3");
 
       const metadata = await mm.parseFile(filePath);
       assert.strictEqual(metadata.format.container, "MPEG");
@@ -375,7 +377,7 @@ describe("Parse MP3 files", () => {
     });
 
     it('should be able to parse APEv1 header"', async () => {
-      const filePath = path.join(mp3SamplePath, "issue-362.apev1.mp3");
+      const filePath = join(mp3SamplePath, "issue-362.apev1.mp3");
 
       const { format, common } = await mm.parseFile(filePath, {
         duration: true,
@@ -415,7 +417,7 @@ describe("Parse MP3 files", () => {
     });
 
     it("should be able to parse APEv2 header followed by a Lyrics3v2 header", async () => {
-      const filePath = path.join(mp3SamplePath, "APEv2+Lyrics3v2.mp3");
+      const filePath = join(mp3SamplePath, "APEv2+Lyrics3v2.mp3");
 
       const metadata = await mm.parseFile(filePath);
       assert.strictEqual(metadata.format.container, "MPEG");
@@ -431,7 +433,7 @@ describe("Parse MP3 files", () => {
 
   describe("Handle Xing header", () => {
     it("Handle Xing header, without LAME extension", async () => {
-      const filePath = path.join(mp3SamplePath, "Solace.mp3");
+      const filePath = join(mp3SamplePath, "Solace.mp3");
       const { format } = await mm.parseFile(filePath, { duration: true });
       assert.strictEqual(format.container, "MPEG", "format.container");
       assert.strictEqual(format.codec, "MPEG 1 Layer 3", "format.codec");
@@ -444,7 +446,7 @@ describe("Parse MP3 files", () => {
 
     describe("Lame extension", () => {
       it("track peak", async () => {
-        const filePath = path.join(mp3SamplePath, "lame-peak.mp3");
+        const filePath = join(mp3SamplePath, "lame-peak.mp3");
         const { format } = await mm.parseFile(filePath, { duration: true });
 
         assert.strictEqual(format.container, "MPEG", "format.container");
@@ -463,7 +465,7 @@ describe("Parse MP3 files", () => {
     });
 
     it("Handle invalid LAME version", async () => {
-      const filePath = path.join(mp3SamplePath, "issue-828.mp3");
+      const filePath = join(mp3SamplePath, "issue-828.mp3");
 
       const { format } = await mm.parseFile(filePath);
 

@@ -1,9 +1,11 @@
-import { assert } from "chai";
-import * as mime from "mime";
-import * as fs from "fs";
-import * as path from "path";
+import { readFileSync, createReadStream } from "fs";
+import { join } from "path";
 
-import * as mm from "../lib";
+import { assert } from "chai";
+import { getType } from "mime";
+
+import { parseFile, parseStream } from "../lib";
+
 import { SourceStream, samplePath } from "./util";
 
 const t = assert;
@@ -34,8 +36,7 @@ describe("MIME & extension mapping", () => {
   }
 
   it("should reject an unknown file", () => {
-    return mm
-      .parseFile(path.join(__dirname, "..", "package.json"))
+    return parseFile(join(__dirname, "..", "package.json"))
       .then(() => t.fail("Should reject extension"))
       .catch((err) => {
         t.strictEqual(err.message, "Failed to determine audio format");
@@ -47,10 +48,10 @@ describe("MIME & extension mapping", () => {
       audioExtension.map((extension) => {
         const streamReader = new SourceStream(buf);
         // Convert extension to MIME-Type
-        const mimeType = mime.getType(extension);
+        const mimeType = getType(extension);
         t.isNotNull(mimeType, "extension: " + extension);
 
-        return mm.parseStream(streamReader, mimeType).catch((err) => {
+        return parseStream(streamReader, mimeType).catch((err) => {
           handleError(extension, err);
         });
       })
@@ -62,11 +63,11 @@ describe("MIME & extension mapping", () => {
 
     audioExtension.forEach((extension) => {
       const streamReader = new SourceStream(buf);
-      const res = mm
-        .parseStream(streamReader, { path: extension })
-        .catch((err) => {
+      const res = parseStream(streamReader, { path: extension }).catch(
+        (err) => {
           handleError(extension, err);
-        });
+        }
+      );
 
       prom.push(res);
     });
@@ -76,21 +77,21 @@ describe("MIME & extension mapping", () => {
 
   it("should be able to handle MIME-type parameter(s)", async () => {
     // Wrap stream around buffer, to prevent the `stream.path` is provided
-    const buffer = fs.readFileSync(
-      path.join(
+    const buffer = readFileSync(
+      join(
         samplePath,
         "MusicBrainz - Beth Hart - Sinner's Prayer [id3v2.3].wav"
       )
     );
     const stream = new SourceStream(buffer);
-    const metadata = await mm.parseStream(stream);
+    const metadata = await parseStream(stream);
     assert.equal(metadata.format.container, "WAVE");
   });
 
   describe("Resolve MIME based on content", () => {
     it("should fall back on content detection in case the extension is useless", async () => {
-      const metadata = await mm.parseFile(
-        path.join(samplePath, "mp3", "1a643e9e0743dee8732554d0e870055a")
+      const metadata = await parseFile(
+        join(samplePath, "mp3", "1a643e9e0743dee8732554d0e870055a")
       );
       assert.equal(metadata.format.container, "MPEG");
       assert.equal(metadata.format.codec, "MPEG 1 Layer 3");
@@ -99,7 +100,7 @@ describe("MIME & extension mapping", () => {
     it("should throw error on unrecognized MIME-type", async () => {
       const streamReader = new SourceStream(buf);
       try {
-        await mm.parseStream(streamReader, { mimeType: "audio/not-existing" });
+        await parseStream(streamReader, { mimeType: "audio/not-existing" });
         assert.fail("Should throw an Error");
       } catch (err) {
         assert.equal(err.message, "Failed to determine audio format");
@@ -108,11 +109,11 @@ describe("MIME & extension mapping", () => {
 
     it("should throw error on recognized MIME-type which is not supported", async () => {
       // Wrap stream around buffer, to prevent the `stream.path` is provided
-      const buffer = fs.readFileSync(path.join(samplePath, "flac.flac.jpg"));
+      const buffer = readFileSync(join(samplePath, "flac.flac.jpg"));
       const stream = new SourceStream(buffer);
 
       try {
-        await mm.parseStream(stream, { mimeType: "audio/not-existing" });
+        await parseStream(stream, { mimeType: "audio/not-existing" });
         assert.fail("Should throw an Error");
       } catch (err) {
         assert.equal(
@@ -123,8 +124,8 @@ describe("MIME & extension mapping", () => {
     });
 
     async function testFileType(sample: string, container: string) {
-      const stream = fs.createReadStream(path.join(samplePath, sample));
-      const metadata = await mm.parseStream(stream);
+      const stream = createReadStream(join(samplePath, sample));
+      const metadata = await parseStream(stream);
       stream.close();
       assert.equal(metadata.format.container, container);
     }
@@ -142,7 +143,7 @@ describe("MIME & extension mapping", () => {
 
     it("should recognize WMA", () => {
       // file-type returns 'video/x-ms-wmv'
-      return testFileType(path.join("asf", "asf.wma"), "ASF/audio");
+      return testFileType(join("asf", "asf.wma"), "ASF/audio");
     });
 
     it("should recognize MPEG-4 / m4a", () => {
@@ -153,12 +154,12 @@ describe("MIME & extension mapping", () => {
     });
 
     it("should recognize MPEG-4 / m4b", () => {
-      return testFileType(path.join("mp4", "issue-127.m4b"), "M4A/3gp5/isom");
+      return testFileType(join("mp4", "issue-127.m4b"), "M4A/3gp5/isom");
     });
 
     it("should recognize MPEG-4 / mp4", () => {
       return testFileType(
-        path.join("mp4", "Mr. Pickles S02E07 My Dear Boy.mp4"),
+        join("mp4", "Mr. Pickles S02E07 My Dear Boy.mp4"),
         "mp42/isom"
       );
     });
@@ -186,44 +187,44 @@ describe("MIME & extension mapping", () => {
     });
 
     it("should recognize WMA", () => {
-      return testFileType(path.join("asf", "issue_57.wma"), "ASF/audio");
+      return testFileType(join("asf", "issue_57.wma"), "ASF/audio");
     });
 
     it("should recognize WavPack", () => {
       return testFileType(
-        path.join("wavpack", "MusicBrainz - Beth Hart - Sinner's Prayer.wv"),
+        join("wavpack", "MusicBrainz - Beth Hart - Sinner's Prayer.wv"),
         "WavPack"
       );
     });
 
     it("should recognize SV7", () => {
-      return testFileType(path.join("mpc", "apev2.sv7.mpc"), "Musepack, SV7");
+      return testFileType(join("mpc", "apev2.sv7.mpc"), "Musepack, SV7");
     });
 
     it("should recognize SV8", () => {
       return testFileType(
-        path.join("mpc", "bach-goldberg-variatians-05.sv8.mpc"),
+        join("mpc", "bach-goldberg-variatians-05.sv8.mpc"),
         "Musepack, SV8"
       );
     });
 
     it("should recognize DSF", () => {
       return testFileType(
-        path.join("dsf", "2L-110_stereo-5644k-1b_04_0.1-sec.dsf"),
+        join("dsf", "2L-110_stereo-5644k-1b_04_0.1-sec.dsf"),
         "DSF"
       );
     });
 
     it("should recognize MKA", () => {
       return testFileType(
-        path.join("matroska", "02 - Poxfil - Solid Ground (5 sec).mka"),
+        join("matroska", "02 - Poxfil - Solid Ground (5 sec).mka"),
         "EBML/matroska"
       );
     });
 
     it("should recognize WebM", () => {
       return testFileType(
-        path.join("matroska", "02 - Poxfil - Solid Ground (5 sec).opus.webm"),
+        join("matroska", "02 - Poxfil - Solid Ground (5 sec).opus.webm"),
         "EBML/webm"
       );
     });

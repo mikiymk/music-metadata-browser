@@ -1,16 +1,15 @@
 /* eslint-disable dot-notation, @typescript-eslint/dot-notation */
+import { createHash } from "crypto";
+import { join } from "path";
+
 import { assert } from "chai";
-import * as path from "path";
-import * as crypto from "crypto";
-import { TagType } from "../lib/common/GenericTagTypes";
-import {
-  ICommonTagsResult,
-  IFormat,
-  INativeTagDict,
-  parseFile,
-  orderTags,
-} from "../lib";
+
+import { parseFile, orderTags } from "../lib";
+
 import { samplePath } from "./util";
+
+import type { ICommonTagsResult, IFormat, INativeTagDict } from "../lib";
+import type { TagType } from "../lib/common/GenericTagTypes";
 
 const t = assert;
 
@@ -35,7 +34,7 @@ describe("Parsing of metadata saved by 'Picard' in audio files", () => {
   }
 
   function calcHash(buf: Buffer): string {
-    const hash = crypto.createHash("md5");
+    const hash = createHash("md5");
     hash.update(buf);
     return hash.digest("hex");
   }
@@ -433,7 +432,7 @@ describe("Parsing of metadata saved by 'Picard' in audio files", () => {
       }
 
       // Parse flac/Vorbis file
-      const metadata = await parseFile(path.join(samplePath, filename));
+      const metadata = await parseFile(join(samplePath, filename));
       t.isDefined(metadata, "should return metadata");
       t.isDefined(metadata.native, "should return metadata.native");
       t.isDefined(
@@ -446,7 +445,7 @@ describe("Parsing of metadata saved by 'Picard' in audio files", () => {
     });
 
     it("should map ogg/Vorbis", async () => {
-      const filePath = path.join(
+      const filePath = join(
         samplePath,
         "MusicBrainz - Beth Hart - Sinner's Prayer.ogg"
       );
@@ -606,7 +605,7 @@ describe("Parsing of metadata saved by 'Picard' in audio files", () => {
     }
 
     it("should map Monkey's Audio / APEv2", async () => {
-      const filePath = path.join(
+      const filePath = join(
         samplePath,
         "MusicBrainz - Beth Hart - Sinner's Prayer.ape"
       );
@@ -634,7 +633,7 @@ describe("Parsing of metadata saved by 'Picard' in audio files", () => {
     });
 
     it("should map WavPack / APEv2", async () => {
-      const filePath = path.join(
+      const filePath = join(
         samplePath,
         "wavpack",
         "MusicBrainz - Beth Hart - Sinner's Prayer.wv"
@@ -796,7 +795,7 @@ describe("Parsing of metadata saved by 'Picard' in audio files", () => {
     }
 
     it("MP3 / ID3v2.3", () => {
-      const filePath = path.join(
+      const filePath = join(
         samplePath,
         "MusicBrainz - Beth Hart - Sinner's Prayer [id3v2.3].V2.mp3"
       );
@@ -831,7 +830,7 @@ describe("Parsing of metadata saved by 'Picard' in audio files", () => {
      * This file has been fixed with Mp3Tag to have a valid ID3v2.3 tag
      */
     it("should map RIFF/WAVE/PCM / ID3v2.3", () => {
-      const filePath = path.join(
+      const filePath = join(
         samplePath,
         "MusicBrainz - Beth Hart - Sinner's Prayer [id3v2.3].wav"
       );
@@ -1029,7 +1028,7 @@ describe("Parsing of metadata saved by 'Picard' in audio files", () => {
     }
 
     it("should map MP3/ID3v2.4 header", async () => {
-      const filePath = path.join(
+      const filePath = join(
         samplePath,
         "MusicBrainz - Beth Hart - Sinner's Prayer [id3v2.4].V2.mp3"
       );
@@ -1061,7 +1060,7 @@ describe("Parsing of metadata saved by 'Picard' in audio files", () => {
     });
 
     it("should parse AIFF/ID3v2.4 audio file", async () => {
-      const filePath = path.join(
+      const filePath = join(
         samplePath,
         "MusicBrainz - Beth Hart - Sinner's Prayer [id3v2.4].aiff"
       );
@@ -1114,7 +1113,7 @@ describe("Parsing of metadata saved by 'Picard' in audio files", () => {
   });
 
   it("should map M4A / (Apple) iTunes header", async () => {
-    const filePath = path.join(
+    const filePath = join(
       samplePath,
       "MusicBrainz - Beth Hart - Sinner's Prayer.m4a"
     );
@@ -1213,7 +1212,7 @@ describe("Parsing of metadata saved by 'Picard' in audio files", () => {
   });
 
   it("should map WMA/ASF header", async () => {
-    const filePath = path.join(
+    const filePath = join(
       samplePath,
       "MusicBrainz - Beth Hart - Sinner's Prayer.wma"
     );

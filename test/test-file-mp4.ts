@@ -1,14 +1,16 @@
+import { createReadStream } from "fs";
+import { join } from "path";
+
 import { assert } from "chai";
-import * as path from "path";
-import * as fs from "fs";
 
 import * as mm from "../lib";
+
 import { Parsers } from "./metadata-parsers";
 import { samplePath } from "./util";
 
 const t = assert;
 
-const mp4Samples = path.join(samplePath, "mp4");
+const mp4Samples = join(samplePath, "mp4");
 
 describe("Parse MPEG-4 files with iTunes metadata", () => {
   describe("Parse MPEG-4 files (.m4a)", () => {
@@ -82,7 +84,7 @@ describe("Parse MPEG-4 files with iTunes metadata", () => {
 
     Parsers.forEach((parser) => {
       it(parser.description, async () => {
-        const filePath = path.join(mp4Samples, "id4.m4a");
+        const filePath = join(mp4Samples, "id4.m4a");
 
         const metadata = await parser.initParser(filePath, "audio/mp4");
         const native = metadata.native.iTunes;
@@ -101,7 +103,7 @@ describe("Parse MPEG-4 files with iTunes metadata", () => {
   describe("should decode 8-byte unsigned integer", () => {
     Parsers.forEach((parser) => {
       it(parser.description, async () => {
-        const filePath = path.join(mp4Samples, "issue-74.m4a");
+        const filePath = join(mp4Samples, "issue-74.m4a");
 
         const metadata = await parser.initParser(filePath, "audio/mp4");
         const { format, common, native } = metadata;
@@ -137,7 +139,7 @@ describe("Parse MPEG-4 files with iTunes metadata", () => {
   describe("should be able to extract the composer and artist", () => {
     Parsers.forEach((parser) => {
       it(parser.description, async () => {
-        const filePath = path.join(mp4Samples, "issue-79.m4a");
+        const filePath = join(mp4Samples, "issue-79.m4a");
 
         const metadata = await parser.initParser(filePath, "audio/mp4");
         const { common, format } = metadata;
@@ -167,7 +169,7 @@ describe("Parse MPEG-4 files with iTunes metadata", () => {
     describe("audio book from issue issue #127", () => {
       Parsers.forEach((parser) => {
         it(parser.description, async () => {
-          const filePath = path.join(mp4Samples, "issue-127.m4b");
+          const filePath = join(mp4Samples, "issue-127.m4b");
 
           const metadata = await parser.initParser(filePath, "audio/mp4");
           const { common, format } = metadata;
@@ -293,11 +295,11 @@ describe("Parse MPEG-4 files with iTunes metadata", () => {
           ]);
         }
 
-        const filePath = path.join(mp4Samples, "BabysSongbook_librivox.m4b");
+        const filePath = join(mp4Samples, "BabysSongbook_librivox.m4b");
 
         it("from a file", async () => {
           let metadata: mm.IAudioMetadata;
-          const stream = fs.createReadStream(filePath);
+          const stream = createReadStream(filePath);
           try {
             metadata = await mm.parseStream(
               stream,
@@ -311,7 +313,7 @@ describe("Parse MPEG-4 files with iTunes metadata", () => {
         });
 
         it("from a stream", async () => {
-          const stream = fs.createReadStream(filePath);
+          const stream = createReadStream(filePath);
           const metadata = await mm.parseStream(
             stream,
             { mimeType: "audio/mp4" },
@@ -329,7 +331,7 @@ describe("Parse MPEG-4 files with iTunes metadata", () => {
     describe("Parse TV episode", () => {
       Parsers.forEach((parser) => {
         it(parser.description, async () => {
-          const filePath = path.join(
+          const filePath = join(
             mp4Samples,
             "Mr. Pickles S02E07 My Dear Boy.mp4"
           );
@@ -369,7 +371,7 @@ describe("Parse MPEG-4 files with iTunes metadata", () => {
   describe("should support extended atom header", () => {
     Parsers.forEach((parser) => {
       it(parser.description, async () => {
-        const filePath = path.join(mp4Samples, "issue-133.m4a");
+        const filePath = join(mp4Samples, "issue-133.m4a");
 
         const metadata = await parser.initParser(filePath, "video/mp4");
         assert.deepEqual(
@@ -385,7 +387,7 @@ describe("Parse MPEG-4 files with iTunes metadata", () => {
   describe("Handle dashed atom-ID's", () => {
     Parsers.forEach((parser) => {
       it(parser.description, async () => {
-        const filePath = path.join(mp4Samples, "issue-151.m4a");
+        const filePath = join(mp4Samples, "issue-151.m4a");
 
         const metadata = await parser.initParser(filePath, "video/mp4");
         assert.deepEqual(
@@ -413,10 +415,7 @@ describe("Parse MPEG-4 files with iTunes metadata", () => {
   describe("Parse Trumpsta (Djuro Remix)", () => {
     Parsers.forEach((parser) => {
       it(parser.description, async () => {
-        const filePath = path.join(
-          mp4Samples,
-          "01. Trumpsta (Djuro Remix).m4a"
-        );
+        const filePath = join(mp4Samples, "01. Trumpsta (Djuro Remix).m4a");
 
         const metadata = await parser.initParser(filePath, "audio/m4a");
         assert.deepEqual(
@@ -442,7 +441,7 @@ describe("Parse MPEG-4 files with iTunes metadata", () => {
     /**
      * Sample file with 1024 zeroes appended
      */
-    const m4aFile = path.join(mp4Samples, "issue-318.m4a");
+    const m4aFile = join(mp4Samples, "issue-318.m4a");
 
     const metadata = await mm.parseFile(m4aFile);
     const { format, common, quality } = metadata;
@@ -466,7 +465,7 @@ describe("Parse MPEG-4 files with iTunes metadata", () => {
   // https://github.com/Borewit/music-metadata/issues/387
   it("Handle box.id = 0000", async () => {
     const { format, common } = await mm.parseFile(
-      path.join(mp4Samples, "issue-387.m4a")
+      join(mp4Samples, "issue-387.m4a")
     );
     assert.strictEqual(format.container, "M4A/mp42/isom", "format.container");
     assert.strictEqual(format.codec, "MPEG-4/AAC", "format.codec");
@@ -493,7 +492,7 @@ describe("Parse MPEG-4 files with iTunes metadata", () => {
   });
 
   it("Extract creation and modified time", async () => {
-    const filePath = path.join(mp4Samples, "Apple  voice memo.m4a");
+    const filePath = join(mp4Samples, "Apple  voice memo.m4a");
 
     const { format, quality, common, native } = await mm.parseFile(filePath);
 
@@ -523,7 +522,7 @@ describe("Parse MPEG-4 files with iTunes metadata", () => {
 
   // https://github.com/Borewit/music-metadata/issues/744
   it("Select the audio track from mp4", async () => {
-    const filePath = path.join(mp4Samples, "issue-744.mp4");
+    const filePath = join(mp4Samples, "issue-744.mp4");
 
     const { format } = await mm.parseFile(filePath);
 
@@ -537,7 +536,7 @@ describe("Parse MPEG-4 files with iTunes metadata", () => {
 
   // https://github.com/Borewit/music-metadata/issues/749
   it("Handle 0 length box", async () => {
-    const filePath = path.join(mp4Samples, "issue-749.m4a");
+    const filePath = join(mp4Samples, "issue-749.m4a");
 
     const { format, common } = await mm.parseFile(filePath);
 

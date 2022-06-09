@@ -1,4 +1,4 @@
-import { IRatio } from "../type";
+import type { IRatio } from "../type";
 
 export type StringEncoding =
   | "ascii" // Use  'utf-8' or latin1 instead

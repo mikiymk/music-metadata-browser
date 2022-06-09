@@ -1,14 +1,16 @@
-import { assert } from "chai";
-import * as path from "path";
+import { join } from "path";
 
-import * as mm from "../lib";
+import { assert } from "chai";
+
+import { parseFile } from "../lib";
+
 import { samplePath } from "./util";
 
 it("decode id3v2-utf16", async () => {
   const filename = "id3v2-utf16.mp3";
-  const filePath = path.join(samplePath, filename);
+  const filePath = join(samplePath, filename);
 
-  const metadata = await mm.parseFile(filePath, { duration: true });
+  const metadata = await parseFile(filePath, { duration: true });
   const { common } = metadata;
 
   assert.strictEqual(

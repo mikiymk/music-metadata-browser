@@ -1,5 +1,6 @@
+import { join } from "path";
+
 import { assert } from "chai";
-import * as path from "path";
 
 import { Parsers } from "./metadata-parsers";
 import { samplePath } from "./util";
@@ -29,7 +30,7 @@ describe("should calculate duration for a CBR encoded MP3", () => {
    Calculated: 16462080
    --------------------------------------------------------*/
 
-  const filePath = path.join(samplePath, "regress-GH-56.mp3");
+  const filePath = join(samplePath, "regress-GH-56.mp3");
 
   Parsers.forEach((parser) => {
     it(parser.description, () => {

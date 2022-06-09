@@ -1,7 +1,8 @@
-import * as Token from "token-types";
-import { IGetToken } from "strtok3/lib/core";
+import { UINT64_LE, INT64_LE, INT32_LE } from "token-types";
 
 import { FourCcToken } from "../common/FourCC";
+
+import type { IGetToken } from "strtok3/lib/core";
 
 /**
  * Common interface for the common chunk DSD header
@@ -27,7 +28,7 @@ export const ChunkHeader: IGetToken<IChunkHeader> = {
   get: (buf: Uint8Array, off: number): IChunkHeader => {
     return {
       id: FourCcToken.get(buf, off),
-      size: Token.UINT64_LE.get(buf, off + 4),
+      size: UINT64_LE.get(buf, off + 4),
     };
   },
 };
@@ -56,8 +57,8 @@ export const DsdChunk: IGetToken<IDsdChunk> = {
 
   get: (buf: Uint8Array, off: number): IDsdChunk => {
     return {
-      fileSize: Token.INT64_LE.get(buf, off),
-      metadataPointer: Token.INT64_LE.get(buf, off + 8),
+      fileSize: INT64_LE.get(buf, off),
+      metadataPointer: INT64_LE.get(buf, off + 8),
     };
   },
 };
@@ -125,14 +126,14 @@ export const FormatChunk: IGetToken<IFormatChunk> = {
 
   get: (buf: Buffer, off: number): IFormatChunk => {
     return {
-      formatVersion: Token.INT32_LE.get(buf, off),
-      formatID: Token.INT32_LE.get(buf, off + 4),
-      channelType: Token.INT32_LE.get(buf, off + 8),
-      channelNum: Token.INT32_LE.get(buf, off + 12),
-      samplingFrequency: Token.INT32_LE.get(buf, off + 16),
-      bitsPerSample: Token.INT32_LE.get(buf, off + 20),
-      sampleCount: Token.INT64_LE.get(buf, off + 24),
-      blockSizePerChannel: Token.INT32_LE.get(buf, off + 32),
+      formatVersion: INT32_LE.get(buf, off),
+      formatID: INT32_LE.get(buf, off + 4),
+      channelType: INT32_LE.get(buf, off + 8),
+      channelNum: INT32_LE.get(buf, off + 12),
+      samplingFrequency: INT32_LE.get(buf, off + 16),
+      bitsPerSample: INT32_LE.get(buf, off + 20),
+      sampleCount: INT64_LE.get(buf, off + 24),
+      blockSizePerChannel: INT32_LE.get(buf, off + 32),
     };
   },
 };

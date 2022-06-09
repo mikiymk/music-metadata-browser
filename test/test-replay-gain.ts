@@ -1,8 +1,10 @@
-import { assert } from "chai";
-import * as path from "path";
+import { join } from "path";
 
-import * as mm from "../lib";
-import { TagType } from "../lib/common/GenericTagTypes";
+import { assert } from "chai";
+
+import { parseFile } from "../lib";
+
+import type { TagType } from "../lib/common/GenericTagTypes";
 
 interface IReplayGainSample {
   description: string;
@@ -192,13 +194,13 @@ const samples: IReplayGainSample[] = [
  * Samples provided by: https://github.com/kepstin/replaygain-test-vectors
  */
 describe("Test Replay-Gain", () => {
-  const pathGainSamples = path.join(__dirname, "samples", "replay-gain");
+  const pathGainSamples = join(__dirname, "samples", "replay-gain");
 
   samples.forEach((sample) => {
     it(`Test ${sample.description}, mapping from tag header: ${sample.tagType}`, async () => {
-      const filePath = path.join(pathGainSamples, sample.filename);
+      const filePath = join(pathGainSamples, sample.filename);
 
-      const metadata = await mm.parseFile(filePath);
+      const metadata = await parseFile(filePath);
       const { format, common } = metadata;
 
       assert.strictEqual(

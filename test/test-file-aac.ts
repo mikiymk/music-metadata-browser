@@ -1,10 +1,13 @@
+import { join } from "path";
+
 import { assert } from "chai";
-import * as path from "path";
+
 import { Parsers } from "./metadata-parsers";
-import { IFormat } from "../lib";
 import { samplePath } from "./util";
 
-const aacSamplePath = path.join(samplePath, "aac");
+import type { IFormat } from "../lib";
+
+const aacSamplePath = join(samplePath, "aac");
 
 describe("Parse ADTS/AAC", () => {
   function checkFormat(
@@ -49,7 +52,7 @@ describe("Parse ADTS/AAC", () => {
     Parsers.forEach((parser) => {
       it(parser.description, async () => {
         const metadata = await parser.initParser(
-          path.join(aacSamplePath, "adts-mpeg4.aac"),
+          join(aacSamplePath, "adts-mpeg4.aac"),
           "audio/aac",
           {
             duration: true,
@@ -73,7 +76,7 @@ describe("Parse ADTS/AAC", () => {
     Parsers.forEach((parser) => {
       it(parser.description, async () => {
         const metadata = await parser.initParser(
-          path.join(aacSamplePath, "adts-mpeg4-2.aac"),
+          join(aacSamplePath, "adts-mpeg4-2.aac"),
           "audio/aac",
           {
             duration: true,

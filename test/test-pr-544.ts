@@ -1,7 +1,9 @@
-import { assert } from "chai";
-import * as path from "path";
+import { join } from "path";
 
-import * as mm from "../lib";
+import { assert } from "chai";
+
+import { parseFile } from "../lib";
+
 import { samplePath } from "./util";
 
 const t = assert;
@@ -12,9 +14,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
   describe("Movement Name", () => {
     it("mp3-id3v24", () => {
       const filename = "mp3/pr-544-id3v24.mp3";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.strictEqual(
           metadata.common.movement,
           "Movement Name",
@@ -25,9 +27,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
 
     it("mp4", () => {
       const filename = "mp4/pr-544.m4a";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.strictEqual(
           metadata.common.movement,
           "Movement Name",
@@ -40,9 +42,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
   describe("Movement Index", () => {
     it("mp3-id3v24", () => {
       const filename = "mp3/pr-544-id3v24.mp3";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.deepEqual(
           metadata.common.movementIndex,
           { no: 1, of: 4 },
@@ -53,9 +55,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
 
     it("mp4", () => {
       const filename = "mp4/pr-544.m4a";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.deepEqual(
           metadata.common.movementIndex,
           { no: 1, of: 4 },
@@ -68,9 +70,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
   describe("Show Movement", () => {
     it("mp4", () => {
       const filename = "mp4/pr-544.m4a";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.strictEqual(
           metadata.common.showMovement,
           true,
@@ -83,9 +85,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
   describe("Work", () => {
     it("mp4", () => {
       const filename = "mp4/pr-544.m4a";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.strictEqual(metadata.common.work, "Work", "metadata.common.work");
       });
     });
@@ -94,18 +96,18 @@ describe("Add, change and fix some mappings #pr-544", () => {
   describe("Podcast", () => {
     it("mp3-id3v24", () => {
       const filename = "mp3/pr-544-id3v24.mp3";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.strictEqual(metadata.common.podcast, true, "metadata.common.podcast");
       });
     });
 
     it("mp4", () => {
       const filename = "mp4/pr-544.m4a";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.strictEqual(metadata.common.podcast, true, "metadata.common.podcast");
       });
     });
@@ -114,9 +116,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
   describe("Podcast Category", () => {
     it("mp3-id3v24", () => {
       const filename = "mp3/pr-544-id3v24.mp3";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.deepEqual(
           metadata.common.category,
           ["Podcast Category"],
@@ -127,9 +129,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
 
     it("mp4", () => {
       const filename = "mp4/pr-544.m4a";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.deepEqual(
           metadata.common.category,
           ["Podcast Category"],
@@ -142,9 +144,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
   describe("Podcast Identifier", () => {
     it("mp3-id3v24", () => {
       const filename = "mp3/pr-544-id3v24.mp3";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.strictEqual(
           metadata.common.podcastId,
           "1234",
@@ -155,9 +157,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
 
     it("mp4", () => {
       const filename = "mp4/pr-544.m4a";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.strictEqual(
           metadata.common.podcastId,
           "1234",
@@ -170,9 +172,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
   describe("Podcast Keywords", () => {
     it("mp3-id3v24", () => {
       const filename = "mp3/pr-544-id3v24.mp3";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.deepEqual(
           metadata.common.keywords,
           ["Podcast Keywords"],
@@ -183,9 +185,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
 
     it("mp4", () => {
       const filename = "mp4/pr-544.m4a";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.deepEqual(
           metadata.common.keywords,
           ["Podcast Keywords"],
@@ -198,9 +200,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
   describe("Podcast Url", () => {
     it("mp3-id3v24", () => {
       const filename = "mp3/pr-544-id3v24.mp3";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.strictEqual(
           metadata.common.podcasturl,
           "http://podcast.url",
@@ -211,9 +213,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
 
     it("mp4", () => {
       const filename = "mp4/pr-544.m4a";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.strictEqual(
           metadata.common.podcasturl,
           "http://podcast.url",
@@ -226,9 +228,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
   describe("Short Description", () => {
     it("mp3-id3v24", () => {
       const filename = "mp3/pr-544-id3v24.mp3";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.deepEqual(
           metadata.common.subtitle,
           ["Short Description"],
@@ -239,9 +241,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
 
     it("mp4", () => {
       const filename = "mp4/pr-544.m4a";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.deepEqual(
           metadata.common.description,
           ["Short Description"],
@@ -254,9 +256,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
   describe("Long Description", () => {
     it("mp3-id3v24", () => {
       const filename = "mp3/pr-544-id3v24.mp3";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.deepEqual(
           metadata.common.description,
           ["Long Description"],
@@ -267,9 +269,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
 
     it("mp4", () => {
       const filename = "mp4/pr-544.m4a";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.deepEqual(
           metadata.common.longDescription,
           "Long Description",
@@ -282,9 +284,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
   describe("Album Artist Sort", () => {
     it("mp3-id3v24", () => {
       const filename = "mp3/pr-544-id3v24.mp3";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.strictEqual(
           metadata.common.albumartistsort,
           "Album Artist Sort",
@@ -295,9 +297,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
 
     it("mp4", () => {
       const filename = "mp4/pr-544.m4a";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.strictEqual(
           metadata.common.albumartistsort,
           "Album Artist Sort",
@@ -310,9 +312,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
   describe("Album Sort", () => {
     it("mp3-id3v24", () => {
       const filename = "mp3/pr-544-id3v24.mp3";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.strictEqual(
           metadata.common.albumsort,
           "Album Sort",
@@ -323,9 +325,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
 
     it("mp4", () => {
       const filename = "mp4/pr-544.m4a";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.strictEqual(
           metadata.common.albumsort,
           "Album Sort",
@@ -338,9 +340,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
   describe("Artist Sort", () => {
     it("mp3-id3v24", () => {
       const filename = "mp3/pr-544-id3v24.mp3";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.strictEqual(
           metadata.common.artistsort,
           "Artist Sort",
@@ -351,9 +353,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
 
     it("mp4", () => {
       const filename = "mp4/pr-544.m4a";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.strictEqual(
           metadata.common.artistsort,
           "Artist Sort",
@@ -366,9 +368,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
   describe("Composer Sort", () => {
     it("mp3-id3v24", () => {
       const filename = "mp3/pr-544-id3v24.mp3";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.deepEqual(
           metadata.common.composersort,
           "Composer Sort",
@@ -379,9 +381,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
 
     it("mp4", () => {
       const filename = "mp4/pr-544.m4a";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.deepEqual(
           metadata.common.composersort,
           "Composer Sort",
@@ -394,9 +396,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
   describe("Title Sort", () => {
     it("mp3-id3v24", () => {
       const filename = "mp3/pr-544-id3v24.mp3";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.strictEqual(
           metadata.common.titlesort,
           "Title Sort",
@@ -407,9 +409,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
 
     it("mp4", () => {
       const filename = "mp4/pr-544.m4a";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.strictEqual(
           metadata.common.titlesort,
           "Title Sort",
@@ -422,9 +424,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
   describe("Copyright", () => {
     it("mp3-id3v24", () => {
       const filename = "mp3/pr-544-id3v24.mp3";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.strictEqual(
           metadata.common.copyright,
           "Copyright",
@@ -435,9 +437,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
 
     it("mp4", () => {
       const filename = "mp4/pr-544.m4a";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.strictEqual(
           metadata.common.copyright,
           "Copyright",
@@ -450,9 +452,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
   describe("Compilation", () => {
     it("mp3-id3v24", () => {
       const filename = "mp3/pr-544-id3v24.mp3";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.strictEqual(
           metadata.common.compilation,
           true,
@@ -463,9 +465,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
 
     it("mp4", () => {
       const filename = "mp4/pr-544.m4a";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.strictEqual(
           metadata.common.compilation,
           true,
@@ -478,9 +480,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
   describe("Comment", () => {
     it("mp3-id3v24", () => {
       const filename = "mp3/pr-544-id3v24.mp3";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.deepEqual(
           metadata.common.comment,
           ["Tagged with Mp3tag v3.01"],
@@ -491,9 +493,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
 
     it("mp4", () => {
       const filename = "mp4/pr-544.m4a";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.deepEqual(
           metadata.common.comment,
           ["Tagged with Mp3tag v3.01"],
@@ -506,9 +508,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
   describe("Release time", () => {
     it("mp3-id3v24", () => {
       const filename = "mp3/pr-544-id3v24.mp3";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.strictEqual(
           metadata.common.date,
           "2020-06-29T00:00:00.000Z",
@@ -521,9 +523,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
 
     it("mp4", () => {
       const filename = "mp4/pr-544.m4a";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.strictEqual(
           metadata.common.date,
           "2020-06-29T00:00:00.000Z",
@@ -538,9 +540,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
   describe("Original Album", () => {
     it("mp3-id3v24", () => {
       const filename = "mp3/pr-544-id3v24.mp3";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.strictEqual(
           metadata.common.originalalbum,
           "Original Album",
@@ -553,9 +555,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
   describe("iTunes Video Quality", () => {
     it("mp4", () => {
       const filename = "mp4/pr-544.m4a";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.strictEqual(metadata.common.hdVideo, 2, "metadata.common.hdVideo");
       });
     });
@@ -564,9 +566,9 @@ describe("Add, change and fix some mappings #pr-544", () => {
   describe("iTunes Media Type", () => {
     it("mp4", () => {
       const filename = "mp4/pr-544.m4a";
-      const filePath = path.join(samplePath, filename);
+      const filePath = join(samplePath, filename);
 
-      return mm.parseFile(filePath).then((metadata) => {
+      return parseFile(filePath).then((metadata) => {
         t.strictEqual(metadata.common.stik, 9, "metadata.common.stik");
       });
     });

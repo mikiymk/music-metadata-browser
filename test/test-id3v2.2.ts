@@ -1,13 +1,15 @@
-import { assert } from "chai";
-import * as path from "path";
+import { join } from "path";
 
-import * as mm from "../lib";
-import { ID3v2Parser } from "../lib/id3v2/ID3v2Parser";
+import { assert } from "chai";
+
+import { parseFile, orderTags } from "../lib";
 import { parseGenre } from "../lib/id3v2/FrameParser";
+import { ID3v2Parser } from "../lib/id3v2/ID3v2Parser";
+
 import { samplePath } from "./util";
 
 describe("ID3v2Parser", () => {
-  const mp3Path = path.join(samplePath, "mp3");
+  const mp3Path = join(samplePath, "mp3");
 
   it("should be able to remove unsynchronisation bytes from buffer", () => {
     const expected = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00]);
@@ -17,11 +19,11 @@ describe("ID3v2Parser", () => {
   });
 
   it("should normalize ID3v2.2 comments correctly", async () => {
-    const filePath = path.join(samplePath, "issue_66.mp3");
+    const filePath = join(samplePath, "issue_66.mp3");
 
-    const metadata = await mm.parseFile(filePath, { duration: true });
+    const metadata = await parseFile(filePath, { duration: true });
 
-    const id3v22 = mm.orderTags(metadata.native["ID3v2.2"]);
+    const id3v22 = orderTags(metadata.native["ID3v2.2"]);
 
     assert.deepEqual(id3v22.TP1, ["RushJet1"], "['ID3v2.2'].TP1");
     assert.deepEqual(id3v22.TRK, ["2/15"], "['ID3v2.2'].TRK");
@@ -71,9 +73,9 @@ describe("ID3v2Parser", () => {
 
   it("should decode file 'id3v2.2.mp3'", async () => {
     const filename = "id3v2.2.mp3";
-    const filePath = path.join(__dirname, "samples", filename);
+    const filePath = join(__dirname, "samples", filename);
 
-    const metadata = await mm.parseFile(filePath, { duration: true });
+    const metadata = await parseFile(filePath, { duration: true });
     assert.strictEqual(metadata.common.title, "You Are The One", "title");
     assert.strictEqual(metadata.common.artist, "Shiny Toy Guns", "artist");
     assert.strictEqual(metadata.common.album, "We Are Pilots", "album");
@@ -98,7 +100,7 @@ describe("ID3v2Parser", () => {
       metadata.native["ID3v2.2"],
       "Native id3v2.2 tags should be present"
     );
-    const id3v22 = mm.orderTags(metadata.native["ID3v2.2"]);
+    const id3v22 = orderTags(metadata.native["ID3v2.2"]);
 
     assert.deepEqual(id3v22.TP1, ["Shiny Toy Guns"], "['ID3v2.2'].TP1");
     assert.deepEqual(id3v22.TRK, ["1/11"], "['ID3v2.2'].TRK");
@@ -151,8 +153,8 @@ describe("ID3v2Parser", () => {
   });
 
   it("05 I Believe You.mp3", async () => {
-    const filePath = path.join(mp3Path, "issue-641.mp3");
-    const { format, common } = await mm.parseFile(filePath);
+    const filePath = join(mp3Path, "issue-641.mp3");
+    const { format, common } = await parseFile(filePath);
 
     assert.strictEqual(format.container, "MPEG", "format.container");
     assert.strictEqual(format.codec, "MPEG 1 Layer 3", "format.codec");
@@ -164,9 +166,9 @@ describe("ID3v2Parser", () => {
 
   describe("Tag mapping", () => {
     it("TBP (beats per minute)", async () => {
-      const filePath = path.join(samplePath, "mp3", "Betty Lou.mp3");
+      const filePath = join(samplePath, "mp3", "Betty Lou.mp3");
 
-      const { format, common, native } = await mm.parseFile(filePath, {
+      const { format, common, native } = await parseFile(filePath, {
         duration: true,
       });
       assert.strictEqual(format.container, "MPEG", "format.container");

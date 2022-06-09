@@ -1,27 +1,26 @@
-import { IOptions, IAudioMetadata, ParserType } from "./type";
-import { ITokenizer } from "strtok3/lib/core";
-import * as FileType from "file-type/core";
-import * as ContentType from "content-type";
-import * as MimeType from "media-typer";
-
+import { parse as parse2 } from "content-type";
 import initDebug from "debug";
-import {
-  INativeMetadataCollector,
-  MetadataCollector,
-} from "./common/MetadataCollector";
+import { fromBuffer } from "file-type/core";
+import { parse as parse1 } from "media-typer";
+
 import { AIFFParser } from "./aiff/AiffParser";
 import { APEv2Parser } from "./apev2/APEv2Parser";
 import { AsfParser } from "./asf/AsfParser";
+import { MetadataCollector } from "./common/MetadataCollector";
+import { DsdiffParser } from "./dsdiff/DsdiffParser";
+import { DsfParser } from "./dsf/DsfParser";
 import { FlacParser } from "./flac/FlacParser";
+import { MatroskaParser } from "./matroska/MatroskaParser";
 import { MP4Parser } from "./mp4/MP4Parser";
 import { MpegParser } from "./mpeg/MpegParser";
 import MusepackParser from "./musepack";
 import { OggParser } from "./ogg/OggParser";
 import { WaveParser } from "./wav/WaveParser";
 import { WavPackParser } from "./wavpack/WavPackParser";
-import { DsfParser } from "./dsf/DsfParser";
-import { DsdiffParser } from "./dsdiff/DsdiffParser";
-import { MatroskaParser } from "./matroska/MatroskaParser";
+
+import type { INativeMetadataCollector } from "./common/MetadataCollector";
+import type { IOptions, IAudioMetadata, ParserType } from "./type";
+import type { ITokenizer } from "strtok3/lib/core";
 
 const debug = initDebug("music-metadata:parser:factory");
 
@@ -46,14 +45,16 @@ export interface ITokenParser {
   parse(): Promise<void>;
 }
 
-export function parseHttpContentType(contentType: string): {
+export function parseHttpContentType(contentType: string | undefined): {
   type: string;
   subtype: string;
-  suffix?: string;
+  suffix: string | undefined;
   parameters: { [id: string]: string };
 } {
-  const type = ContentType.parse(contentType);
-  const mime = MimeType.parse(type.type);
+  if (!contentType) throw new Error("argument required");
+  const type = parse2(contentType);
+  const mime = parse1(type.type);
+
   return {
     type: mime.type,
     subtype: mime.subtype,
@@ -102,7 +103,7 @@ export class ParserFactory {
 
   public static async parse(
     tokenizer: ITokenizer,
-    parserId: ParserType,
+    parserId: ParserType | undefined,
     opts: IOptions
   ): Promise<IAudioMetadata> {
     if (!parserId) {
@@ -115,7 +116,7 @@ export class ParserFactory {
         parserId = this.getParserIdForExtension(tokenizer.fileInfo.path);
       }
       if (!parserId) {
-        const guessedType = await FileType.fromBuffer(buf);
+        const guessedType = await fromBuffer(buf);
         if (!guessedType) {
           throw new Error("Failed to determine audio format");
         }
@@ -138,7 +139,9 @@ export class ParserFactory {
    * @param filePath - Path, filename or extension to audio file
    * @return Parser sub-module name
    */
-  public static getParserIdForExtension(filePath: string): ParserType {
+  public static getParserIdForExtension(
+    filePath: string | undefined
+  ): ParserType | undefined {
     if (!filePath) return;
 
     const extension =
@@ -209,6 +212,8 @@ export class ParserFactory {
       case ".webm":
         return "matroska";
     }
+
+    return;
   }
 
   public static async loadParser(
@@ -256,7 +261,9 @@ export class ParserFactory {
    * @param httpContentType - HTTP Content-Type, extension, path or filename
    * @returns Parser sub-module name
    */
-  private static getParserIdForMimeType(httpContentType: string): ParserType {
+  private static getParserIdForMimeType(
+    httpContentType: string | undefined
+  ): ParserType | undefined {
     let mime;
     try {
       mime = parseHttpContentType(httpContentType);
@@ -356,5 +363,6 @@ export class ParserFactory {
         }
         break;
     }
+    return;
   }
 }

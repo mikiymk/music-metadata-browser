@@ -1,16 +1,18 @@
-import { assert } from "chai";
-import * as path from "path";
+import { join } from "path";
 
-import * as mm from "../lib";
+import { assert } from "chai";
+
+import { parseFile } from "../lib";
+
 import { samplePath } from "./util";
 
 describe("Asynchronous observer updates", () => {
-  const flacFilePath = path.join(samplePath, "flac.flac");
+  const flacFilePath = join(samplePath, "flac.flac");
 
   it("decode a FLAC audio file", async () => {
     const eventTags = [];
 
-    await mm.parseFile(flacFilePath, {
+    await parseFile(flacFilePath, {
       observer: (event) => {
         eventTags.push(event.tag);
         switch (typeof event.tag.value) {

@@ -1,13 +1,17 @@
 import { assert } from "chai";
 
-import * as util from "../lib/common/Util";
 import { FourCcToken } from "../lib/common/FourCC";
+import {
+  findZero as util_findZero,
+  stripNulls,
+  a2hex,
+} from "../lib/common/Util";
 
 const t = assert;
 
 describe("shared utility functionality", () => {
   describe("find zero", () => {
-    const findZero = util.findZero;
+    const findZero = util_findZero;
 
     it("should find terminator in ascii encoded string", () => {
       const buf = Buffer.from([0xff, 0xff, 0xff, 0x00]);
@@ -60,7 +64,7 @@ describe("shared utility functionality", () => {
         },
       ];
       tests.forEach((test) => {
-        t.strictEqual(util.stripNulls(test.str), test.expected);
+        t.strictEqual(stripNulls(test.str), test.expected);
       });
     });
   });
@@ -94,7 +98,7 @@ describe("shared utility functionality", () => {
         t.strictEqual(
           valid,
           data.valid,
-          `FourCC: ${util.a2hex(data.fourCC)} "${data.fourCC}"`
+          `FourCC: ${a2hex(data.fourCC)} "${data.fourCC}"`
         );
         if (data.valid) {
           t.strictEqual(fourCC, data.fourCC);
@@ -110,6 +114,6 @@ describe("shared utility functionality", () => {
   });
 
   it("a2hex", () => {
-    t.equal(util.a2hex("\x00\x01ABC\x02"), "00 01 41 42 43 02");
+    t.equal(a2hex("\x00\x01ABC\x02"), "00 01 41 42 43 02");
   });
 });

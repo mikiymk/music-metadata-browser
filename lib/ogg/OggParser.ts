@@ -1,17 +1,24 @@
-import * as Token from "token-types";
-import { IGetToken, EndOfStreamError } from "strtok3/lib/core";
 import initDebug from "debug";
+import { EndOfStreamError } from "strtok3/lib/core";
+import {
+  UINT8,
+  UINT64_LE,
+  UINT32_LE,
+  Uint8ArrayType,
+  StringType,
+} from "token-types";
 
-import * as util from "../common/Util";
-import { FourCcToken } from "../common/FourCC";
 import { BasicParser } from "../common/BasicParser";
+import { FourCcToken } from "../common/FourCC";
+import { getBit } from "../common/Util";
 
-import { VorbisParser } from "./vorbis/VorbisParser";
 import { OpusParser } from "./opus/OpusParser";
 import { SpeexParser } from "./speex/SpeexParser";
 import { TheoraParser } from "./theora/TheoraParser";
+import { VorbisParser } from "./vorbis/VorbisParser";
 
-import * as Ogg from "./Ogg";
+import type * as Ogg from "./Ogg";
+import type { IGetToken } from "strtok3/lib/core";
 
 const debug = initDebug("music-metadata:parser:ogg");
 
@@ -47,19 +54,19 @@ export class OggParser extends BasicParser {
     get: (buf, off): Ogg.IPageHeader => {
       return {
         capturePattern: FourCcToken.get(buf, off),
-        version: Token.UINT8.get(buf, off + 4),
+        version: UINT8.get(buf, off + 4),
 
         headerType: {
-          continued: util.getBit(buf, off + 5, 0),
-          firstPage: util.getBit(buf, off + 5, 1),
-          lastPage: util.getBit(buf, off + 5, 2),
+          continued: getBit(buf, off + 5, 0),
+          firstPage: getBit(buf, off + 5, 1),
+          lastPage: getBit(buf, off + 5, 2),
         },
         // packet_flag: buf.readUInt8(off + 5),
-        absoluteGranulePosition: Number(Token.UINT64_LE.get(buf, off + 6)),
-        streamSerialNumber: Token.UINT32_LE.get(buf, off + 14),
-        pageSequenceNo: Token.UINT32_LE.get(buf, off + 18),
-        pageChecksum: Token.UINT32_LE.get(buf, off + 22),
-        page_segments: Token.UINT8.get(buf, off + 26),
+        absoluteGranulePosition: Number(UINT64_LE.get(buf, off + 6)),
+        streamSerialNumber: UINT32_LE.get(buf, off + 14),
+        pageSequenceNo: UINT32_LE.get(buf, off + 18),
+        pageChecksum: UINT32_LE.get(buf, off + 22),
+        page_segments: UINT8.get(buf, off + 26),
       };
     },
   };
@@ -98,7 +105,7 @@ export class OggParser extends BasicParser {
         );
         debug("totalPageSize=%s", segmentTable.totalPageSize);
         const pageData = await this.tokenizer.readToken<Uint8Array>(
-          new Token.Uint8ArrayType(segmentTable.totalPageSize)
+          new Uint8ArrayType(segmentTable.totalPageSize)
         );
         debug(
           "firstPage=%s, lastPage=%s, continued=%s",
@@ -107,10 +114,7 @@ export class OggParser extends BasicParser {
           header.headerType.continued
         );
         if (header.headerType.firstPage) {
-          const id = new Token.StringType(7, "ascii").get(
-            Buffer.from(pageData),
-            0
-          );
+          const id = new StringType(7, "ascii").get(Buffer.from(pageData), 0);
           switch (id) {
             case "\x01vorbis": // Ogg/Vorbis
               debug("Set page consumer to Ogg/Vorbis");

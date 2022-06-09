@@ -1,4 +1,4 @@
-import { IRandomReader } from "../type";
+import type { IRandomReader } from "../type";
 
 export const endTag2 = "LYRICS200";
 

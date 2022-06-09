@@ -1,22 +1,27 @@
 import initDebug from "debug";
-import * as strtok3 from "strtok3/lib/core";
+import { fromBuffer } from "strtok3/lib/core";
 import { StringType } from "token-types";
 
-import * as util from "../common/Util";
-import { IOptions, IRandomReader, IApeHeader } from "../type";
-import { INativeMetadataCollector } from "../common/MetadataCollector";
 import { BasicParser } from "../common/BasicParser";
+import { findZero } from "../common/Util";
+
 import {
   DataType,
   DescriptorParser,
   Header,
+  TagFooter,
+  TagItemHeader,
+} from "./APEv2Token";
+
+import type { INativeMetadataCollector } from "../common/MetadataCollector";
+import type { IOptions, IRandomReader, IApeHeader } from "../type";
+import type {
   IDescriptor,
   IFooter,
   IHeader,
   ITagItemHeader,
-  TagFooter,
-  TagItemHeader,
 } from "./APEv2Token";
+import type { ITokenizer } from "strtok3/lib/core";
 
 const debug = initDebug("music-metadata:parser:APEv2");
 
@@ -33,7 +38,7 @@ const preamble = "APETAGEX";
 export class APEv2Parser extends BasicParser {
   public static tryParseApeHeader(
     metadata: INativeMetadataCollector,
-    tokenizer: strtok3.ITokenizer,
+    tokenizer: ITokenizer,
     options: IOptions
   ) {
     const apeParser = new APEv2Parser();
@@ -61,7 +66,7 @@ export class APEv2Parser extends BasicParser {
   public static async findApeFooterOffset(
     reader: IRandomReader,
     offset: number
-  ): Promise<IApeHeader> {
+  ): Promise<IApeHeader | void> {
     // Search for APE footer header at the end of the file
     const apeBuf = Buffer.alloc(TagFooter.len);
     await reader.randomRead(apeBuf, 0, TagFooter.len, offset - TagFooter.len);
@@ -80,9 +85,9 @@ export class APEv2Parser extends BasicParser {
     const footer = TagFooter.get(buffer, buffer.length - TagFooter.len);
     if (footer.ID !== preamble)
       throw new Error("Unexpected APEv2 Footer ID preamble value.");
-    strtok3.fromBuffer(buffer);
+    fromBuffer(buffer);
     const apeParser = new APEv2Parser();
-    apeParser.init(metadata, strtok3.fromBuffer(buffer), options);
+    apeParser.init(metadata, fromBuffer(buffer), options);
     return apeParser.parseTags(footer);
   }
 
@@ -161,7 +166,7 @@ export class APEv2Parser extends BasicParser {
       await this.tokenizer.peekBuffer(keyBuffer, {
         length: Math.min(keyBuffer.length, bytesRemaining),
       });
-      let zero = util.findZero(keyBuffer, 0, keyBuffer.length);
+      let zero = findZero(keyBuffer, 0, keyBuffer.length);
       const key = await this.tokenizer.readToken<string>(
         new StringType(zero, "ascii")
       );
@@ -174,7 +179,7 @@ export class APEv2Parser extends BasicParser {
           const value = await this.tokenizer.readToken<string>(
             new StringType(tagItemHeader.size, "utf8")
           );
-          const values = value.split(/\x00/g);
+          const values = value.split(/\0/g);
 
           for (const val of values) {
             this.metadata.addTag(tagFormat, key, val);
@@ -189,7 +194,7 @@ export class APEv2Parser extends BasicParser {
             const picData = Buffer.alloc(tagItemHeader.size);
             await this.tokenizer.readBuffer(picData);
 
-            zero = util.findZero(picData, 0, picData.length);
+            zero = findZero(picData, 0, picData.length);
             const description = picData.toString("utf8", 0, zero);
 
             const data = Buffer.from(picData.slice(zero + 1));
@@ -234,12 +239,18 @@ export class APEv2Parser extends BasicParser {
     this.metadata.setFormat("numberOfChannels", header.channel);
     this.metadata.setFormat("duration", APEv2Parser.calculateDuration(header));
 
-    return {
-      forwardBytes:
-        this.ape.descriptor.seekTableBytes +
-        this.ape.descriptor.headerDataBytes +
-        this.ape.descriptor.apeFrameDataBytes +
-        this.ape.descriptor.terminatingDataBytes,
-    };
+    const descriptor = this.ape.descriptor;
+
+    return descriptor
+      ? {
+          forwardBytes:
+            descriptor.seekTableBytes +
+            descriptor.headerDataBytes +
+            descriptor.apeFrameDataBytes +
+            descriptor.terminatingDataBytes,
+        }
+      : {
+          forwardBytes: NaN,
+        };
   }
 }

@@ -1,21 +1,18 @@
-import { ITokenizer } from "strtok3/lib/core";
-import * as Token from "token-types";
+import { Uint8ArrayType, UINT24_BE, UINT32_BE } from "token-types";
 
-import * as util from "../common/Util";
-import { TagType } from "../common/GenericTagTypes";
-import { ITag, IOptions } from "../type";
+import { getBit } from "../common/Util";
+
 import { FrameParser } from "./FrameParser";
-import {
-  ExtendedHeader,
-  ID3v2Header,
-  ID3v2MajorVersion,
-  IID3v2header,
-  UINT32SYNCSAFE,
-} from "./ID3v2Token";
-import {
+import { ExtendedHeader, ID3v2Header, UINT32SYNCSAFE } from "./ID3v2Token";
+
+import type { TagType } from "../common/GenericTagTypes";
+import type {
   INativeMetadataCollector,
   IWarningCollector,
 } from "../common/MetadataCollector";
+import type { ITag, IOptions } from "../type";
+import type { ID3v2MajorVersion, IID3v2header } from "./ID3v2Token";
+import type { ITokenizer } from "strtok3/lib/core";
 
 interface IFrameFlags {
   status: {
@@ -70,16 +67,16 @@ export class ID3v2Parser {
   private static readFrameFlags(b: Uint8Array): IFrameFlags {
     return {
       status: {
-        tag_alter_preservation: util.getBit(b, 0, 6),
-        file_alter_preservation: util.getBit(b, 0, 5),
-        read_only: util.getBit(b, 0, 4),
+        tag_alter_preservation: getBit(b, 0, 6),
+        file_alter_preservation: getBit(b, 0, 5),
+        read_only: getBit(b, 0, 4),
       },
       format: {
-        grouping_identity: util.getBit(b, 1, 7),
-        compression: util.getBit(b, 1, 3),
-        encryption: util.getBit(b, 1, 2),
-        unsynchronisation: util.getBit(b, 1, 1),
-        data_length_indicator: util.getBit(b, 1, 0),
+        grouping_identity: getBit(b, 1, 7),
+        compression: getBit(b, 1, 3),
+        encryption: getBit(b, 1, 2),
+        unsynchronisation: getBit(b, 1, 1),
+        data_length_indicator: getBit(b, 1, 0),
       },
     };
   }
@@ -173,7 +170,7 @@ export class ID3v2Parser {
 
   public async parseId3Data(dataLen: number): Promise<void> {
     const uint8Array = await this.tokenizer.readToken(
-      new Token.Uint8ArrayType(dataLen)
+      new Uint8ArrayType(dataLen)
     );
     for (const tag of this.parseMetadata(uint8Array)) {
       if (tag.id === "TXXX") {
@@ -262,7 +259,7 @@ export class ID3v2Parser {
       case 2:
         header = {
           id: Buffer.from(uint8Array.slice(0, 3)).toString("ascii"),
-          length: Token.UINT24_BE.get(uint8Array, 3),
+          length: UINT24_BE.get(uint8Array, 3),
         };
         if (!header.id.match(/[A-Z0-9]{3}/g)) {
           this.metadata.addWarning(
@@ -275,7 +272,7 @@ export class ID3v2Parser {
       case 4:
         header = {
           id: Buffer.from(uint8Array.slice(0, 4)).toString("ascii"),
-          length: (majorVer === 4 ? UINT32SYNCSAFE : Token.UINT32_BE).get(
+          length: (majorVer === 4 ? UINT32SYNCSAFE : UINT32_BE).get(
             uint8Array,
             4
           ),

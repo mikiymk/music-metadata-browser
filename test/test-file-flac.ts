@@ -1,14 +1,17 @@
+import { writeFileSync, unlinkSync } from "fs";
+import { join } from "path";
+
 import { assert } from "chai";
-import * as mm from "../lib";
-import * as fs from "fs";
-import * as path from "path";
+
+import { orderTags, parseFile } from "../lib";
+
 import { Parsers } from "./metadata-parsers";
 import { samplePath } from "./util";
 
 const t = assert;
 
 describe("Parse FLAC", () => {
-  const flacFilePath = path.join(samplePath, "flac");
+  const flacFilePath = join(samplePath, "flac");
 
   function checkFormat(format) {
     t.strictEqual(format.container, "FLAC", "format.container");
@@ -89,18 +92,18 @@ describe("Parse FLAC", () => {
     Parsers.forEach((parser) => {
       it(parser.description, async () => {
         const metadata = await parser.initParser(
-          path.join(samplePath, "flac.flac"),
+          join(samplePath, "flac.flac"),
           "audio/flac"
         );
         checkFormat(metadata.format);
         checkCommon(metadata.common);
-        checkNative(mm.orderTags(metadata.native.vorbis));
+        checkNative(orderTags(metadata.native.vorbis));
       });
     });
   });
 
   describe("should be able to recognize a ID3v2 tag header prefixing a FLAC file", () => {
-    const filePath = path.join(samplePath, "a kind of magic.flac");
+    const filePath = join(samplePath, "a kind of magic.flac");
 
     Parsers.forEach((parser) => {
       it(parser.description, async () => {
@@ -115,7 +118,7 @@ describe("Parse FLAC", () => {
   });
 
   describe("should be able to determine the bit-rate", () => {
-    const filePath = path.join(samplePath, "04 Long Drive.flac");
+    const filePath = join(samplePath, "04 Long Drive.flac");
 
     Parsers.forEach((parser) => {
       it(parser.description, async () => {
@@ -129,9 +132,9 @@ describe("Parse FLAC", () => {
     it("should handle a corrupt data", () => {
       const emptyStreamSize = 10 * 1024;
       const buf = Buffer.alloc(emptyStreamSize).fill(0);
-      const tmpFilePath = path.join(samplePath, "zeroes.flac");
+      const tmpFilePath = join(samplePath, "zeroes.flac");
 
-      fs.writeFileSync(tmpFilePath, buf);
+      writeFileSync(tmpFilePath, buf);
 
       Parsers.forEach((parser) => {
         it(parser.description, () => {
@@ -139,11 +142,11 @@ describe("Parse FLAC", () => {
             .initParser(tmpFilePath, "audio/flac")
             .then(() => {
               t.fail("Should reject");
-              fs.unlinkSync(tmpFilePath);
+              unlinkSync(tmpFilePath);
             })
             .catch((err) => {
               t.strictEqual(err.message, "FourCC contains invalid characters");
-              return fs.unlinkSync(tmpFilePath);
+              return unlinkSync(tmpFilePath);
             });
         });
       });
@@ -154,15 +157,15 @@ describe("Parse FLAC", () => {
    * Issue: https://github.com/Borewit/music-metadata/issues/266
    */
   it("Support Vorbis METADATA_BLOCK_PICTURE tags", async () => {
-    const filePath = path.join(samplePath, "issue-266.flac");
+    const filePath = join(samplePath, "issue-266.flac");
 
-    const metadata = await mm.parseFile(filePath);
+    const metadata = await parseFile(filePath);
     const { format, common } = metadata;
 
     assert.strictEqual(format.container, "FLAC");
     assert.deepEqual(format.tagTypes, ["vorbis"]);
 
-    const vorbis = mm.orderTags(metadata.native.vorbis);
+    const vorbis = orderTags(metadata.native.vorbis);
     assert.isDefined(
       vorbis.METADATA_BLOCK_PICTURE,
       "expect a Vorbis METADATA_BLOCK_PICTURE tag"
@@ -198,19 +201,19 @@ describe("Parse FLAC", () => {
   });
 
   it("Handle FLAC with undefined duration (number of samples == 0)", async () => {
-    const filePath = path.join(flacFilePath, "test-unknown-duration.flac");
+    const filePath = join(flacFilePath, "test-unknown-duration.flac");
 
-    const { format } = await mm.parseFile(filePath);
+    const { format } = await parseFile(filePath);
 
     assert.isUndefined(format.duration, "format.duration");
   });
 
   it('Support additional Vorbis comment TAG mapping "ALMBUM ARTIST"', async () => {
-    const filePath = path.join(
+    const filePath = join(
       flacFilePath,
       "14. Samuel L. Jackson and John Travolta - Personality Goes a Long Way.flac"
     );
-    const { format, common } = await mm.parseFile(filePath);
+    const { format, common } = await parseFile(filePath);
 
     assert.strictEqual(format.container, "FLAC", "format.container");
     assert.strictEqual(format.codec, "FLAC", "format.codec");

@@ -1,6 +1,7 @@
-import { INativeTagMap } from "../common/GenericTagTypes";
 import { CommonTagMapper } from "../common/GenericTagMapper";
-import { IRating, ITag } from "../type";
+
+import type { INativeTagMap } from "../common/GenericTagTypes";
+import type { IRating, ITag } from "../type";
 
 /**
  * ASF Metadata tag mappings.
@@ -87,12 +88,12 @@ export class AsfTagMapper extends CommonTagMapper {
     super(["asf"], asfTagMap);
   }
 
-  protected postMap(tag: ITag): void {
+  protected override postMap(tag: ITag): void {
     switch (tag.id) {
       case "WM/SharedUserRating":
         const keys = tag.id.split(":");
         tag.value = AsfTagMapper.toRating(tag.value);
-        tag.id = keys[0];
+        tag.id = keys[0] ?? "";
         break;
     }
   }

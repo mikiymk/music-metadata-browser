@@ -1,22 +1,16 @@
-import { Float32_BE, Float64_BE, StringType, UINT8 } from "token-types";
 import initDebug from "debug";
-import { ITokenizer } from "strtok3/lib/core";
+import { Float32_BE, Float64_BE, StringType, UINT8 } from "token-types";
 
-import { INativeMetadataCollector } from "../common/MetadataCollector";
-import { IOptions, ITrackInfo } from "../type";
-import { ITokenParser } from "../ParserFactory";
 import { BasicParser } from "../common/BasicParser";
 
-import {
-  DataType,
-  IContainerType,
-  IHeader,
-  IMatroskaDoc,
-  ITree,
-  TargetType,
-  TrackType,
-} from "./types";
-import * as matroskaDtd from "./MatroskaDtd";
+import { elements } from "./MatroskaDtd";
+import { DataType, TargetType, TrackType } from "./types";
+
+import type { ITokenParser } from "../ParserFactory";
+import type { INativeMetadataCollector } from "../common/MetadataCollector";
+import type { IOptions, ITrackInfo } from "../type";
+import type { IContainerType, IHeader, IMatroskaDoc, ITree } from "./types";
+import type { ITokenizer } from "strtok3/lib/core";
 
 const debug = initDebug("music-metadata:parser:matroska");
 
@@ -65,7 +59,7 @@ export class MatroskaParser extends BasicParser {
 
   public async parse(): Promise<void> {
     const matroska = (await this.parseContainer(
-      matroskaDtd.elements,
+      elements,
       this.tokenizer.fileInfo.size,
       []
     )) as any as IMatroskaDoc;

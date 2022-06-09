@@ -19,6 +19,7 @@
     "eslint-plugin-unicorn"
   ],
   "rules": {
+    "camelcase": "error",
     "complexity": "off",
     "curly": "off",
     "default-case": "off",
@@ -44,7 +45,6 @@
     "no-bitwise": "off",
     "no-caller": "error",
     "no-console": "error",
-    "no-duplicate-imports": "error",
     "no-eval": "error",
     "no-extra-bind": "error",
     "no-fallthrough": "off",
@@ -76,6 +76,8 @@
 
     "@typescript-eslint/array-type": "error",
     "@typescript-eslint/consistent-type-assertions": "error",
+    "@typescript-eslint/consistent-type-imports": "error",
+    "@typescript-eslint/explicit-function-return-type": "error",
     "@typescript-eslint/no-empty-function": [
       "error",
       { "allow": ["constructors"] }
@@ -93,18 +95,41 @@
       { "path": "always" }
     ],
     "@typescript-eslint/unified-signatures": "error",
+
+    "import/first": "error",
+    "import/newline-after-import": "error",
     "import/no-extraneous-dependencies": [
       "error",
       { "devDependencies": false }
     ],
     "import/no-internal-modules": "off",
-    "import/order": "off",
+    "import/no-namespace": "error",
     "import/no-unresolved": ["error", { "caseSensitiveStrict": true }],
-    "node/file-extension-in-import": ["off"],
-    "node/no-extraneous-import": "error",
+    "import/order": [
+      "error",
+      {
+        "groups": [
+          "builtin",
+          "external",
+          "internal",
+          "parent",
+          "sibling",
+          "index",
+          "object",
+          "type"
+        ],
+        "newlines-between": "always",
+        "alphabetize": { "order": "asc", "caseInsensitive": false }
+      }
+    ],
+
     "jsdoc/check-alignment": "error",
     "jsdoc/check-indentation": "error",
     "jsdoc/newline-after-description": ["error", "never"],
+
+    "node/file-extension-in-import": ["off"],
+    "node/no-extraneous-import": "error",
+
     "unicorn/prefer-ternary": "error"
   },
   "settings": {
@@ -114,11 +139,7 @@
     "import/resolver": {
       "typescript": {
         "alwaysTryTypes": true,
-        "project": [
-          "lib/tsconfig.json",
-          "test/tsconfig.json",
-          "doc-gen/tsconfig.json"
-        ]
+        "project": ["lib/tsconfig.json", "test/tsconfig.json"]
       }
     }
   }

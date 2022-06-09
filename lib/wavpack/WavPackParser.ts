@@ -1,12 +1,13 @@
-import * as Token from "token-types";
+import initDebug from "debug";
+import { UINT24_LE, UINT8 } from "token-types";
 
 import { APEv2Parser } from "../apev2/APEv2Parser";
-import { FourCcToken } from "../common/FourCC";
 import { BasicParser } from "../common/BasicParser";
+import { FourCcToken } from "../common/FourCC";
 
-import { IBlockHeader, IMetadataId, WavPack } from "./WavPackToken";
+import { WavPack } from "./WavPackToken";
 
-import initDebug from "debug";
+import type { IBlockHeader, IMetadataId } from "./WavPackToken";
 
 const debug = initDebug("music-metadata:parser:WavPack");
 
@@ -98,7 +99,7 @@ export class WavPackParser extends BasicParser {
         WavPack.MetadataIdToken
       );
       const dataSizeInWords = await this.tokenizer.readNumber(
-        id.largeBlock ? Token.UINT24_LE : Token.UINT8
+        id.largeBlock ? UINT24_LE : UINT8
       );
       const data = Buffer.alloc(dataSizeInWords * 2 - (id.isOddSize ? 1 : 0));
       await this.tokenizer.readBuffer(data);
@@ -148,7 +149,7 @@ export class WavPackParser extends BasicParser {
 
       remainingLength -=
         WavPack.MetadataIdToken.len +
-        (id.largeBlock ? Token.UINT24_LE.len : Token.UINT8.len) +
+        (id.largeBlock ? UINT24_LE.len : UINT8.len) +
         dataSizeInWords * 2;
       debug(`remainingLength=${remainingLength}`);
       if (id.isOddSize) this.tokenizer.ignore(1);

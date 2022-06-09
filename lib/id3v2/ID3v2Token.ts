@@ -1,7 +1,8 @@
-import * as Token from "token-types";
-import { IGetToken } from "strtok3/lib/core";
+import { StringType, INT8, UINT32_BE, UINT16_BE } from "token-types";
 
 import * as util from "../common/Util";
+
+import type { IGetToken } from "strtok3/lib/core";
 
 /**
  * The picture type according to the ID3v2 APIC frame
@@ -94,11 +95,11 @@ export const ID3v2Header: IGetToken<IID3v2header> = {
   get: (buf: Buffer, off): IID3v2header => {
     return {
       // ID3v2/file identifier   "ID3"
-      fileIdentifier: new Token.StringType(3, "ascii").get(buf, off),
+      fileIdentifier: new StringType(3, "ascii").get(buf, off),
       // ID3v2 versionIndex
       version: {
-        major: Token.INT8.get(buf, off + 3) as ID3v2MajorVersion,
-        revision: Token.INT8.get(buf, off + 4),
+        major: INT8.get(buf, off + 3) as ID3v2MajorVersion,
+        revision: INT8.get(buf, off + 4),
       },
       // ID3v2 flags
       flags: {
@@ -121,11 +122,11 @@ export const ExtendedHeader: IGetToken<IExtendedHeader> = {
   get: (buf, off): IExtendedHeader => {
     return {
       // Extended header size
-      size: Token.UINT32_BE.get(buf, off),
+      size: UINT32_BE.get(buf, off),
       // Extended Flags
-      extendedFlags: Token.UINT16_BE.get(buf, off + 4),
+      extendedFlags: UINT16_BE.get(buf, off + 4),
       // Size of padding
-      sizeOfPadding: Token.UINT32_BE.get(buf, off + 6),
+      sizeOfPadding: UINT32_BE.get(buf, off + 6),
       // CRC data present
       crcDataPresent: util.getBit(buf, off + 4, 31),
     };

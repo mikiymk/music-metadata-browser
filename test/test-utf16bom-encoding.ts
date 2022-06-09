@@ -1,16 +1,18 @@
-import { assert } from "chai";
-import * as path from "path";
+import { join } from "path";
 
-import * as mm from "../lib";
+import { assert } from "chai";
+
+import { parseFile } from "../lib";
+
 import { samplePath } from "./util";
 
 const t = assert;
 
 it("should read utf16bom (big endian) encoded metadata correctly", () => {
   const filename = "bug-utf16bom-encoding.mp3";
-  const filePath = path.join(samplePath, filename);
+  const filePath = join(samplePath, filename);
 
-  return mm.parseFile(filePath).then((result) => {
+  return parseFile(filePath).then((result) => {
     t.equal(result.common.title, "It's All Over You Know", "title");
     t.equal(result.common.artist, "The Apers", "artist");
     t.deepEqual(result.common.artists, ["The Apers"], "artist");

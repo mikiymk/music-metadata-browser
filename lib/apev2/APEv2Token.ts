@@ -1,7 +1,8 @@
-import * as Token from "token-types";
-import { IGetToken } from "strtok3/lib/core";
+import { UINT32_LE, Uint8ArrayType, UINT16_LE, StringType } from "token-types";
 
 import { FourCcToken } from "../common/FourCC";
+
+import type { IGetToken } from "strtok3/lib/core";
 
 /**
  * APETag versionIndex history / supported formats
@@ -101,23 +102,23 @@ export const DescriptorParser: IGetToken<IDescriptor> = {
       // should equal 'MAC '
       ID: FourCcToken.get(buf, off),
       // versionIndex number * 1000 (3.81 = 3810) (remember that 4-byte alignment causes this to take 4-bytes)
-      version: Token.UINT32_LE.get(buf, off + 4) / 1000,
+      version: UINT32_LE.get(buf, off + 4) / 1000,
       // the number of descriptor bytes (allows later expansion of this header)
-      descriptorBytes: Token.UINT32_LE.get(buf, off + 8),
+      descriptorBytes: UINT32_LE.get(buf, off + 8),
       // the number of header APE_HEADER bytes
-      headerBytes: Token.UINT32_LE.get(buf, off + 12),
+      headerBytes: UINT32_LE.get(buf, off + 12),
       // the number of header APE_HEADER bytes
-      seekTableBytes: Token.UINT32_LE.get(buf, off + 16),
+      seekTableBytes: UINT32_LE.get(buf, off + 16),
       // the number of header data bytes (from original file)
-      headerDataBytes: Token.UINT32_LE.get(buf, off + 20),
+      headerDataBytes: UINT32_LE.get(buf, off + 20),
       // the number of bytes of APE frame data
-      apeFrameDataBytes: Token.UINT32_LE.get(buf, off + 24),
+      apeFrameDataBytes: UINT32_LE.get(buf, off + 24),
       // the high order number of APE frame data bytes
-      apeFrameDataBytesHigh: Token.UINT32_LE.get(buf, off + 28),
+      apeFrameDataBytesHigh: UINT32_LE.get(buf, off + 28),
       // the terminating data of the file (not including tag data)
-      terminatingDataBytes: Token.UINT32_LE.get(buf, off + 32),
+      terminatingDataBytes: UINT32_LE.get(buf, off + 32),
       // the MD5 hash of the file (see notes for usage... it's a little tricky)
-      fileMD5: new Token.Uint8ArrayType(16).get(buf, off + 36),
+      fileMD5: new Uint8ArrayType(16).get(buf, off + 36),
     };
   },
 };
@@ -131,21 +132,21 @@ export const Header: IGetToken<IHeader> = {
   get: (buf, off) => {
     return {
       // the compression level (see defines I.E. COMPRESSION_LEVEL_FAST)
-      compressionLevel: Token.UINT16_LE.get(buf, off),
+      compressionLevel: UINT16_LE.get(buf, off),
       // any format flags (for future use)
-      formatFlags: Token.UINT16_LE.get(buf, off + 2),
+      formatFlags: UINT16_LE.get(buf, off + 2),
       // the number of audio blocks in one frame
-      blocksPerFrame: Token.UINT32_LE.get(buf, off + 4),
+      blocksPerFrame: UINT32_LE.get(buf, off + 4),
       // the number of audio blocks in the final frame
-      finalFrameBlocks: Token.UINT32_LE.get(buf, off + 8),
+      finalFrameBlocks: UINT32_LE.get(buf, off + 8),
       // the total number of frames
-      totalFrames: Token.UINT32_LE.get(buf, off + 12),
+      totalFrames: UINT32_LE.get(buf, off + 12),
       // the bits per sample (typically 16)
-      bitsPerSample: Token.UINT16_LE.get(buf, off + 16),
+      bitsPerSample: UINT16_LE.get(buf, off + 16),
       // the number of channels (1 or 2)
-      channel: Token.UINT16_LE.get(buf, off + 18),
+      channel: UINT16_LE.get(buf, off + 18),
       // the sample rate (typically 44100)
-      sampleRate: Token.UINT32_LE.get(buf, off + 20),
+      sampleRate: UINT32_LE.get(buf, off + 20),
     };
   },
 };
@@ -160,15 +161,15 @@ export const TagFooter: IGetToken<IFooter> = {
   get: (buf: Buffer, off) => {
     return {
       // should equal 'APETAGEX'
-      ID: new Token.StringType(8, "ascii").get(buf, off),
+      ID: new StringType(8, "ascii").get(buf, off),
       // equals CURRENT_APE_TAG_VERSION
-      version: Token.UINT32_LE.get(buf, off + 8),
+      version: UINT32_LE.get(buf, off + 8),
       // the complete size of the tag, including this footer (excludes header)
-      size: Token.UINT32_LE.get(buf, off + 12),
+      size: UINT32_LE.get(buf, off + 12),
       // the number of fields in the tag
-      fields: Token.UINT32_LE.get(buf, off + 16),
+      fields: UINT32_LE.get(buf, off + 16),
       // reserved for later use (must be zero),
-      flags: parseTagFlags(Token.UINT32_LE.get(buf, off + 20)),
+      flags: parseTagFlags(UINT32_LE.get(buf, off + 20)),
     };
   },
 };
@@ -192,15 +193,15 @@ export const TagItemHeader: IGetToken<ITagItemHeader> = {
   get: (buf, off) => {
     return {
       // Length of assigned value in bytes
-      size: Token.UINT32_LE.get(buf, off),
+      size: UINT32_LE.get(buf, off),
       // reserved for later use (must be zero),
-      flags: parseTagFlags(Token.UINT32_LE.get(buf, off + 4)),
+      flags: parseTagFlags(UINT32_LE.get(buf, off + 4)),
     };
   },
 };
 
-export const TagField = (footer) => {
-  return new Token.Uint8ArrayType(footer.size - TagFooter.len);
+export const TagField = (footer: { size: number }) => {
+  return new Uint8ArrayType(footer.size - TagFooter.len);
 };
 
 export interface ITagFlags {
@@ -211,7 +212,7 @@ export interface ITagFlags {
   dataType: DataType;
 }
 
-export function parseTagFlags(flags): ITagFlags {
+export function parseTagFlags(flags: number): ITagFlags {
   return {
     containsHeader: isBitSet(flags, 31),
     containsFooter: isBitSet(flags, 30),
@@ -226,6 +227,6 @@ export function parseTagFlags(flags): ITagFlags {
  * @param bit 0 is least significant bit (LSB)
  * @return {boolean} true if bit is 1; otherwise false
  */
-export function isBitSet(num, bit): boolean {
+export function isBitSet(num: number, bit: number): boolean {
   return (num & (1 << bit)) !== 0;
 }

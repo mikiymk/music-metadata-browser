@@ -1,16 +1,18 @@
-import { UINT16_BE, UINT24_BE, Uint8ArrayType } from "token-types";
 import initDebug from "debug";
-import { ITokenizer, IGetToken } from "strtok3/lib/core";
+import { UINT16_BE, UINT24_BE, Uint8ArrayType } from "token-types";
 
-import * as util from "../common/Util";
-import { IVorbisPicture, VorbisPictureToken } from "../ogg/vorbis/Vorbis";
-import { AbstractID3Parser } from "../id3v2/AbstractID3Parser";
 import { FourCcToken } from "../common/FourCC";
-import { VorbisParser } from "../ogg/vorbis/VorbisParser";
-import { INativeMetadataCollector } from "../common/MetadataCollector";
-import { IOptions } from "../type";
-import { ITokenParser } from "../ParserFactory";
+import { getBit, getBitAllignedNumber } from "../common/Util";
+import { AbstractID3Parser } from "../id3v2/AbstractID3Parser";
+import { VorbisPictureToken } from "../ogg/vorbis/Vorbis";
 import { VorbisDecoder } from "../ogg/vorbis/VorbisDecoder";
+import { VorbisParser } from "../ogg/vorbis/VorbisParser";
+
+import type { ITokenParser } from "../ParserFactory";
+import type { INativeMetadataCollector } from "../common/MetadataCollector";
+import type { IVorbisPicture } from "../ogg/vorbis/Vorbis";
+import type { IOptions } from "../type";
+import type { ITokenizer, IGetToken } from "strtok3/lib/core";
 
 const debug = initDebug("music-metadata:parser:FLAC");
 
@@ -204,8 +206,8 @@ class Metadata {
 
     get: (buf: Buffer, off: number): IBlockHeader => {
       return {
-        lastBlock: util.getBit(buf, off, 7),
-        type: util.getBitAllignedNumber(buf, off, 1, 7),
+        lastBlock: getBit(buf, off, 7),
+        type: getBitAllignedNumber(buf, off, 1, 7),
         length: UINT24_BE.get(buf, off + 1),
       };
     },
@@ -237,14 +239,14 @@ class Metadata {
         sampleRate: UINT24_BE.get(buf, off + 10) >> 4,
         // probably slower: sampleRate: common.getBitAllignedNumber(buf, off + 10, 0, 20),
         // (number of channels)-1. FLAC supports from 1 to 8 channels
-        channels: util.getBitAllignedNumber(buf, off + 12, 4, 3) + 1,
+        channels: getBitAllignedNumber(buf, off + 12, 4, 3) + 1,
         // bits per sample)-1.
         // FLAC supports from 4 to 32 bits per sample. Currently the reference encoder and decoders only support up to 24 bits per sample.
-        bitsPerSample: util.getBitAllignedNumber(buf, off + 12, 7, 5) + 1,
+        bitsPerSample: getBitAllignedNumber(buf, off + 12, 7, 5) + 1,
         // Total samples in stream.
         // 'Samples' means inter-channel sample, i.e. one second of 44.1Khz audio will have 44100 samples regardless of the number of channels.
         // A value of zero here means the number of total samples is unknown.
-        totalSamples: util.getBitAllignedNumber(buf, off + 13, 4, 36),
+        totalSamples: getBitAllignedNumber(buf, off + 13, 4, 36),
         // the MD5 hash of the file (see notes for usage... it's a littly tricky)
         fileMD5: new Uint8ArrayType(16).get(buf, off + 18),
       };

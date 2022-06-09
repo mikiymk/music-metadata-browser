@@ -1,10 +1,13 @@
-import * as path from "path";
-import * as mm from "../lib";
+import { join } from "path";
+
 import { assert } from "chai";
+
+import * as mm from "../lib";
+
 import { samplePath } from "./util";
 
 describe("Matroska formats", () => {
-  const matroskaSamplePath = path.join(samplePath, "matroska");
+  const matroskaSamplePath = join(samplePath, "matroska");
 
   function verifyTrackSolidGround(common: mm.ICommonTagsResult) {
     // Common mapped EBML tags
@@ -32,10 +35,7 @@ describe("Matroska formats", () => {
 
   describe("Matroska audio (.mka)", () => {
     it('parse: "alac-in-matroska-short.mka"', async () => {
-      const mkaPath = path.join(
-        matroskaSamplePath,
-        "alac-in-matroska-short.mka"
-      );
+      const mkaPath = join(matroskaSamplePath, "alac-in-matroska-short.mka");
 
       const { format } = await mm.parseFile(mkaPath, { duration: false });
 
@@ -53,7 +53,7 @@ describe("Matroska formats", () => {
     });
 
     it('parse: "02 - Poxfil - Solid Ground (5 sec).mka"', async () => {
-      const mkaPath = path.join(
+      const mkaPath = join(
         matroskaSamplePath,
         "02 - Poxfil - Solid Ground (5 sec).mka"
       );
@@ -80,7 +80,7 @@ describe("Matroska formats", () => {
 
   describe("WebM", () => {
     it('parse: "big-buck-bunny_trailer-short.vp8.webm"', async () => {
-      const webmPath = path.join(
+      const webmPath = join(
         matroskaSamplePath,
         "big-buck-bunny_trailer-short.vp8.webm"
       );
@@ -121,7 +121,7 @@ describe("Matroska formats", () => {
     });
 
     it('parse: "02 - Poxfil - Solid Ground (5 sec).opus.webm"', async () => {
-      const webmPath = path.join(
+      const webmPath = join(
         matroskaSamplePath,
         "02 - Poxfil - Solid Ground (5 sec).opus.webm"
       );
@@ -157,7 +157,7 @@ describe("Matroska formats", () => {
     });
 
     it('should parse "My Baby Boy.webm"', async () => {
-      const filePath = path.join(matroskaSamplePath, "My Baby Boy.webm");
+      const filePath = join(matroskaSamplePath, "My Baby Boy.webm");
 
       const { format, common, native } = await mm.parseFile(filePath, {
         duration: true,
@@ -188,7 +188,7 @@ describe("Matroska formats", () => {
     });
 
     it("shoud ignore trailing null characters", async () => {
-      const webmPath = path.join(matroskaSamplePath, "fixture-null.webm");
+      const webmPath = join(matroskaSamplePath, "fixture-null.webm");
       const { format } = await mm.parseFile(webmPath, { duration: false });
       assert.strictEqual(format.container, "EBML/webm", "format.container");
     });
@@ -197,7 +197,7 @@ describe("Matroska formats", () => {
   // https://github.com/Borewit/music-metadata/issues/384
   describe("Multiple audio tracks", () => {
     it('parse: "matroska-test-w1-test5-short.mkv"', async () => {
-      const mkvPath = path.join(
+      const mkvPath = join(
         matroskaSamplePath,
         "matroska-test-w1-test5-short.mkv"
       );
@@ -229,7 +229,7 @@ describe("Matroska formats", () => {
   // https://www.matroska.org/technical/streaming.html
   // https://github.com/Borewit/music-metadata/issues/765
   describe("Parse Matroska Stream", () => {
-    const mkvPath = path.join(matroskaSamplePath, "stream.weba");
+    const mkvPath = join(matroskaSamplePath, "stream.weba");
 
     it("Parse stream", async () => {
       const { format } = await mm.parseFile(mkvPath);

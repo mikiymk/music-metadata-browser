@@ -1,13 +1,21 @@
 // ASF Objects
 
-import { IGetToken, ITokenizer } from "strtok3/lib/core";
+import {
+  BufferType,
+  UINT64_LE,
+  UINT32_LE,
+  UINT16_LE,
+  StringType,
+} from "token-types";
 
-import * as util from "../common/Util";
-import { IPicture, ITag } from "../type";
-import * as Token from "token-types";
-import GUID from "./GUID";
-import { AsfUtil } from "./AsfUtil";
+import { getBit } from "../common/Util";
 import { AttachedPictureType } from "../id3v2/ID3v2Token";
+
+import { AsfUtil } from "./AsfUtil";
+import GUID from "./GUID";
+
+import type { IPicture, ITag } from "../type";
+import type { IGetToken, ITokenizer } from "strtok3/lib/core";
 
 /**
  * Data Type: Specifies the type of information being stored. The following values are recognized.
@@ -74,9 +82,9 @@ export const TopLevelHeaderObjectToken: IGetToken<
 
   get: (buf, off): IAsfTopLevelObjectHeader => {
     return {
-      objectId: GUID.fromBin(new Token.BufferType(16).get(buf, off)),
-      objectSize: Number(Token.UINT64_LE.get(buf, off + 16)),
-      numberOfHeaderObjects: Token.UINT32_LE.get(buf, off + 24),
+      objectId: GUID.fromBin(new BufferType(16).get(buf, off)),
+      objectSize: Number(UINT64_LE.get(buf, off + 16)),
+      numberOfHeaderObjects: UINT32_LE.get(buf, off + 24),
       // Reserved: 2 bytes
     };
   },
@@ -91,8 +99,8 @@ export const HeaderObjectToken: IGetToken<IAsfObjectHeader, Buffer> = {
 
   get: (buf, off): IAsfObjectHeader => {
     return {
-      objectId: GUID.fromBin(new Token.BufferType(16).get(buf, off)),
-      objectSize: Number(Token.UINT64_LE.get(buf, off + 16)),
+      objectId: GUID.fromBin(new BufferType(16).get(buf, off)),
+      objectSize: Number(UINT64_LE.get(buf, off + 16)),
     };
   },
 };
@@ -130,7 +138,7 @@ export class IgnoreObjectState extends State<any> {
     super(header);
   }
 
-  public get(buf: Buffer, off: number): null {
+  public get(): null {
     return null;
   }
 }
@@ -248,20 +256,20 @@ export class FilePropertiesObject extends State<IFilePropertiesObject> {
   public get(buf: Buffer, off: number): IFilePropertiesObject {
     return {
       fileId: GUID.fromBin(buf, off),
-      fileSize: Token.UINT64_LE.get(buf, off + 16),
-      creationDate: Token.UINT64_LE.get(buf, off + 24),
-      dataPacketsCount: Token.UINT64_LE.get(buf, off + 32),
-      playDuration: Token.UINT64_LE.get(buf, off + 40),
-      sendDuration: Token.UINT64_LE.get(buf, off + 48),
-      preroll: Token.UINT64_LE.get(buf, off + 56),
+      fileSize: UINT64_LE.get(buf, off + 16),
+      creationDate: UINT64_LE.get(buf, off + 24),
+      dataPacketsCount: UINT64_LE.get(buf, off + 32),
+      playDuration: UINT64_LE.get(buf, off + 40),
+      sendDuration: UINT64_LE.get(buf, off + 48),
+      preroll: UINT64_LE.get(buf, off + 56),
       flags: {
-        broadcast: util.getBit(buf, off + 64, 24),
-        seekable: util.getBit(buf, off + 64, 25),
+        broadcast: getBit(buf, off + 64, 24),
+        seekable: getBit(buf, off + 64, 25),
       },
       // flagsNumeric: Token.UINT32_LE.get(buf, off + 64),
-      minimumDataPacketSize: Token.UINT32_LE.get(buf, off + 68),
-      maximumDataPacketSize: Token.UINT32_LE.get(buf, off + 72),
-      maximumBitrate: Token.UINT32_LE.get(buf, off + 76),
+      minimumDataPacketSize: UINT32_LE.get(buf, off + 68),
+      maximumDataPacketSize: UINT32_LE.get(buf, off + 72),
+      maximumBitrate: UINT32_LE.get(buf, off + 76),
     };
   }
 }
@@ -273,7 +281,7 @@ export interface IStreamPropertiesObject {
   /**
    * Stream Type
    */
-  streamType: string;
+  streamType: string | undefined;
 
   /**
    * Error Correction Type
@@ -362,9 +370,9 @@ export interface ICodecEntry {
 }
 
 async function readString(tokenizer: ITokenizer): Promise<string> {
-  const length = await tokenizer.readNumber(Token.UINT16_LE);
+  const length = await tokenizer.readNumber(UINT16_LE);
   return (
-    await tokenizer.readToken(new Token.StringType(length * 2, "utf16le"))
+    await tokenizer.readToken(new StringType(length * 2, "utf16le"))
   ).replace("\0", "");
 }
 
@@ -384,7 +392,7 @@ export async function readCodecEntries(
 }
 
 async function readInformation(tokenizer: ITokenizer): Promise<Buffer> {
-  const length = await tokenizer.readNumber(Token.UINT16_LE);
+  const length = await tokenizer.readNumber(UINT16_LE);
   const buf = Buffer.alloc(length);
   await tokenizer.readBuffer(buf);
   return buf;
@@ -395,7 +403,7 @@ async function readInformation(tokenizer: ITokenizer): Promise<Buffer> {
  * @param tokenizer
  */
 async function readCodecEntry(tokenizer: ITokenizer): Promise<ICodecEntry> {
-  const type = await tokenizer.readNumber(Token.UINT16_LE);
+  const type = await tokenizer.readNumber(UINT16_LE);
   return {
     type: {
       videoCodec: (type & 0x0001) === 0x0001,
@@ -440,7 +448,7 @@ export class ContentDescriptionObjectState extends State<ITag[]> {
         const tagName = ContentDescriptionObjectState.contentDescTags[i];
         const end = pos + length;
         tags.push({
-          id: tagName,
+          id: tagName as string, // TODO: asを使わずにundefinedを消す
           value: AsfUtil.parseUnicodeAttr(buf.slice(pos, end)),
         });
         pos = end;
@@ -513,7 +521,7 @@ export interface IExtendedStreamPropertiesObject {
   streamNameCount: number;
   payloadExtensionSystems: number;
   streamNames: IStreamName[];
-  streamPropertiesObject: number;
+  streamPropertiesObject: number | null;
 }
 
 /**
@@ -529,8 +537,8 @@ export class ExtendedStreamPropertiesObjectState extends State<IExtendedStreamPr
 
   public get(buf: Buffer, off: number): IExtendedStreamPropertiesObject {
     return {
-      startTime: Token.UINT64_LE.get(buf, off),
-      endTime: Token.UINT64_LE.get(buf, off + 8),
+      startTime: UINT64_LE.get(buf, off),
+      endTime: UINT64_LE.get(buf, off + 8),
       dataBitrate: buf.readInt32LE(off + 12),
       bufferSize: buf.readInt32LE(off + 16),
       initialBufferFullness: buf.readInt32LE(off + 20),
@@ -540,9 +548,9 @@ export class ExtendedStreamPropertiesObjectState extends State<IExtendedStreamPr
       maximumObjectSize: buf.readInt32LE(off + 36),
       flags: {
         // ToDo, check flag positions
-        reliableFlag: util.getBit(buf, off + 40, 0),
-        seekableFlag: util.getBit(buf, off + 40, 1),
-        resendLiveCleanpointsFlag: util.getBit(buf, off + 40, 2),
+        reliableFlag: getBit(buf, off + 40, 0),
+        seekableFlag: getBit(buf, off + 40, 1),
+        resendLiveCleanpointsFlag: getBit(buf, off + 40, 2),
       },
       // flagsNumeric: Token.UINT32_LE.get(buf, off + 64),
       streamNumber: buf.readInt16LE(off + 42),
@@ -592,7 +600,7 @@ export class MetadataObjectState extends State<ITag[]> {
 
 // 4.8	Metadata Library Object (optional, 0 or 1)
 export class MetadataLibraryObjectState extends MetadataObjectState {
-  public static guid = GUID.MetadataLibraryObject;
+  public static override guid = GUID.MetadataLibraryObject;
 
   constructor(header: IAsfObjectHeader) {
     super(header);
@@ -620,7 +628,7 @@ export class WmPictureToken implements IGetToken<IWmPicture> {
     return pic.get(buffer, 0);
   }
 
-  constructor(public len) {}
+  constructor(public len: number) {}
 
   public get(buffer: Buffer, offset: number): IWmPicture {
     const typeId = buffer.readUInt8(offset++);
@@ -638,7 +646,7 @@ export class WmPictureToken implements IGetToken<IWmPicture> {
     const description = buffer.slice(5, index).toString("utf16le");
 
     return {
-      type: AttachedPictureType[typeId],
+      type: AttachedPictureType[typeId] as string,
       format,
       description,
       size,

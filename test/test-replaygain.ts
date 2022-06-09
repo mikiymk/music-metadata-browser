@@ -1,12 +1,14 @@
-import { assert } from "chai";
-import * as path from "path";
+import { join } from "path";
 
-import * as mm from "../lib";
-import { samplePath } from "./util";
+import { assert } from "chai";
+
+import { parseFile } from "../lib";
 import { ratioToDb, dbToRatio, toRatio } from "../lib/common/Util";
 
+import { samplePath } from "./util";
+
 describe("Decode replaygain tags", () => {
-  const filePath = path.join(samplePath, "04 Long Drive.flac");
+  const filePath = join(samplePath, "04 Long Drive.flac");
 
   it("Convert ratio to dB", () => {
     assert.approximately(ratioToDb(0.99914551), -0.00371259, 0.000000005);
@@ -25,7 +27,7 @@ describe("Decode replaygain tags", () => {
   });
 
   it("should decode replaygain tags from FLAC/Vorbis", async () => {
-    return mm.parseFile(filePath).then((metadata) => {
+    return parseFile(filePath).then((metadata) => {
       assert.deepEqual(
         metadata.common.replaygain_track_gain,
         { dB: -7.03, ratio: 0.1981527025805098 },

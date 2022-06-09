@@ -1,12 +1,14 @@
-import { assert, expect } from "chai";
-import * as path from "path";
+import { join } from "path";
 
-import { Parsers } from "./metadata-parsers";
-import * as mm from "../lib";
-import { samplePath } from "./util";
+import { assert, expect } from "chai";
+
+import { orderTags, parseFile } from "../lib";
 import { IdHeader } from "../lib/ogg/opus/Opus";
 
-const oggSamplePath = path.join(samplePath, "ogg");
+import { Parsers } from "./metadata-parsers";
+import { samplePath } from "./util";
+
+const oggSamplePath = join(samplePath, "ogg");
 
 describe("Parse Ogg", function () {
   this.timeout(15000); // It takes a log time to parse, due to sync errors and assumption it is VBR (which is caused by the funny 224 kbps frame)
@@ -90,7 +92,7 @@ describe("Parse Ogg", function () {
 
   describe("Parsing Ogg/Vorbis", () => {
     describe("decode: Nirvana - In Bloom - 2-sec.ogg", () => {
-      const filePath = path.join(samplePath, "Nirvana - In Bloom - 2-sec.ogg");
+      const filePath = join(samplePath, "Nirvana - In Bloom - 2-sec.ogg");
 
       function checkFormat(format) {
         assert.deepEqual(format.tagTypes, ["vorbis"], "format.tagTypes");
@@ -112,18 +114,16 @@ describe("Parse Ogg", function () {
         it(parser.description, async () => {
           const metadata = await parser.initParser(filePath, "audio/ogg");
           checkFormat(metadata.format);
-          check_Nirvana_In_Bloom_VorbisTags(
-            mm.orderTags(metadata.native.vorbis)
-          );
+          check_Nirvana_In_Bloom_VorbisTags(orderTags(metadata.native.vorbis));
           check_Nirvana_In_Bloom_commonTags(metadata.common);
         });
       });
     });
 
     it("should handle page not finalized with the lastPage flag", async () => {
-      const filePath = path.join(samplePath, "issue_62.ogg");
+      const filePath = join(samplePath, "issue_62.ogg");
 
-      const { format, common, quality } = await mm.parseFile(filePath);
+      const { format, common, quality } = await parseFile(filePath);
 
       assert.deepEqual(format.tagTypes, ["vorbis"], "format.tagTypes");
       // assert.strictEqual(format.duration, 2.0, 'format.duration = 2.0 sec');
@@ -160,14 +160,14 @@ describe("Parse Ogg", function () {
      * Related issue: https://github.com/Borewit/music-metadata/issues/70
      */
     it("should not fail on an Ogg/Vorbis 'Setup header'", async () => {
-      const filePath = path.join(samplePath, "issue_70.ogg");
+      const filePath = join(samplePath, "issue_70.ogg");
 
-      const { format, native } = await mm.parseFile(filePath);
+      const { format, native } = await parseFile(filePath);
       assert.strictEqual(format.container, "Ogg", "format.container");
       assert.strictEqual(format.codec, "Vorbis I", "format.codec");
       assert.strictEqual(format.sampleRate, 44100, "format.sampleRate");
 
-      const vorbis = mm.orderTags(native.vorbis);
+      const vorbis = orderTags(native.vorbis);
       assert.deepEqual(vorbis.ALBUM, ["Dropsonde"]);
       assert.deepEqual(vorbis.ARTIST, ["Biosphere"]);
       assert.deepEqual(vorbis["ALBUM ARTIST"], ["Biosphere"]);
@@ -194,7 +194,7 @@ describe("Parse Ogg", function () {
     });
 
     describe("decode: Nirvana - In Bloom - 2-sec.opus", () => {
-      const filePath = path.join(samplePath, "Nirvana - In Bloom - 2-sec.opus");
+      const filePath = join(samplePath, "Nirvana - In Bloom - 2-sec.opus");
 
       function checkFormat(format) {
         assert.deepEqual(format.tagTypes, ["vorbis"], "format.tagTypes");
@@ -226,9 +226,7 @@ describe("Parse Ogg", function () {
         it(parser.description, async () => {
           const metadata = await parser.initParser(filePath, "audio/ogg");
           checkFormat(metadata.format);
-          check_Nirvana_In_Bloom_VorbisTags(
-            mm.orderTags(metadata.native.vorbis)
-          );
+          check_Nirvana_In_Bloom_VorbisTags(orderTags(metadata.native.vorbis));
           check_Nirvana_In_Bloom_commonTags(metadata.common);
         });
       });
@@ -237,7 +235,7 @@ describe("Parse Ogg", function () {
 
   describe("Parsing Ogg/Speex", () => {
     describe("decode: 'female_scrub.spx'", () => {
-      const filePath = path.join(samplePath, "female_scrub.spx");
+      const filePath = join(samplePath, "female_scrub.spx");
 
       function checkFormat(format) {
         assert.strictEqual(format.container, "Ogg", "format.container");
@@ -258,9 +256,9 @@ describe("Parse Ogg", function () {
     });
 
     it("check for ogg-multipage-metadata-bug", () => {
-      const filePath = path.join(samplePath, "ogg-multipagemetadata-bug.ogg");
+      const filePath = join(samplePath, "ogg-multipagemetadata-bug.ogg");
 
-      return mm.parseFile(filePath).then((result) => {
+      return parseFile(filePath).then((result) => {
         assert.strictEqual(
           result.common.title,
           "Modestep - To The Stars (Break the Noize & The Autobots Remix)",
@@ -299,9 +297,9 @@ describe("Parse Ogg", function () {
 
   describe("Calculate duration", () => {
     it("with proper last page header", async () => {
-      const filePath = path.join(oggSamplePath, "last-page.oga");
+      const filePath = join(oggSamplePath, "last-page.oga");
 
-      const { format } = await mm.parseFile(filePath);
+      const { format } = await parseFile(filePath);
 
       assert.strictEqual(format.container, "Ogg", "format.container");
       assert.strictEqual(format.codec, "Opus", "format.codec");
@@ -315,9 +313,9 @@ describe("Parse Ogg", function () {
     });
 
     it("with no last page", async () => {
-      const filePath = path.join(oggSamplePath, "no-last-page.oga");
+      const filePath = join(oggSamplePath, "no-last-page.oga");
 
-      const { format, quality } = await mm.parseFile(filePath);
+      const { format, quality } = await parseFile(filePath);
 
       assert.strictEqual(format.container, "Ogg", "format.container");
       assert.strictEqual(format.codec, "Opus", "format.codec");

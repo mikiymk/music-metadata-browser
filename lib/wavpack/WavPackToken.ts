@@ -1,7 +1,8 @@
-import * as Token from "token-types";
-import { IGetToken } from "strtok3/lib/core";
+import { UINT32_LE, UINT16_LE, Uint8ArrayType } from "token-types";
 
 import { FourCcToken } from "../common/FourCC";
+
+import type { IGetToken } from "strtok3/lib/core";
 
 /**
  * WavPack Block Header
@@ -82,29 +83,29 @@ export class WavPack {
     len: 32,
 
     get: (buf, off) => {
-      const flags = Token.UINT32_LE.get(buf, off + 24);
+      const flags = UINT32_LE.get(buf, off + 24);
 
       const res = {
         // should equal 'wvpk'
         BlockID: FourCcToken.get(buf, off),
         //  0x402 to 0x410 are valid for decode
-        blockSize: Token.UINT32_LE.get(buf, off + 4),
+        blockSize: UINT32_LE.get(buf, off + 4),
         //  0x402 (1026) to 0x410 are valid for decode
-        version: Token.UINT16_LE.get(buf, off + 8),
+        version: UINT16_LE.get(buf, off + 8),
         //  40-bit total samples for entire file (if block_index == 0 and a value of -1 indicates an unknown length)
         totalSamples:
-          /* replace with bigint? (Token.UINT8.get(buf, off + 11) << 32) + */ Token.UINT32_LE.get(
+          /* replace with bigint? (Token.UINT8.get(buf, off + 11) << 32) + */ UINT32_LE.get(
             buf,
             off + 12
           ),
         // 40-bit block_index
         blockIndex:
-          /* replace with bigint? (Token.UINT8.get(buf, off + 10) << 32) + */ Token.UINT32_LE.get(
+          /* replace with bigint? (Token.UINT8.get(buf, off + 10) << 32) + */ UINT32_LE.get(
             buf,
             off + 16
           ),
         // 40-bit total samples for entire file (if block_index == 0 and a value of -1 indicates an unknown length)
-        blockSamples: Token.UINT32_LE.get(buf, off + 20),
+        blockSamples: UINT32_LE.get(buf, off + 20),
         // various flags for id and decoding
         flags: {
           bitsPerSample: (1 + WavPack.getBitAllignedNumber(flags, 0, 2)) * 8,
@@ -118,7 +119,7 @@ export class WavPack {
           isDSD: WavPack.isBitSet(flags, 31),
         },
         // crc for actual decoded data
-        crc: new Token.Uint8ArrayType(4).get(buf, off + 28),
+        crc: new Uint8ArrayType(4).get(buf, off + 28),
       };
 
       if (res.flags.isDSD) {

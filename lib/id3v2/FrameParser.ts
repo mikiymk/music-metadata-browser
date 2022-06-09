@@ -1,14 +1,13 @@
 import initDebug from "debug";
-import * as Token from "token-types";
+import { UINT32_BE, UINT8 } from "token-types";
 
 import * as util from "../common/Util";
-import {
-  AttachedPictureType,
-  ID3v2MajorVersion,
-  TextEncodingToken,
-} from "./ID3v2Token";
-import { IWarningCollector } from "../common/MetadataCollector";
 import { Genres } from "../id3v1/ID3v1Parser";
+
+import { AttachedPictureType, TextEncodingToken } from "./ID3v2Token";
+
+import type { IWarningCollector } from "../common/MetadataCollector";
+import type { ID3v2MajorVersion } from "./ID3v2Token";
 
 const debug = initDebug("music-metadata:id3v2:frame-parser");
 
@@ -223,7 +222,7 @@ export class FrameParser {
 
       case "CNT":
       case "PCNT":
-        output = Token.UINT32_BE.get(uint8Array, 0);
+        output = UINT32_BE.get(uint8Array, 0);
         break;
 
       case "SYLT":
@@ -301,11 +300,9 @@ export class FrameParser {
         const dataLen = length - offset;
         output = {
           email,
-          rating: Token.UINT8.get(uint8Array, offset),
+          rating: UINT8.get(uint8Array, offset),
           counter:
-            dataLen >= 5
-              ? Token.UINT32_BE.get(uint8Array, offset + 1)
-              : undefined,
+            dataLen >= 5 ? UINT32_BE.get(uint8Array, offset + 1) : undefined,
         };
         break;
 

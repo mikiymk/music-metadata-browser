@@ -1,9 +1,12 @@
+import { join } from "path";
+
 import { assert } from "chai";
+
 import * as mm from "../lib";
-import * as path from "path";
-import GUID from "../lib/asf/GUID";
-import { AsfUtil } from "../lib/asf/AsfUtil";
 import { DataType } from "../lib/asf/AsfObject";
+import { AsfUtil } from "../lib/asf/AsfUtil";
+import GUID from "../lib/asf/GUID";
+
 import { Parsers } from "./metadata-parsers";
 import { samplePath } from "./util";
 
@@ -78,7 +81,7 @@ describe("Parse ASF", () => {
   });
 
   describe("parse", () => {
-    const asfFilePath = path.join(samplePath, "asf");
+    const asfFilePath = join(samplePath, "asf");
 
     function checkFormat(format) {
       assert.strictEqual(format.container, "ASF/audio", "format.container");
@@ -137,7 +140,7 @@ describe("Parse ASF", () => {
       Parsers.forEach((parser) => {
         it(parser.description, async () => {
           const metadata = await parser.initParser(
-            path.join(asfFilePath, "asf.wma"),
+            join(asfFilePath, "asf.wma"),
             "audio/x-ms-wma"
           );
           assert.isDefined(metadata, "metadata");
@@ -156,7 +159,7 @@ describe("Parse ASF", () => {
     describe("should decode picture from", () => {
       Parsers.forEach((parser) => {
         it(parser.description, async () => {
-          const filePath = path.join(asfFilePath, "issue_57.wma");
+          const filePath = join(asfFilePath, "issue_57.wma");
           const metadata = await parser.initParser(filePath, "audio/x-ms-wma");
           const asf = mm.orderTags(metadata.native.asf);
           assert.exists(asf["WM/Picture"][0], "ASF WM/Picture should be set");
@@ -170,7 +173,7 @@ describe("Parse ASF", () => {
      * Related issue: https://github.com/Borewit/music-metadata/issues/68
      */
     it("should be able to parse truncated .wma file", async () => {
-      const filePath = path.join(asfFilePath, "13 Thirty Dirty Birds.wma");
+      const filePath = join(asfFilePath, "13 Thirty Dirty Birds.wma");
 
       const { format, common, native } = await mm.parseFile(filePath);
 

@@ -1,13 +1,13 @@
-import { ITokenizer } from "strtok3/lib/core";
-
-import { ITokenParser } from "../ParserFactory";
-import { IOptions, IPrivateOptions } from "../type";
-import { INativeMetadataCollector } from "./MetadataCollector";
+import type { ITokenParser } from "../ParserFactory";
+import type { IOptions, IPrivateOptions } from "../type";
+import type { INativeMetadataCollector } from "./MetadataCollector";
+import type { ITokenizer } from "strtok3/lib/core";
 
 export abstract class BasicParser implements ITokenParser {
-  protected metadata: INativeMetadataCollector;
-  protected tokenizer: ITokenizer;
-  protected options: IPrivateOptions;
+  protected metadata: INativeMetadataCollector = {} as INativeMetadataCollector;
+  protected tokenizer: ITokenizer = {} as ITokenizer;
+  protected options: IPrivateOptions = {} as IPrivateOptions;
+  // TODO: initではなくconstructorで指定する
 
   /**
    * Initialize parser with output (metadata), input (tokenizer) & parsing options (options).
@@ -27,5 +27,5 @@ export abstract class BasicParser implements ITokenParser {
     return this;
   }
 
-  public abstract parse();
+  public abstract parse(): Promise<void>;
 }

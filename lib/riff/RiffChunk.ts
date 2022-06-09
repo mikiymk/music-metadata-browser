@@ -1,7 +1,8 @@
-import * as Token from "token-types";
-import { IGetToken } from "strtok3/lib/core";
+import { UINT32_LE, StringType } from "token-types";
 
-import { IChunkHeader } from "../iff";
+import type { IChunkHeader } from "../iff";
+import type { IGetToken } from "strtok3/lib/core";
+
 export { IChunkHeader } from "../iff";
 
 /**
@@ -15,7 +16,7 @@ export const Header: IGetToken<IChunkHeader> = {
       // Group-ID
       chunkID: buf.toString("binary", off, off + 4),
       // Size
-      chunkSize: Token.UINT32_LE.get(buf, 4),
+      chunkSize: UINT32_LE.get(buf, 4),
     };
   },
 };
@@ -32,9 +33,6 @@ export class ListInfoTagValue implements IGetToken<string> {
   }
 
   public get(buf, off): string {
-    return new Token.StringType(this.tagHeader.chunkSize, "ascii").get(
-      buf,
-      off
-    );
+    return new StringType(this.tagHeader.chunkSize, "ascii").get(buf, off);
   }
 }

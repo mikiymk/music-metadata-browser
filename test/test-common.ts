@@ -1,11 +1,12 @@
-import { assert } from "chai";
-import * as path from "path";
+import { join } from "path";
 
-import { commonTags, isSingleton } from "../lib/common/GenericTagTypes";
-import * as mm from "../lib";
-import { CombinedTagMapper } from "../lib/common/CombinedTagMapper";
-import { joinArtists } from "../lib/common/MetadataCollector";
+import { assert } from "chai";
+
+import { parseFile, ratingToStars, selectCover } from "../lib";
 import { parseHttpContentType } from "../lib/ParserFactory";
+import { CombinedTagMapper } from "../lib/common/CombinedTagMapper";
+import { commonTags, isSingleton } from "../lib/common/GenericTagTypes";
+import { joinArtists } from "../lib/common/MetadataCollector";
 
 import { samplePath } from "./util";
 
@@ -57,13 +58,9 @@ describe("GenericTagMap", () => {
     });
 
     it("parse RIFF tags", async () => {
-      const filePath = path.join(
-        __dirname,
-        "samples",
-        "issue-89 no-artist.aiff"
-      );
+      const filePath = join(__dirname, "samples", "issue-89 no-artist.aiff");
 
-      const metadata = await mm.parseFile(filePath, { duration: true });
+      const metadata = await parseFile(filePath, { duration: true });
       assert.deepEqual(
         metadata.common.artists,
         ["Beth Hart", "Joe Bonamassa"],
@@ -80,13 +77,13 @@ describe("GenericTagMap", () => {
 
 describe("Convert rating", () => {
   it("should convert rating to stars", () => {
-    assert.equal(mm.ratingToStars(undefined), 0);
-    assert.equal(mm.ratingToStars(0), 1);
-    assert.equal(mm.ratingToStars(0.1), 1);
-    assert.equal(mm.ratingToStars(0.2), 2);
-    assert.equal(mm.ratingToStars(0.5), 3);
-    assert.equal(mm.ratingToStars(0.75), 4);
-    assert.equal(mm.ratingToStars(1), 5);
+    assert.equal(ratingToStars(undefined), 0);
+    assert.equal(ratingToStars(0), 1);
+    assert.equal(ratingToStars(0.1), 1);
+    assert.equal(ratingToStars(0.2), 2);
+    assert.equal(ratingToStars(0.5), 3);
+    assert.equal(ratingToStars(0.75), 4);
+    assert.equal(ratingToStars(1), 5);
   });
 });
 
@@ -107,10 +104,10 @@ describe("function selectCover()", () => {
 
   it("Should pick the front cover", async () => {
     for (const multiCoverFile of multiCoverFiles) {
-      const filePath = path.join(samplePath, multiCoverFile);
-      const { common } = await mm.parseFile(filePath);
+      const filePath = join(samplePath, multiCoverFile);
+      const { common } = await parseFile(filePath);
       assert.isTrue(common.picture.length > 1);
-      const cover = mm.selectCover(common.picture);
+      const cover = selectCover(common.picture);
       if (cover.type) {
         assert.equal(cover.type, "Cover (front)", "cover.type");
       } else {

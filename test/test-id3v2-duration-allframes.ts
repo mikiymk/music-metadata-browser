@@ -1,7 +1,9 @@
-import { assert } from "chai";
-import * as mm from "../lib";
+import { join } from "path";
 
-import * as path from "path";
+import { assert } from "chai";
+
+import { parseFile } from "../lib";
+
 import { samplePath } from "./util";
 
 const t = assert;
@@ -21,7 +23,7 @@ it("should decode id3v2-duration-allframes", () => {
    * File is CBR. Bitrate of each frame is 256 kbps.
    * Exact length: 00:01
    */
-  const filePath = path.join(samplePath, "id3v2-duration-allframes.mp3");
+  const filePath = join(samplePath, "id3v2-duration-allframes.mp3");
 
   function checkFormat(format) {
     t.deepEqual(format.tagTypes, ["ID3v2.3"], "format.tagTypes");
@@ -50,7 +52,7 @@ it("should decode id3v2-duration-allframes", () => {
     t.deepEqual(common.picture, undefined, "common.picture");
   }
 
-  return mm.parseFile(filePath, { duration: true }).then((result) => {
+  return parseFile(filePath, { duration: true }).then((result) => {
     checkFormat(result.format);
     checkCommon(result.common);
   });

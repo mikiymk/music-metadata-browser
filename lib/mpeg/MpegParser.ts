@@ -1,15 +1,17 @@
-import * as Token from "token-types";
-import { EndOfStreamError } from "strtok3/lib/core";
 import initDebug from "debug";
+import { EndOfStreamError } from "strtok3/lib/core";
+import { INT16_BE, Uint8ArrayType } from "token-types";
 
-import * as common from "../common/Util";
+import { getBitAllignedNumber, isBitSet, stripNulls } from "../common/Util";
 import { AbstractID3Parser } from "../id3v2/AbstractID3Parser";
+
 import {
   InfoTagHeaderTag,
-  IXingInfoTag,
   LameEncoderVersion,
   readXingHeader,
 } from "./XingTag";
+
+import type { IXingInfoTag } from "./XingTag";
 
 const debug = initDebug("music-metadata:parser:mpeg");
 
@@ -189,11 +191,11 @@ class MpegFrameHeader {
 
   public constructor(buf: Buffer, off: number) {
     // B(20,19): MPEG Audio versionIndex ID
-    this.versionIndex = common.getBitAllignedNumber(buf, off + 1, 3, 2);
+    this.versionIndex = getBitAllignedNumber(buf, off + 1, 3, 2);
     // C(18,17): Layer description
     this.layer =
       MpegFrameHeader.LayerDescription[
-        common.getBitAllignedNumber(buf, off + 1, 5, 2)
+        getBitAllignedNumber(buf, off + 1, 5, 2)
       ];
 
     if (this.versionIndex > 1 && this.layer === 0) {
@@ -203,7 +205,7 @@ class MpegFrameHeader {
     }
 
     // D(16): Protection bit (if true 16-bit CRC follows header)
-    this.isProtectedByCRC = !common.isBitSet(buf, off + 1, 7);
+    this.isProtectedByCRC = !isBitSet(buf, off + 1, 7);
   }
 
   public calcDuration(numFrames: number): number {
@@ -241,23 +243,23 @@ class MpegFrameHeader {
   private parseMpegHeader(buf: Buffer, off: number): void {
     this.container = "MPEG";
     // E(15,12): Bitrate index
-    this.bitrateIndex = common.getBitAllignedNumber(buf, off + 2, 0, 4);
+    this.bitrateIndex = getBitAllignedNumber(buf, off + 2, 0, 4);
     // F(11,10): Sampling rate frequency index
-    this.sampRateFreqIndex = common.getBitAllignedNumber(buf, off + 2, 4, 2);
+    this.sampRateFreqIndex = getBitAllignedNumber(buf, off + 2, 4, 2);
     // G(9): Padding bit
-    this.padding = common.isBitSet(buf, off + 2, 6);
+    this.padding = isBitSet(buf, off + 2, 6);
     // H(8): Private bit
-    this.privateBit = common.isBitSet(buf, off + 2, 7);
+    this.privateBit = isBitSet(buf, off + 2, 7);
     // I(7,6): Channel Mode
-    this.channelModeIndex = common.getBitAllignedNumber(buf, off + 3, 0, 2);
+    this.channelModeIndex = getBitAllignedNumber(buf, off + 3, 0, 2);
     // J(5,4): Mode extension (Only used in Joint stereo)
-    this.modeExtension = common.getBitAllignedNumber(buf, off + 3, 2, 2);
+    this.modeExtension = getBitAllignedNumber(buf, off + 3, 2, 2);
     // K(3): Copyright
-    this.isCopyrighted = common.isBitSet(buf, off + 3, 4);
+    this.isCopyrighted = isBitSet(buf, off + 3, 4);
     // L(2): Original
-    this.isOriginalMedia = common.isBitSet(buf, off + 3, 5);
+    this.isOriginalMedia = isBitSet(buf, off + 3, 5);
     // M(3): The original bit indicates, if it is set, that the frame is located on its original media.
-    this.emphasis = common.getBitAllignedNumber(buf, off + 3, 7, 2);
+    this.emphasis = getBitAllignedNumber(buf, off + 3, 7, 2);
 
     this.version = MpegFrameHeader.VersionID[this.versionIndex];
     this.channelMode = MpegFrameHeader.ChannelMode[this.channelModeIndex];
@@ -282,26 +284,21 @@ class MpegFrameHeader {
     debug(`layer=0 => ADTS`);
     this.version = this.versionIndex === 2 ? 4 : 2;
     this.container = "ADTS/MPEG-" + this.version;
-    const profileIndex = common.getBitAllignedNumber(buf, off + 2, 0, 2);
+    const profileIndex = getBitAllignedNumber(buf, off + 2, 0, 2);
     this.codec = "AAC";
     this.codecProfile = MPEG4.AudioObjectTypes[profileIndex];
 
     debug(`MPEG-4 audio-codec=${this.codec}`);
 
-    const samplingFrequencyIndex = common.getBitAllignedNumber(
-      buf,
-      off + 2,
-      2,
-      4
-    );
+    const samplingFrequencyIndex = getBitAllignedNumber(buf, off + 2, 2, 4);
     this.samplingRate = MPEG4.SamplingFrequencies[samplingFrequencyIndex];
     debug(`sampling-rate=${this.samplingRate}`);
 
-    const channelIndex = common.getBitAllignedNumber(buf, off + 2, 7, 3);
+    const channelIndex = getBitAllignedNumber(buf, off + 2, 7, 3);
     this.mp4ChannelConfig = MPEG4_ChannelConfigurations[channelIndex];
     debug(`channel-config=${this.mp4ChannelConfig.join("+")}`);
 
-    this.frameLength = common.getBitAllignedNumber(buf, off + 3, 6, 2) << 11;
+    this.frameLength = getBitAllignedNumber(buf, off + 3, 6, 2) << 11;
   }
 
   private calcBitrate(): number {
@@ -580,7 +577,7 @@ export class MpegParser extends AbstractID3Parser {
   private async parseAdts(header: MpegFrameHeader): Promise<boolean> {
     const buf = Buffer.alloc(3);
     await this.tokenizer.readBuffer(buf);
-    header.frameLength += common.getBitAllignedNumber(buf, 0, 0, 11);
+    header.frameLength += getBitAllignedNumber(buf, 0, 0, 11);
     this.totalDataLength += header.frameLength;
     this.samplesPerFrame = 1024;
 
@@ -616,7 +613,7 @@ export class MpegParser extends AbstractID3Parser {
   }
 
   private async parseCrc(): Promise<void> {
-    this.crc = await this.tokenizer.readNumber(Token.INT16_BE);
+    this.crc = await this.tokenizer.readNumber(INT16_BE);
     this.offset += 2;
     return this.skipSideInformation();
   }
@@ -624,7 +621,7 @@ export class MpegParser extends AbstractID3Parser {
   private async skipSideInformation(): Promise<void> {
     const sideinfo_length = this.audioFrameHeader.calculateSideInfoLength();
     // side information
-    await this.tokenizer.readToken(new Token.Uint8ArrayType(sideinfo_length));
+    await this.tokenizer.readToken(new Uint8ArrayType(sideinfo_length));
     this.offset += sideinfo_length;
     await this.readXtraInfoHeader();
     return;
@@ -687,7 +684,7 @@ export class MpegParser extends AbstractID3Parser {
     if (infoTag.lame) {
       this.metadata.setFormat(
         "tool",
-        "LAME " + common.stripNulls(infoTag.lame.version)
+        "LAME " + stripNulls(infoTag.lame.version)
       );
       if (infoTag.lame.extended) {
         // this.metadata.setFormat('trackGain', infoTag.lame.extended.track_gain);

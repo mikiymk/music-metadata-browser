@@ -1,7 +1,9 @@
-import { assert } from "chai";
-import * as mm from "../lib";
+import { join } from "path";
 
-import * as path from "path";
+import { assert } from "chai";
+
+import { parseFile } from "../lib";
+
 import { samplePath } from "./util";
 
 const t = assert;
@@ -9,9 +11,9 @@ const t = assert;
 describe("Decode MP3/ID3v2.4", () => {
   it("should decode id3v2.4", () => {
     const filename = "id3v2.4.mp3";
-    const filePath = path.join(samplePath, filename);
+    const filePath = join(samplePath, filename);
 
-    return mm.parseFile(filePath, { duration: true }).then((metadata) => {
+    return parseFile(filePath, { duration: true }).then((metadata) => {
       t.deepEqual(
         metadata.format.tagTypes,
         ["ID3v2.4", "ID3v1"],
@@ -92,30 +94,30 @@ describe("Decode MP3/ID3v2.4", () => {
 
   // Issue: https://github.com/Borewit/music-metadata/issues/502
   it("COMM mapping", async () => {
-    const filePath = path.join(samplePath, "mp3", "issue-502.mp3");
-    const { common } = await mm.parseFile(filePath);
+    const filePath = join(samplePath, "mp3", "issue-502.mp3");
+    const { common } = await parseFile(filePath);
     t.deepEqual(common.comment, ["CLEAN"], "common.comment");
   });
 
   it("should respect skipCovers-flag", () => {
     const filename = "id3v2.4.mp3";
-    const filePath = path.join(samplePath, filename);
+    const filePath = join(samplePath, filename);
 
-    return mm
-      .parseFile(filePath, { duration: true, skipCovers: true })
-      .then((result) => {
+    return parseFile(filePath, { duration: true, skipCovers: true }).then(
+      (result) => {
         t.isUndefined(
           result.common.picture,
           "common.picture should be undefined"
         );
-      });
+      }
+    );
   });
 
   it("Map TXXX:ISRC", async () => {
     const filename = "issue-802.mp3";
-    const filePath = path.join(samplePath, "mp3", filename);
+    const filePath = join(samplePath, "mp3", filename);
 
-    const { common, native } = await mm.parseFile(filePath);
+    const { common, native } = await parseFile(filePath);
     const id3v24 = native["ID3v2.4"];
     t.isDefined(id3v24, "ID3v2.4 presence");
     t.strictEqual(

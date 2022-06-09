@@ -1,19 +1,21 @@
-import { assert } from "chai";
-import * as path from "path";
+import { join } from "path";
 
-import * as mm from "../lib";
+import { assert } from "chai";
+
+import { parseFile } from "../lib";
+
 import { samplePath } from "./util";
 
 describe("Parse Sony DSF (DSD Stream File)", () => {
-  const dsfSamplePath = path.join(samplePath, "dsf");
+  const dsfSamplePath = join(samplePath, "dsf");
 
   it("parse: 2L-110_stereo-5644k-1b_04.dsf", async () => {
-    const dsfFilePath = path.join(
+    const dsfFilePath = join(
       dsfSamplePath,
       "2L-110_stereo-5644k-1b_04_0.1-sec.dsf"
     );
 
-    const metadata = await mm.parseFile(dsfFilePath, { duration: false });
+    const metadata = await parseFile(dsfFilePath, { duration: false });
 
     // format chunk information
     assert.strictEqual(metadata.format.container, "DSF");

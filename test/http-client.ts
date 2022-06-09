@@ -1,6 +1,7 @@
-import * as Stream from "stream";
-import * as https from "https";
 import * as http from "http";
+import * as https from "https";
+
+import type * as Stream from "stream";
 
 export interface IHttpResponse {
   headers: { [id: string]: string };

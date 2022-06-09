@@ -1,7 +1,9 @@
+import { join } from "path";
+
 import { assert } from "chai";
-import * as path from "path";
 
 import * as mm from "../lib";
+
 import { Parsers } from "./metadata-parsers";
 import { samplePath } from "./util";
 
@@ -76,7 +78,7 @@ describe("Parse APE (Monkey's Audio)", () => {
   Parsers.forEach((parser) => {
     it(parser.description, async () => {
       const metadata = await parser.initParser(
-        path.join(samplePath, "monkeysaudio.ape"),
+        join(samplePath, "monkeysaudio.ape"),
         "audio/ape"
       );
       assert.isDefined(metadata, "metadata should be defined");
@@ -94,7 +96,7 @@ describe("Parse APE (Monkey's Audio)", () => {
 
 describe("Parse APEv2 header", () => {
   it("Handle APEv2 with item count to high(issue #331)", async () => {
-    const filePath = path.join(samplePath, "mp3", "issue-331.apev2.mp3");
+    const filePath = join(samplePath, "mp3", "issue-331.apev2.mp3");
 
     const metadata = await mm.parseFile(filePath, {
       duration: false,
