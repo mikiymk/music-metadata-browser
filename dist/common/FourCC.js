@@ -1,0 +1,26 @@
+import * as util from "./Util";
+const validFourCC = /^[\x21-\x7e©][\x20-\x7e\x00()]{3}/;
+/**
+ * Token for read FourCC
+ * Ref: https://en.wikipedia.org/wiki/FourCC
+ */
+export const FourCcToken = {
+    len: 4,
+    get: (buf, off) => {
+        const id = buf.toString("binary", off, off + FourCcToken.len);
+        switch (id) {
+            default:
+                if (!id.match(validFourCC)) {
+                    throw new Error(`FourCC contains invalid characters: ${util.a2hex(id)} "${id}"`);
+                }
+        }
+        return id;
+    },
+    put: (buffer, offset, id) => {
+        const str = Buffer.from(id, "binary");
+        if (str.length !== 4)
+            throw new Error("Invalid length");
+        return str.copy(buffer, offset);
+    },
+};
+//# sourceMappingURL=FourCC.js.map

@@ -21,5 +21,11 @@ example/typescript/*.js
 example/typescript/*.js.map
 example/typescript/*.d.ts
 
-dist/
+# dist/
 vite-out/
+
+doc/
+doc-gen/
+example/
+lib/
+test/

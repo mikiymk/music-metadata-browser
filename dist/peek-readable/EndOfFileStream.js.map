@@ -1,0 +1,1 @@
+{"version":3,"file":"EndOfFileStream.js","sourceRoot":"","sources":["../../lib/peek-readable/EndOfFileStream.ts"],"names":[],"mappings":"AAAA,MAAM,CAAC,MAAM,eAAe,GAAG,eAAe,CAAC;AAE/C;;GAEG;AACH,MAAM,OAAO,gBAAiB,SAAQ,KAAK;IACzC;QACE,KAAK,CAAC,eAAe,CAAC,CAAC;IACzB,CAAC;CACF"}
