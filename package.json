@@ -116,7 +116,7 @@
     "remark-preset-lint-recommended": "^6.1.2",
     "ts-node": "^10.8.1",
     "typescript": "^4.7.4",
-    "vite": "^2.9.12",
+    "vite": "^2.9.13",
     "vitest": "^0.15.1"
   },
   "engines": {
