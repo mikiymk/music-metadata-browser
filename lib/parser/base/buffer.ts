@@ -3,11 +3,11 @@ import type { ITokenizer } from "../../strtok3";
 /**
  * read uint8array buffer
  * @param tokenizer
- * @param length
- * @returns 8 bit signed integer
+ * @param byteLength
+ * @returns uint8array
  */
-export const parseBuffer = async (tokenizer: ITokenizer, length: number): Promise<Uint8Array> => {
-  const buffer = new Uint8Array(length);
-  await tokenizer.readBuffer(buffer, { length });
+export const parseBuffer = async (tokenizer: ITokenizer, byteLength: number): Promise<Uint8Array> => {
+  const buffer = new Uint8Array(byteLength);
+  await tokenizer.readBuffer(buffer, { length: byteLength });
   return buffer;
 };
