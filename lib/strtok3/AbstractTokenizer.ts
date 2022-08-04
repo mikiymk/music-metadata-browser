@@ -1,6 +1,6 @@
 import type { ITokenizer, IFileInfo, IReadChunkOptions } from "./types";
 import { EndOfStreamError } from "../peek-readable";
-import type { IToken, IGetToken } from "../token-types";
+import type {  IGetToken } from "../token-types";
 
 interface INormalizedReadChunkOptions extends IReadChunkOptions {
   offset: number;
@@ -73,7 +73,7 @@ export abstract class AbstractTokenizer implements ITokenizer {
    * @param token - Numeric token
    * @returns Promise with number
    */
-  public async readNumber(token: IToken<number>): Promise<number> {
+  public async readNumber(token: IGetToken<number>): Promise<number> {
     const len = await this.readBuffer(this.numBuffer, { length: token.len });
     if (len < token.len) throw new EndOfStreamError();
     return token.get(this.numBuffer, 0);
@@ -84,7 +84,7 @@ export abstract class AbstractTokenizer implements ITokenizer {
    * @param token - Numeric token
    * @returns Promise with number
    */
-  public async peekNumber(token: IToken<number>): Promise<number> {
+  public async peekNumber(token: IGetToken<number>): Promise<number> {
     const len = await this.peekBuffer(this.numBuffer, { length: token.len });
     if (len < token.len) throw new EndOfStreamError();
     return token.get(this.numBuffer, 0);

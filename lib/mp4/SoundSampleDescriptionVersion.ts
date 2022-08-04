@@ -1,10 +1,10 @@
 import * as Token from "../token-types";
-import type { IToken, IGetToken } from "../strtok3";
+import type { IGetToken } from "../strtok3";
 
 /**
  * Ref: https://developer.apple.com/library/archive/documentation/QuickTime/QTFF/QTFFChap1/qtff1.html#//apple_ref/doc/uid/TP40000939-CH203-38190
  */
-export const ExtendedSize: IToken<bigint> = Token.UINT64_BE;
+export const ExtendedSize: IGetToken<bigint> = Token.UINT64_BE;
 
 export interface ISoundSampleDescriptionVersion {
   version: number;
