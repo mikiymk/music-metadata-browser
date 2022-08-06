@@ -1,12 +1,11 @@
-import type { ITokenizer } from "../../strtok3";
+import type { ByteReader } from "../../byte-reader/byte-reader";
 
 /**
  * read skip
  * @param tokenizer
  * @param byteLength
  */
-export const parseSeek = async (tokenizer: ITokenizer, byteLength: number): Promise<void> => {
-  const buffer = new Uint8Array(byteLength);
-  await tokenizer.readBuffer(buffer, { length: byteLength });
+export const parseSeek = async (tokenizer: ByteReader, byteLength: number): Promise<void> => {
+  await tokenizer.read(byteLength);
   return;
 };

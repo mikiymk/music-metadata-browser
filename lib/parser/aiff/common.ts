@@ -1,10 +1,9 @@
-import type { IChunkHeader } from "../../iff";
-import type { ITokenizer } from "../../strtok3/types";
 import { parseSeek } from "../base/ignore";
 import { parseSignedInt8 } from "../base/signed-integer";
 import { parseLatin1String } from "../base/string";
 import { parseUnsignedInt16BigEndian, parseUnsignedInt32BigEndian } from "../base/unsigned-integer";
 import { parseFourCC } from "../common/four-cc";
+import type { IffChunk } from "../iff/chunk";
 
 /**
  * The Common Chunk.
@@ -20,7 +19,9 @@ export type Common = {
   compressionName: string;
 };
 
-export const parseAiffCommonChunk = async (tokenizer: ITokenizer): Promise<Common> => {
+export const parseAiffCommonChunk = async (chunk: IffChunk): Promise<Common> => {
+  const tokenizer = chunk.chunkData;
+
   const numChannels = await parseUnsignedInt16BigEndian(tokenizer);
   const numSampleFrames = await parseUnsignedInt32BigEndian(tokenizer);
   const sampleSize = await parseUnsignedInt16BigEndian(tokenizer);
@@ -38,7 +39,9 @@ export const parseAiffCommonChunk = async (tokenizer: ITokenizer): Promise<Commo
   };
 };
 
-export const parseAiffCCommonChunk = async (tokenizer: ITokenizer, header: IChunkHeader): Promise<Common> => {
+export const parseAiffCCommonChunk = async (chunk: IffChunk): Promise<Common> => {
+  const tokenizer = chunk.chunkData;
+
   const numChannels = await parseUnsignedInt16BigEndian(tokenizer);
   const numSampleFrames = await parseUnsignedInt32BigEndian(tokenizer);
   const sampleSize = await parseUnsignedInt16BigEndian(tokenizer);
@@ -49,10 +52,10 @@ export const parseAiffCCommonChunk = async (tokenizer: ITokenizer, header: IChun
 
   await parseSeek(tokenizer, 6);
   const compressionType = await parseFourCC(tokenizer);
-  if (header.chunkSize > 22) {
+  if (chunk.chunkSize > 22) {
     const strLen = await parseSignedInt8(tokenizer);
     const padding = (strLen + 1) % 2;
-    if (23 + strLen + padding === header.chunkSize) {
+    if (23 + strLen + padding === chunk.chunkSize) {
       compressionName = await parseLatin1String(tokenizer, strLen);
       await parseSeek(tokenizer, padding);
     } else {

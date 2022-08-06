@@ -1,17 +1,12 @@
-import type { ITokenizer } from "../../strtok3";
-
-const arrayBuffer = new ArrayBuffer(8);
-const bufferWriter = new Uint8Array(arrayBuffer);
-const bufferView = new DataView(arrayBuffer);
+import type { ByteReader } from "../../byte-reader/byte-reader";
 
 /**
  * read 16 bit (half precision) floating point number big endian
  * @param tokenizer
  * @returns float
  */
-export const parseFloat16BigEndian = async (tokenizer: ITokenizer): Promise<number> => {
-  const buffer = new Uint8Array(2);
-  await tokenizer.readBuffer(buffer, { length: 2 });
+export const parseFloat16BigEndian = async (tokenizer: ByteReader): Promise<number> => {
+  const buffer = await tokenizer.read(2);
 
   return readFloat16(buffer);
 };
@@ -21,9 +16,8 @@ export const parseFloat16BigEndian = async (tokenizer: ITokenizer): Promise<numb
  * @param tokenizer
  * @returns float
  */
-export const parseFloat16LittleEndian = async (tokenizer: ITokenizer): Promise<number> => {
-  const buffer = new Uint8Array(2);
-  await tokenizer.readBuffer(buffer, { length: 2 });
+export const parseFloat16LittleEndian = async (tokenizer: ByteReader): Promise<number> => {
+  const buffer = await tokenizer.read(2);
 
   return readFloat16(buffer, true);
 };
@@ -33,9 +27,11 @@ export const parseFloat16LittleEndian = async (tokenizer: ITokenizer): Promise<n
  * @param tokenizer
  * @returns float
  */
-export const parseFloat32BigEndian = async (tokenizer: ITokenizer): Promise<number> => {
-  await tokenizer.readBuffer(bufferWriter, { length: 4 });
-  return bufferView.getFloat32(0);
+export const parseFloat32BigEndian = async (tokenizer: ByteReader): Promise<number> => {
+  const buffer = await tokenizer.read(4);
+  const view = new DataView(buffer.buffer);
+
+  return view.getFloat32(0);
 };
 
 /**
@@ -43,9 +39,11 @@ export const parseFloat32BigEndian = async (tokenizer: ITokenizer): Promise<numb
  * @param tokenizer
  * @returns float
  */
-export const parseFloat32LittleEndian = async (tokenizer: ITokenizer): Promise<number> => {
-  await tokenizer.readBuffer(bufferWriter, { length: 4 });
-  return bufferView.getFloat32(0, true);
+export const parseFloat32LittleEndian = async (tokenizer: ByteReader): Promise<number> => {
+  const buffer = await tokenizer.read(4);
+  const view = new DataView(buffer.buffer);
+
+  return view.getFloat32(0, true);
 };
 
 /**
@@ -53,9 +51,10 @@ export const parseFloat32LittleEndian = async (tokenizer: ITokenizer): Promise<n
  * @param tokenizer
  * @returns float
  */
-export const parseFloat64BigEndian = async (tokenizer: ITokenizer): Promise<number> => {
-  await tokenizer.readBuffer(bufferWriter, { length: 8 });
-  return bufferView.getFloat64(0);
+export const parseFloat64BigEndian = async (tokenizer: ByteReader): Promise<number> => {
+  const buffer = await tokenizer.read(8);
+  const view = new DataView(buffer.buffer);
+  return view.getFloat64(0);
 };
 
 /**
@@ -63,9 +62,10 @@ export const parseFloat64BigEndian = async (tokenizer: ITokenizer): Promise<numb
  * @param tokenizer
  * @returns float
  */
-export const parseFloat64LittleEndian = async (tokenizer: ITokenizer): Promise<number> => {
-  await tokenizer.readBuffer(bufferWriter, { length: 8 });
-  return bufferView.getFloat64(0, true);
+export const parseFloat64LittleEndian = async (tokenizer: ByteReader): Promise<number> => {
+  const buffer = await tokenizer.read(8);
+  const view = new DataView(buffer.buffer);
+  return view.getFloat64(0, true);
 };
 
 // read functions
@@ -89,56 +89,6 @@ const readFloat16 = (buffer: Uint8Array, littleEndian?: boolean) => {
 
   return buildFloat(sign, exponent, significand, 0b1_1111, 10);
 };
-
-const readFloat32 = (buffer: Uint8Array, littleEndian?: boolean) => {
-  /*
-   * seee_eeee efff_ffff ffff_ffff ffff_ffff
-   * e: 8, f: 23
-   * s * (2 ** e - 0111_1111) * 1.ffffffffff
-   * s * (2 ** e - 0111_1111) * 0.ffffffffff (e == 0000_0000 = 0)
-   * s * Infinity                            (e == 1111_1111 = 255, f == 0)
-   * NaN                                     (e == 1111_1111 = 255, f != 0)
-   */
-
-  const osb = buffer[littleEndian ? 3 : 0];
-  const nsb = buffer[littleEndian ? 2 : 1];
-  const msb = buffer[littleEndian ? 1 : 2];
-  const lsb = buffer[littleEndian ? 0 : 3];
-
-  const sign = osb >> 7 ? -1 : 1;
-  const exponent = ((osb & 0b0111_1111) << 1) + ((nsb & 0b1000_0000) >> 7);
-  const significand = ((nsb & 0b0111_1111) << 16) + (msb << 8) + lsb;
-
-  return buildFloat(sign, exponent, significand, 0b1111_1111, 23);
-};
-
-const readFloat64 = (buffer: Uint8Array, littleEndian?: boolean) => {
-  /*
-   * seee_eeee eeee_ffff ffff_ffff ffff_ffff ffff_ffff ffff_ffff ffff_ffff ffff_ffff
-   * e: 11, f: 52
-   * s * (2 ** e - 011 1111_1111) * 1.ffffffffff
-   * s * (2 ** e - 011 1111_1111) * 0.ffffffffff (e == 000 0000_0000 = 0)
-   * s * Infinity                                (e == 111 1111_1111 = 2047, f == 0)
-   * NaN                                         (e == 111 1111_1111 = 2047, f != 0)
-   */
-
-  const ssb = buffer[littleEndian ? 7 : 0];
-  const rsb = buffer[littleEndian ? 6 : 1];
-  const qsb = buffer[littleEndian ? 5 : 2];
-  const psb = buffer[littleEndian ? 4 : 3];
-  const osb = buffer[littleEndian ? 3 : 4];
-  const nsb = buffer[littleEndian ? 2 : 5];
-  const msb = buffer[littleEndian ? 1 : 6];
-  const lsb = buffer[littleEndian ? 0 : 7];
-
-  const sign = ssb >> 7 ? -1 : 1;
-  const exponent = ((ssb & 0b0111_1111) << 4) + ((rsb & 0b1111_0000) >> 5);
-  const significand =
-    (rsb & 0b1111) * 2 ** 48 + qsb * 2 ** 40 + psb * 2 ** 32 + osb * 2 ** 24 + nsb * 2 ** 16 + msb * 2 ** 8 + lsb;
-
-  return buildFloat(sign, exponent, significand, 0b111_1111_1111, 52);
-};
-
 const buildFloat = (
   sign: 1 | -1,
   exponent: number,

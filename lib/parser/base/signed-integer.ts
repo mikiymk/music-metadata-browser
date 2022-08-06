@@ -1,17 +1,14 @@
-import type { ITokenizer } from "../../strtok3";
+import type { ByteReader } from "../../byte-reader/byte-reader";
 import { parseUnsignedInt24BigEndian, parseUnsignedInt24LittleEndian } from "./unsigned-integer";
-
-const arrayBuffer = new ArrayBuffer(8);
-const buffer = new Uint8Array(arrayBuffer);
-const view = new DataView(arrayBuffer);
 
 /**
  * read 8 bit signed integer
  * @param tokenizer
  * @returns 8 bit signed integer
  */
-export const parseSignedInt8 = async (tokenizer: ITokenizer) => {
-  await tokenizer.readBuffer(buffer, { length: 1 });
+export const parseSignedInt8 = async (tokenizer: ByteReader) => {
+  const buffer = await tokenizer.read(1);
+  const view = new DataView(buffer.buffer);
 
   return view.getInt8(0);
 };
@@ -21,8 +18,9 @@ export const parseSignedInt8 = async (tokenizer: ITokenizer) => {
  * @param tokenizer
  * @returns 16 bit signed integer little endian
  */
-export const parseSignedInt16LittleEndian = async (tokenizer: ITokenizer) => {
-  await tokenizer.readBuffer(buffer, { length: 2 });
+export const parseSignedInt16LittleEndian = async (tokenizer: ByteReader) => {
+  const buffer = await tokenizer.read(2);
+  const view = new DataView(buffer.buffer);
 
   return view.getInt16(0, true);
 };
@@ -32,8 +30,9 @@ export const parseSignedInt16LittleEndian = async (tokenizer: ITokenizer) => {
  * @param tokenizer
  * @returns 16 bit signed integer big endian
  */
-export const parseSignedInt16BigEndian = async (tokenizer: ITokenizer) => {
-  await tokenizer.readBuffer(buffer, { length: 2 });
+export const parseSignedInt16BigEndian = async (tokenizer: ByteReader) => {
+  const buffer = await tokenizer.read(2);
+  const view = new DataView(buffer.buffer);
 
   return view.getInt16(0);
 };
@@ -43,7 +42,7 @@ export const parseSignedInt16BigEndian = async (tokenizer: ITokenizer) => {
  * @param tokenizer
  * @returns 24 bit signed integer little endian
  */
-export const parseSignedInt24LittleEndian = async (tokenizer: ITokenizer) => {
+export const parseSignedInt24LittleEndian = async (tokenizer: ByteReader) => {
   const uint = await parseUnsignedInt24LittleEndian(tokenizer);
 
   return uint > 0x7f_ff_ff ? uint - 0x1_00_00_00 : uint;
@@ -54,7 +53,7 @@ export const parseSignedInt24LittleEndian = async (tokenizer: ITokenizer) => {
  * @param tokenizer
  * @returns 24 bit signed integer big endian
  */
-export const parseSignedInt24BigEndian = async (tokenizer: ITokenizer) => {
+export const parseSignedInt24BigEndian = async (tokenizer: ByteReader) => {
   const uint = await parseUnsignedInt24BigEndian(tokenizer);
 
   return uint > 0x7f_ff_ff ? uint - 0x1_00_00_00 : uint;
@@ -65,8 +64,10 @@ export const parseSignedInt24BigEndian = async (tokenizer: ITokenizer) => {
  * @param tokenizer
  * @returns 32 bit signed integer little endian
  */
-export const parseSignedInt32LittleEndian = async (tokenizer: ITokenizer) => {
-  await tokenizer.readBuffer(buffer, { length: 4 });
+export const parseSignedInt32LittleEndian = async (tokenizer: ByteReader) => {
+  const buffer = await tokenizer.read(4);
+  const view = new DataView(buffer.buffer);
+
   return view.getInt32(0, true);
 };
 
@@ -75,8 +76,10 @@ export const parseSignedInt32LittleEndian = async (tokenizer: ITokenizer) => {
  * @param tokenizer
  * @returns 32 bit signed integer big endian
  */
-export const parseSignedInt32BigEndian = async (tokenizer: ITokenizer) => {
-  await tokenizer.readBuffer(buffer, { length: 4 });
+export const parseSignedInt32BigEndian = async (tokenizer: ByteReader) => {
+  const buffer = await tokenizer.read(4);
+  const view = new DataView(buffer.buffer);
+
   return view.getInt32(0);
 };
 
@@ -85,8 +88,10 @@ export const parseSignedInt32BigEndian = async (tokenizer: ITokenizer) => {
  * @param tokenizer
  * @returns 64 bit signed integer little endian
  */
-export const parseSignedInt64LittleEndian = async (tokenizer: ITokenizer) => {
-  await tokenizer.readBuffer(buffer, { length: 8 });
+export const parseSignedInt64LittleEndian = async (tokenizer: ByteReader) => {
+  const buffer = await tokenizer.read(8);
+  const view = new DataView(buffer.buffer);
+
   return view.getBigInt64(0, true);
 };
 
@@ -95,7 +100,9 @@ export const parseSignedInt64LittleEndian = async (tokenizer: ITokenizer) => {
  * @param tokenizer
  * @returns 64 bit signed integer big endian
  */
-export const parseSignedInt64BigEndian = async (tokenizer: ITokenizer) => {
-  await tokenizer.readBuffer(buffer, { length: 8 });
+export const parseSignedInt64BigEndian = async (tokenizer: ByteReader) => {
+  const buffer = await tokenizer.read(8);
+  const view = new DataView(buffer.buffer);
+
   return view.getBigInt64(0);
 };

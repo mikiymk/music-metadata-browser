@@ -1,5 +1,5 @@
+import type { ByteReader } from "../../byte-reader/byte-reader";
 import { decodeLatin1, decodeUtf16le, decodeUtf8 } from "../../compat/text-decoder";
-import type { ITokenizer } from "../../strtok3";
 
 /**
  * read Latin1 (ISO-8859-1) string
@@ -7,9 +7,8 @@ import type { ITokenizer } from "../../strtok3";
  * @param byteLength
  * @returns decoded string
  */
-export const parseLatin1String = async (tokenizer: ITokenizer, byteLength: number): Promise<string> => {
-  const buffer = new Uint8Array(byteLength);
-  await tokenizer.readBuffer(buffer, { length: byteLength });
+export const parseLatin1String = async (tokenizer: ByteReader, byteLength: number): Promise<string> => {
+  const buffer = await tokenizer.read(byteLength);
   return decodeLatin1(buffer);
 };
 
@@ -19,9 +18,8 @@ export const parseLatin1String = async (tokenizer: ITokenizer, byteLength: numbe
  * @param byteLength
  * @returns decoded string
  */
-export const parseUtf8String = async (tokenizer: ITokenizer, byteLength: number): Promise<string> => {
-  const buffer = new Uint8Array(byteLength);
-  await tokenizer.readBuffer(buffer, { length: byteLength });
+export const parseUtf8String = async (tokenizer: ByteReader, byteLength: number): Promise<string> => {
+  const buffer = await tokenizer.read(byteLength);
   return decodeUtf8(buffer);
 };
 
@@ -31,8 +29,7 @@ export const parseUtf8String = async (tokenizer: ITokenizer, byteLength: number)
  * @param byteLength
  * @returns decoded string
  */
-export const parseUtf16leString = async (tokenizer: ITokenizer, byteLength: number): Promise<string> => {
-  const buffer = new Uint8Array(byteLength);
-  await tokenizer.readBuffer(buffer, { length: byteLength });
+export const parseUtf16leString = async (tokenizer: ByteReader, byteLength: number): Promise<string> => {
+  const buffer = await tokenizer.read(byteLength);
   return decodeUtf16le(buffer);
 };
