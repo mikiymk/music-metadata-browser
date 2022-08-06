@@ -1,4 +1,4 @@
-import { parseLatin1String } from "../../../dist/parser/base/string";
+import { parseLatin1String } from "../base/string";
 import { a2hex } from "../../common/Util";
 import type { ITokenizer } from "../../strtok3/types";
 
