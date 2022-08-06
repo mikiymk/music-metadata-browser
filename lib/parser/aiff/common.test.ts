@@ -1,10 +1,13 @@
 import { test, expect } from "vitest";
-import { BufferTokenizer } from "../../strtok3/BufferTokenizer";
+import { BufferByteReader } from "../../byte-reader/buffer-byte-reader";
+import { parseIffChunk } from "../iff/chunk";
 import { parseAiffCCommonChunk, parseAiffCommonChunk } from "./common";
 
 test("parse aiff common chunk", async () => {
   const buf = new Uint8Array(
     [
+      [0x01, 0x02, 0x03, 0x04],
+      [0x00, 0x00, 0x00, 0x12],
       [0x01, 0x02],
       [0x01, 0x02, 0x03, 0x04],
       [0x01, 0x02],
@@ -13,9 +16,10 @@ test("parse aiff common chunk", async () => {
       [0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
     ].flat()
   );
-  const tokenizer = new BufferTokenizer(buf);
+  const tokenizer = new BufferByteReader(buf);
+  const chunk = await parseIffChunk(tokenizer);
 
-  expect(await parseAiffCommonChunk(tokenizer)).toEqual({
+  expect(await parseAiffCommonChunk(chunk)).toEqual({
     numChannels: 0x01_02,
     numSampleFrames: 0x01_02_03_04,
     sampleSize: 0x01_02,
@@ -27,6 +31,8 @@ test("parse aiff common chunk", async () => {
 test("parse aiff-c common chunk", async () => {
   const buf = new Uint8Array(
     [
+      [0x01, 0x02, 0x03, 0x04],
+      [0x00, 0x00, 0x00, 0x22],
       [0x01, 0x02],
       [0x01, 0x02, 0x03, 0x04],
       [0x01, 0x02],
@@ -39,9 +45,10 @@ test("parse aiff-c common chunk", async () => {
       [0x00],
     ].flat()
   );
-  const tokenizer = new BufferTokenizer(buf);
+  const tokenizer = new BufferByteReader(buf);
+  const chunk = await parseIffChunk(tokenizer);
 
-  expect(await parseAiffCCommonChunk(tokenizer, { chunkID: "AAAA", chunkSize: 34 })).toEqual({
+  expect(await parseAiffCCommonChunk(chunk)).toEqual({
     numChannels: 0x01_02,
     numSampleFrames: 0x01_02_03_04,
     sampleSize: 0x01_02,

@@ -1,5 +1,5 @@
 import { describe, test, expect } from "vitest";
-import { BufferTokenizer } from "../../strtok3/BufferTokenizer";
+import { BufferByteReader } from "../../byte-reader/buffer-byte-reader";
 import { parseFourCC } from "./four-cc";
 
 const validCases: string[] = [
@@ -17,7 +17,7 @@ const invalidCases: string[] = ["\u0000\u0000\u0000\u0000", " XML", " XM "];
 describe("FourCC token", () => {
   test.each(validCases)("%j is accept valid identifier", async (data) => {
     const buf = Buffer.from(data, "ascii");
-    const tokenizer = new BufferTokenizer(buf);
+    const tokenizer = new BufferByteReader(buf);
 
     const actual = parseFourCC(tokenizer);
     await expect(actual).resolves.toBe(data);
@@ -25,7 +25,7 @@ describe("FourCC token", () => {
 
   test.each(invalidCases)("%j is throw an error", async (data) => {
     const buf = Buffer.from(data, "ascii");
-    const tokenizer = new BufferTokenizer(buf);
+    const tokenizer = new BufferByteReader(buf);
 
     await expect(() => parseFourCC(tokenizer)).rejects.toThrow();
   });

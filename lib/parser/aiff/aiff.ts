@@ -55,7 +55,7 @@ const parseAiff = async (reader: ByteReader): Promise<Aiff> => {
     }
   } catch (error) {
     if (error instanceof EndOfStreamError) {
-      return {id3: id3v2, format};
+      return { id3: id3v2, format };
     } else {
       throw error;
     }
