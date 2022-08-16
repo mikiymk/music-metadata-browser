@@ -88,7 +88,7 @@
   },
   "devDependencies": {
     "@types/node": "^18.0.6",
-    "@typescript-eslint/eslint-plugin": "^5.30.6",
+    "@typescript-eslint/eslint-plugin": "^5.33.1",
     "@typescript-eslint/parser": "^5.30.6",
     "c8": "^7.11.3",
     "del-cli": "^4.0.1",
