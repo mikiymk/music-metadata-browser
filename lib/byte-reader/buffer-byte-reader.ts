@@ -17,4 +17,8 @@ export class BufferByteReader implements ByteReader {
   peek(length: number): Promise<Uint8Array> {
     return Promise.resolve(this.buffer.subarray(this.position, this.position + length));
   }
+
+  restLength(): number {
+    return this.buffer.byteLength - this.position;
+  }
 }

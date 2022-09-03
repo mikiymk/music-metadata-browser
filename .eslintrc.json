@@ -177,7 +177,7 @@
 
     /* eslint-plugin-import */
     "import/no-extraneous-dependencies": ["error", { "devDependencies": false }],
-    "import/no-unused-modules": ["warn", { "unusedExports": true }],
+    // "import/no-unused-modules": ["warn", { "unusedExports": true }],
 
     /* eslint-plugin-node */
     "node/no-extraneous-import": "error",
@@ -186,7 +186,8 @@
     "@typescript-eslint/no-shadow": ["error", { "hoist": "all" }],
     "@typescript-eslint/no-unused-expressions": "error",
     "@typescript-eslint/restrict-template-expressions": ["error", { "allowBoolean": true }],
-    "@typescript-eslint/semi": ["error", "always"]
+    "@typescript-eslint/semi": ["error", "always"],
+    "@typescript-eslint/consistent-type-definitions": ["warn", "type"]
   },
   "overrides": [
     {
