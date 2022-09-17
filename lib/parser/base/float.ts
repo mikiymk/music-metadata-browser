@@ -1,8 +1,8 @@
+import { assertLength } from "../../errors/range-error";
 import { Result, wrapResult } from "../../result/result";
 
 import { dataview } from "./util";
 
-const ErrorMessage = "offset is outside the bounds of the Buffer";
 export const FLOAT16_SIZE = 2;
 
 /**
@@ -12,7 +12,8 @@ export const FLOAT16_SIZE = 2;
  * @returns float
  */
 export const readFloat16be = (buffer: Uint8Array, offset: number): Result<number, RangeError> => {
-  if (buffer.byteLength < offset + FLOAT16_SIZE) return new RangeError(ErrorMessage);
+  const rangeError = assertLength(buffer, offset + FLOAT16_SIZE);
+  if (rangeError) return rangeError;
   return getFloat16(buffer, offset);
 };
 
@@ -23,7 +24,8 @@ export const readFloat16be = (buffer: Uint8Array, offset: number): Result<number
  * @returns float
  */
 export const readFloat16le = (buffer: Uint8Array, offset: number): Result<number, RangeError> => {
-  if (buffer.byteLength < offset + FLOAT16_SIZE) return new RangeError(ErrorMessage);
+  const rangeError = assertLength(buffer, offset + FLOAT16_SIZE);
+  if (rangeError) return rangeError;
   return getFloat16(buffer, offset, true);
 };
 

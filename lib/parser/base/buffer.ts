@@ -1,3 +1,5 @@
+import { assertLength } from "../../errors/range-error";
+
 import type { Result } from "../../result/result";
 
 /**
@@ -8,6 +10,7 @@ import type { Result } from "../../result/result";
  * @returns uint8array
  */
 export const readBuffer = (buffer: Uint8Array, offset: number, length: number): Result<Uint8Array, RangeError> => {
-  if (buffer.byteLength < offset + length) return new RangeError("offset is outside the bounds of the Uint8Array");
+  const result = assertLength(buffer, offset + length);
+  if (result) return result;
   return buffer.subarray(offset, offset + length);
 };
