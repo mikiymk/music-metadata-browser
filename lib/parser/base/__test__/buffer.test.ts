@@ -1,6 +1,6 @@
 import { test, expect } from "vitest";
 
-import { readBuffer } from "./buffer";
+import { readBuffer } from "../buffer";
 
 test("decode uint8array", () => {
   const buffer = new Uint8Array([0x00, 0x01, 0x7f, 0x80, 0xff, 0x81]);

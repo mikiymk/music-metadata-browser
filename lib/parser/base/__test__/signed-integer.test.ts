@@ -15,7 +15,7 @@ import {
   readInt64be,
   readInt64le,
   readInt8,
-} from "./signed-integer";
+} from "../signed-integer";
 
 test("decode signed 8 bit integer", () => {
   const buffer = new Uint8Array([0x00, 0x01, 0x7f, 0x80, 0xff, 0x81]);

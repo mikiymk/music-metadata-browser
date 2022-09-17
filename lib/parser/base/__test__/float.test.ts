@@ -10,7 +10,7 @@ import {
   FLOAT16_SIZE,
   FLOAT32_SIZE,
   FLOAT64_SIZE,
-} from "./float";
+} from "../float";
 
 test("decode 16 bit big endian floating point number", () => {
   const buffer = new Uint8Array([

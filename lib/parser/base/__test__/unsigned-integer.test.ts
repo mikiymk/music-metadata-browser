@@ -15,7 +15,7 @@ import {
   UINT32_SIZE,
   UINT64_SIZE,
   UINT8_SIZE,
-} from "./unsigned-integer";
+} from "../unsigned-integer";
 
 test("decode unsigned 8 bit integer", () => {
   const buffer = new Uint8Array([0x00, 0x01, 0x7f, 0x80, 0xff, 0x81]);
