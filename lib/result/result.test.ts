@@ -9,8 +9,10 @@ test("result wrap success", () => {
 });
 
 test("result wrap failure", () => {
+  // eslint-disable-next-line strict-null-checks/all
   const maybeUndefined: string | undefined = undefined;
-  const result = wrapResult(() => maybeUndefined.toUpperCase());
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/no-non-null-assertion
+  const result = wrapResult(() => maybeUndefined!.toUpperCase());
   expect(result).toBeInstanceOf(TypeError);
 });
 
@@ -20,6 +22,8 @@ test("result wrap failure with primary", () => {
     throw 42;
   });
   expect(result).toEqual(new Error("wrap failure"));
+
+  // fail on node.js v14
   // expect(result.cause).toBe(42);
 });
 
