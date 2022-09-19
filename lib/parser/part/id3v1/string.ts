@@ -1,9 +1,6 @@
 import { trimNulls } from "../../../common/Util";
-import { type Result, isSuccess } from "../../../result/result";
 import { readLatin1String } from "../../base/string";
 
-export const readId3v1String = (buffer: Uint8Array, offset: number, length: number): Result<string, RangeError> => {
-  const result = readLatin1String(buffer, offset, length);
-  if (!isSuccess(result)) return result;
-  return trimNulls(result);
+export const readId3v1String = (buffer: Uint8Array, offset: number, length: number): string => {
+  return trimNulls(readLatin1String(buffer, offset, length));
 };

@@ -1,4 +1,3 @@
-import { isSuccess, Result } from "../../../result/result";
 import { readBuffer } from "../../base/buffer";
 import { readLatin1String } from "../../base/string";
 import { readUint24be } from "../../base/unsigned-integer";
@@ -64,15 +63,9 @@ type Id3v22Frame = Id3v22KnownFrame | Id3v22UnknownFrame;
  * @param offset
  * @returns
  */
-export const readId3v22Frame = (buffer: Uint8Array, offset: number): Result<Id3v22Frame, RangeError> => {
+export const readId3v22Frame = (buffer: Uint8Array, offset: number): Id3v22Frame => {
   const id = readLatin1String(buffer, offset, 3);
-  if (!isSuccess(id)) return id;
-
   const length = readUint24be(buffer, offset + 3);
-  if (!isSuccess(length)) return length;
 
-  const data = readBuffer(buffer, offset + 6, length);
-  if (!isSuccess(data)) return data;
-
-  return { id, length, value: parseFrameData(2, id, data) };
+  return { id, length, value: parseFrameData(2, id, readBuffer(buffer, offset + 6, length)) };
 };

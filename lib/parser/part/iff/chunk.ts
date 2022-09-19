@@ -1,7 +1,8 @@
-import { isSuccess, Result } from "../../../result/result";
 import { readBuffer } from "../../base/buffer";
 
 import { IffChunkHeader, readIffChunkHeader } from "./chunk-header";
+
+import type { Result } from "../../../result/result";
 
 export interface IffChunk {
   header: IffChunkHeader;
@@ -15,10 +16,5 @@ export interface IffChunk {
  */
 export const readIffChunk = (buffer: Uint8Array, offset: number): Result<IffChunk, RangeError> => {
   const header = readIffChunkHeader(buffer, offset);
-  if (!isSuccess(header)) return header;
-
-  const data = readBuffer(buffer, offset + 8, header.size);
-  if (!isSuccess(data)) return data;
-
-  return { header, data };
+  return { header, data: readBuffer(buffer, offset + 8, header.size) };
 };

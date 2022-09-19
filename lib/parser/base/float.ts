@@ -1,5 +1,4 @@
 import { assertLength } from "../../errors/range-error";
-import { Result, wrapResult } from "../../result/result";
 
 import { dataview } from "./util";
 
@@ -11,9 +10,8 @@ export const FLOAT16_SIZE = 2;
  * @param offset
  * @returns float
  */
-export const readFloat16be = (buffer: Uint8Array, offset: number): Result<number, RangeError> => {
-  const rangeError = assertLength(buffer, offset + FLOAT16_SIZE);
-  if (rangeError) return rangeError;
+export const readFloat16be = (buffer: Uint8Array, offset: number): number => {
+  assertLength(buffer, offset + FLOAT16_SIZE);
   return getFloat16(buffer, offset);
 };
 
@@ -23,9 +21,8 @@ export const readFloat16be = (buffer: Uint8Array, offset: number): Result<number
  * @param offset
  * @returns float
  */
-export const readFloat16le = (buffer: Uint8Array, offset: number): Result<number, RangeError> => {
-  const rangeError = assertLength(buffer, offset + FLOAT16_SIZE);
-  if (rangeError) return rangeError;
+export const readFloat16le = (buffer: Uint8Array, offset: number): number => {
+  assertLength(buffer, offset + FLOAT16_SIZE);
   return getFloat16(buffer, offset, true);
 };
 
@@ -37,8 +34,8 @@ export const FLOAT32_SIZE = 4;
  * @param offset
  * @returns float
  */
-export const readFloat32be = (buffer: Uint8Array, offset: number): Result<number, RangeError> => {
-  return wrapResult(() => dataview(buffer).getFloat32(offset));
+export const readFloat32be = (buffer: Uint8Array, offset: number): number => {
+  return dataview(buffer).getFloat32(offset);
 };
 
 /**
@@ -47,8 +44,8 @@ export const readFloat32be = (buffer: Uint8Array, offset: number): Result<number
  * @param offset
  * @returns float
  */
-export const readFloat32le = (buffer: Uint8Array, offset: number): Result<number, RangeError> => {
-  return wrapResult(() => dataview(buffer).getFloat32(offset, true));
+export const readFloat32le = (buffer: Uint8Array, offset: number): number => {
+  return dataview(buffer).getFloat32(offset, true);
 };
 
 export const FLOAT64_SIZE = 8;
@@ -59,8 +56,8 @@ export const FLOAT64_SIZE = 8;
  * @param offset
  * @returns float
  */
-export const readFloat64be = (buffer: Uint8Array, offset: number): Result<number, RangeError> => {
-  return wrapResult(() => dataview(buffer).getFloat64(offset));
+export const readFloat64be = (buffer: Uint8Array, offset: number): number => {
+  return dataview(buffer).getFloat64(offset);
 };
 
 /**
@@ -69,8 +66,8 @@ export const readFloat64be = (buffer: Uint8Array, offset: number): Result<number
  * @param offset
  * @returns float
  */
-export const readFloat64le = (buffer: Uint8Array, offset: number): Result<number, RangeError> => {
-  return wrapResult(() => dataview(buffer).getFloat64(offset, true));
+export const readFloat64le = (buffer: Uint8Array, offset: number): number => {
+  return dataview(buffer).getFloat64(offset, true);
 };
 
 // read functions

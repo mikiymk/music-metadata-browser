@@ -1,5 +1,4 @@
 import { findZero, findZeroZero, trimNulls } from "../../../common/Util";
-import { isSuccess, Result } from "../../../result/result";
 import { readBuffer } from "../../base/buffer";
 import { Genres } from "../id3v1/genres";
 
@@ -90,14 +89,12 @@ export const readIdentifierAndData = (
   start: number,
   end: number,
   encoding: number
-): Result<{ id: string; data: Uint8Array }, RangeError> => {
+): { id: string; data: Uint8Array } => {
   const zero = (encoding === 1 || encoding === 2 ? findZeroZero : findZero)(buffer, start, end);
   const id = readId3v2String(encoding)(buffer, start, zero - start);
-  if (!isSuccess(id)) return id;
 
   start = zero + getNullTerminatorLength(encoding);
   const data = readBuffer(buffer, start, end - start);
-  if (!isSuccess(data)) return data;
 
   return { id, data };
 };

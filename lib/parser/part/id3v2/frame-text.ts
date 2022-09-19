@@ -1,22 +1,19 @@
-import { isSuccess, Result } from "../../../result/result";
 import { readUint8 } from "../../base/unsigned-integer";
 
 import { functionList, parseGenre, splitValue } from "./frame-utils";
 import { readId3v2String } from "./string";
 
 interface readFrameText {
-  (type: "TMCL" | "TIPL" | "IPLS", buffer: Uint8Array): Result<Record<string, string[]>, RangeError>;
-  (type: "TRK" | "TRCK" | "TPOS", buffer: Uint8Array): Result<string, RangeError>;
-  (type: "PCS" | "PCST", buffer: Uint8Array): Result<1 | 0, RangeError>;
-  (type: string, buffer: Uint8Array): Result<string[], RangeError>;
+  (type: "TMCL" | "TIPL" | "IPLS", buffer: Uint8Array): Record<string, string[]>;
+  (type: "TRK" | "TRCK" | "TPOS", buffer: Uint8Array): string;
+  (type: "PCS" | "PCST", buffer: Uint8Array): 1 | 0;
+  (type: string, buffer: Uint8Array): string[];
 }
 
 export const readFrameText: readFrameText = ((type: string, buffer: Uint8Array) => {
   const encoding = readUint8(buffer, 0);
-  if (!isSuccess(encoding)) return encoding;
 
   const text = readId3v2String(encoding)(buffer, 1, buffer.byteLength - 1);
-  if (!isSuccess(text)) return text;
 
   switch (type) {
     case "TMCL": // Musician credits list

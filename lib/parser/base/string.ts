@@ -1,6 +1,6 @@
 import { decodeLatin1, decodeUtf16be, decodeUtf16le, decodeUtf8 } from "../../compat/text-decoder";
 import { assertLength } from "../../errors/range-error";
-import { isSuccess, type Result } from "../../result/result";
+import { isSuccess } from "../../result/result";
 
 import { readUint16be } from "./unsigned-integer";
 
@@ -11,13 +11,8 @@ import { readUint16be } from "./unsigned-integer";
  * @param length
  * @returns decoded string
  */
-export const readLatin1String = (
-  buffer: Uint8Array,
-  offset = 0,
-  length = buffer.byteLength - offset
-): Result<string, RangeError> => {
-  const result = assertLength(buffer, offset + length);
-  if (result) return result;
+export const readLatin1String = (buffer: Uint8Array, offset = 0, length = buffer.byteLength - offset): string => {
+  assertLength(buffer, offset + length);
   return decodeLatin1(buffer.subarray(offset, offset + length));
 };
 
@@ -28,13 +23,8 @@ export const readLatin1String = (
  * @param length
  * @returns decoded string
  */
-export const readUtf8String = (
-  buffer: Uint8Array,
-  offset = 0,
-  length = buffer.byteLength - offset
-): Result<string, RangeError> => {
-  const result = assertLength(buffer, offset + length);
-  if (result) return result;
+export const readUtf8String = (buffer: Uint8Array, offset = 0, length = buffer.byteLength - offset): string => {
+  assertLength(buffer, offset + length);
   return decodeUtf8(buffer.subarray(offset, offset + length));
 };
 
@@ -45,13 +35,8 @@ export const readUtf8String = (
  * @param length
  * @returns decoded string
  */
-export const readUtf16leString = (
-  buffer: Uint8Array,
-  offset = 0,
-  length = buffer.byteLength - offset
-): Result<string, RangeError> => {
-  const result = assertLength(buffer, offset + length);
-  if (result) return result;
+export const readUtf16leString = (buffer: Uint8Array, offset = 0, length = buffer.byteLength - offset): string => {
+  assertLength(buffer, offset + length);
   return decodeUtf16le(buffer.subarray(offset, offset + length));
 };
 
@@ -62,13 +47,8 @@ export const readUtf16leString = (
  * @param length
  * @returns decoded string
  */
-export const readUtf16beString = (
-  buffer: Uint8Array,
-  offset = 0,
-  length = buffer.byteLength - offset
-): Result<string, RangeError> => {
-  const result = assertLength(buffer, offset + length);
-  if (result) return result;
+export const readUtf16beString = (buffer: Uint8Array, offset = 0, length = buffer.byteLength - offset): string => {
+  assertLength(buffer, offset + length);
   return decodeUtf16be(buffer.subarray(offset, offset + length));
 };
 
@@ -79,13 +59,8 @@ export const readUtf16beString = (
  * @param length
  * @returns decoded string
  */
-export const readUtf16bomString = (
-  buffer: Uint8Array,
-  offset = 0,
-  length = buffer.byteLength - offset
-): Result<string, RangeError> => {
-  const result = assertLength(buffer, offset + length);
-  if (result) return result;
+export const readUtf16bomString = (buffer: Uint8Array, offset = 0, length = buffer.byteLength - offset): string => {
+  assertLength(buffer, offset + length);
 
   let lastBomIndex = 0;
   for (let i = 0; i < length / 2; i++) {

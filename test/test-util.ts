@@ -1,7 +1,7 @@
 import { describe, test, expect } from "vitest";
 
 import { FourCcToken } from "../lib/common/FourCC";
-import { findZero, stripNulls, a2hex } from "../lib/common/Util";
+import { findZero, stripNulls, a2hex, findZeroByEncode } from "../lib/common/Util";
 
 describe("find zero", () => {
   const cases: ["ascii" | "utf16le", number[], number][] = [
@@ -14,7 +14,7 @@ describe("find zero", () => {
 
   test.each(cases)("find terminator in %s encoded", (encoding, data, expected) => {
     const buf = Buffer.from(data);
-    const actual = findZero(buf, 0, buf.length, encoding);
+    const actual = findZeroByEncode(buf, 0, buf.length, encoding);
     expect(actual).toBe(expected);
   });
 });

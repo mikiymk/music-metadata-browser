@@ -1,7 +1,10 @@
-import type { Result } from "../result/result";
-
-export const assertLength = (buffer: Uint8Array, length: number): Result<false, RangeError> => {
+/**
+ *
+ * @param buffer
+ * @param length
+ * @throws {RangeError}
+ */
+export const assertLength = (buffer: Uint8Array, length: number) => {
   if (buffer.byteLength < length)
-    return new RangeError(`${length} is outside the bounds of the Buffer { length: ${buffer.byteLength} }`);
-  return false;
+    throw new RangeError(`${length} is outside the bounds of the Buffer { length: ${buffer.byteLength} }`);
 };

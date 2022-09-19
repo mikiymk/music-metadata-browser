@@ -26,7 +26,6 @@ test("decode unsigned 8 bit integer", () => {
   expect(readUint8(buffer, UINT8_SIZE * 3)).toBe(0x80);
   expect(readUint8(buffer, UINT8_SIZE * 4)).toBe(0xff);
   expect(readUint8(buffer, UINT8_SIZE * 5)).toBe(0x81);
-  expect(readUint8(buffer, UINT8_SIZE * 6)).toBeInstanceOf(RangeError);
 });
 
 test("decode unsigned 16 bit big endian integer", () => {
@@ -36,7 +35,6 @@ test("decode unsigned 16 bit big endian integer", () => {
   expect(readUint16be(buffer, UINT16_SIZE * 1)).toBe(0x00_00);
   expect(readUint16be(buffer, UINT16_SIZE * 2)).toBe(0xff_ff);
   expect(readUint16be(buffer, UINT16_SIZE * 3)).toBe(0x80_00);
-  expect(readUint16be(buffer, UINT16_SIZE * 4)).toBeInstanceOf(RangeError);
 });
 
 test("decode unsigned 16 bit little endian integer", () => {
@@ -46,7 +44,6 @@ test("decode unsigned 16 bit little endian integer", () => {
   expect(readUint16le(buffer, UINT16_SIZE * 1)).toBe(0x00_00);
   expect(readUint16le(buffer, UINT16_SIZE * 2)).toBe(0xff_ff);
   expect(readUint16le(buffer, UINT16_SIZE * 3)).toBe(0x80_00);
-  expect(readUint16le(buffer, UINT16_SIZE * 4)).toBeInstanceOf(RangeError);
 });
 
 test("decode unsigned 24 bit big endian integer", () => {
@@ -56,7 +53,6 @@ test("decode unsigned 24 bit big endian integer", () => {
   expect(readUint24be(buffer, UINT24_SIZE * 1)).toBe(0xff_ff_ff);
   expect(readUint24be(buffer, UINT24_SIZE * 2)).toBe(0x10_00_ff);
   expect(readUint24be(buffer, UINT24_SIZE * 3)).toBe(0x80_00_00);
-  expect(readUint24be(buffer, UINT24_SIZE * 4)).toBeInstanceOf(RangeError);
 });
 
 test("decode unsigned 24 bit little endian integer", () => {
@@ -66,7 +62,6 @@ test("decode unsigned 24 bit little endian integer", () => {
   expect(readUint24le(buffer, UINT24_SIZE * 1)).toBe(0xff_ff_ff);
   expect(readUint24le(buffer, UINT24_SIZE * 2)).toBe(0x10_00_ff);
   expect(readUint24le(buffer, UINT24_SIZE * 3)).toBe(0x80_00_00);
-  expect(readUint24le(buffer, UINT24_SIZE * 4)).toBeInstanceOf(RangeError);
 });
 
 test("decode unsigned 32 bit big endian integer", () => {
@@ -78,7 +73,6 @@ test("decode unsigned 32 bit big endian integer", () => {
   expect(readUint32be(buffer, UINT32_SIZE * 1)).toBe(0xff_ff_ff_ff);
   expect(readUint32be(buffer, UINT32_SIZE * 2)).toBe(0x00_10_00_ff);
   expect(readUint32be(buffer, UINT32_SIZE * 3)).toBe(0x80_00_00_00);
-  expect(readUint32be(buffer, UINT32_SIZE * 4)).toBeInstanceOf(RangeError);
 });
 
 test("decode unsigned 32 bit little endian integer", () => {
@@ -90,7 +84,6 @@ test("decode unsigned 32 bit little endian integer", () => {
   expect(readUint32le(buffer, UINT32_SIZE * 1)).toBe(0xff_ff_ff_ff);
   expect(readUint32le(buffer, UINT32_SIZE * 2)).toBe(0x00_10_00_ff);
   expect(readUint32le(buffer, UINT32_SIZE * 3)).toBe(0x80_00_00_00);
-  expect(readUint32le(buffer, UINT32_SIZE * 4)).toBeInstanceOf(RangeError);
 });
 
 test("decode unsigned 64 bit big endian integer", () => {
@@ -103,7 +96,6 @@ test("decode unsigned 64 bit big endian integer", () => {
   expect(readUint64be(buffer, UINT64_SIZE * 1)).toBe(0xff_ff_ff_ff_ff_ff_ff_ffn);
   expect(readUint64be(buffer, UINT64_SIZE * 2)).toBe(0x00_00_ff_bb_ee_dd_cc_aan);
   expect(readUint64be(buffer, UINT64_SIZE * 3)).toBe(0x00_00_ff_bb_ee_dd_cc_bbn);
-  expect(readUint64be(buffer, UINT64_SIZE * 4)).toBeInstanceOf(RangeError);
 });
 
 test("decode unsigned 64 bit little endian integer", () => {
@@ -116,5 +108,4 @@ test("decode unsigned 64 bit little endian integer", () => {
   expect(readUint64le(buffer, UINT64_SIZE * 1)).toBe(0xff_ff_ff_ff_ff_ff_ff_ffn);
   expect(readUint64le(buffer, UINT64_SIZE * 2)).toBe(0x00_00_ff_bb_ee_dd_cc_aan);
   expect(readUint64le(buffer, UINT64_SIZE * 3)).toBe(0x00_00_ff_bb_ee_dd_cc_bbn);
-  expect(readUint64le(buffer, UINT64_SIZE * 4)).toBeInstanceOf(RangeError);
 });

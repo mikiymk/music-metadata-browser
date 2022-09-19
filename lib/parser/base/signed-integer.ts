@@ -1,5 +1,3 @@
-import { isSuccess, Result, wrapResult } from "../../result/result";
-
 import { readUint24be, readUint24le } from "./unsigned-integer";
 import { dataview } from "./util";
 
@@ -11,8 +9,8 @@ export const INT8_SIZE = 1;
  * @param offset
  * @returns 8 bit signed integer
  */
-export const readInt8 = (buffer: Uint8Array, offset: number): Result<number, RangeError> => {
-  return wrapResult(() => dataview(buffer).getInt8(offset));
+export const readInt8 = (buffer: Uint8Array, offset: number): number => {
+  return dataview(buffer).getInt8(offset);
 };
 
 export const INT16_SIZE = 2;
@@ -22,8 +20,8 @@ export const INT16_SIZE = 2;
  * @param offset
  * @returns 16 bit signed integer little endian
  */
-export const readInt16le = (buffer: Uint8Array, offset: number): Result<number, RangeError> => {
-  return wrapResult(() => dataview(buffer).getInt16(offset, true));
+export const readInt16le = (buffer: Uint8Array, offset: number): number => {
+  return dataview(buffer).getInt16(offset, true);
 };
 
 /**
@@ -32,8 +30,8 @@ export const readInt16le = (buffer: Uint8Array, offset: number): Result<number, 
  * @param offset
  * @returns 16 bit signed integer big endian
  */
-export const readInt16be = (buffer: Uint8Array, offset: number): Result<number, RangeError> => {
-  return wrapResult(() => dataview(buffer).getInt16(offset));
+export const readInt16be = (buffer: Uint8Array, offset: number): number => {
+  return dataview(buffer).getInt16(offset);
 };
 
 export const INT24_SIZE = 3;
@@ -44,10 +42,10 @@ export const INT24_SIZE = 3;
  * @param offset
  * @returns 24 bit signed integer little endian
  */
-export const readInt24le = (buffer: Uint8Array, offset: number): Result<number, RangeError> => {
+export const readInt24le = (buffer: Uint8Array, offset: number): number => {
   const result = readUint24le(buffer, offset);
 
-  return isSuccess(result) && result > 0x7f_ff_ff ? result - 0x1_00_00_00 : result;
+  return result > 0x7f_ff_ff ? result - 0x1_00_00_00 : result;
 };
 
 /**
@@ -56,10 +54,10 @@ export const readInt24le = (buffer: Uint8Array, offset: number): Result<number, 
  * @param offset
  * @returns 24 bit signed integer big endian
  */
-export const readInt24be = (buffer: Uint8Array, offset: number): Result<number, RangeError> => {
+export const readInt24be = (buffer: Uint8Array, offset: number): number => {
   const result = readUint24be(buffer, offset);
 
-  return isSuccess(result) && result > 0x7f_ff_ff ? result - 0x1_00_00_00 : result;
+  return result > 0x7f_ff_ff ? result - 0x1_00_00_00 : result;
 };
 
 export const INT32_SIZE = 4;
@@ -70,8 +68,8 @@ export const INT32_SIZE = 4;
  * @param offset
  * @returns 32 bit signed integer little endian
  */
-export const readInt32le = (buffer: Uint8Array, offset: number): Result<number, RangeError> => {
-  return wrapResult(() => dataview(buffer).getInt32(offset, true));
+export const readInt32le = (buffer: Uint8Array, offset: number): number => {
+  return dataview(buffer).getInt32(offset, true);
 };
 
 /**
@@ -80,8 +78,8 @@ export const readInt32le = (buffer: Uint8Array, offset: number): Result<number, 
  * @param offset
  * @returns 32 bit signed integer big endian
  */
-export const readInt32be = (buffer: Uint8Array, offset: number): Result<number, RangeError> => {
-  return wrapResult(() => dataview(buffer).getInt32(offset));
+export const readInt32be = (buffer: Uint8Array, offset: number): number => {
+  return dataview(buffer).getInt32(offset);
 };
 
 export const INT64_SIZE = 8;
@@ -92,8 +90,8 @@ export const INT64_SIZE = 8;
  * @param offset
  * @returns 64 bit signed integer little endian
  */
-export const readInt64le = (buffer: Uint8Array, offset: number): Result<bigint, RangeError> => {
-  return wrapResult(() => dataview(buffer).getBigInt64(offset, true));
+export const readInt64le = (buffer: Uint8Array, offset: number): bigint => {
+  return dataview(buffer).getBigInt64(offset, true);
 };
 
 /**
@@ -102,6 +100,6 @@ export const readInt64le = (buffer: Uint8Array, offset: number): Result<bigint, 
  * @param offset
  * @returns 64 bit signed integer big endian
  */
-export const readInt64be = (buffer: Uint8Array, offset: number): Result<bigint, RangeError> => {
-  return wrapResult(() => dataview(buffer).getBigInt64(offset));
+export const readInt64be = (buffer: Uint8Array, offset: number): bigint => {
+  return dataview(buffer).getBigInt64(offset);
 };

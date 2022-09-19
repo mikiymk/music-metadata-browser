@@ -1,4 +1,3 @@
-import { isSuccess, Result } from "../../../result/result";
 import { isBitSet } from "../../base/bit";
 import { readBuffer } from "../../base/buffer";
 import { readUint8 } from "../../base/unsigned-integer";
@@ -36,22 +35,16 @@ export interface Id3v24ExtendedHeader {
  * @param offset
  * @returns
  */
-export const readId3v24ExtendedHeader = (
-  buffer: Uint8Array,
-  offset: number
-): Result<Id3v24ExtendedHeader, RangeError> => {
+export const readId3v24ExtendedHeader = (buffer: Uint8Array, offset: number): Id3v24ExtendedHeader => {
   // Extended header size
   const size = readSyncSafeUint32be(buffer, offset);
-  if (!isSuccess(size)) return size;
 
   let readOffset = offset + 4;
   // Extended Flags
   const extendedFlagsData = readId3v24ExtendedHeaderData(buffer, readOffset);
-  if (!isSuccess(extendedFlagsData)) return extendedFlagsData;
   readOffset += extendedFlagsData.byteLength + 1;
 
   const extendedFlags = readUint8(extendedFlagsData, 0);
-  if (!isSuccess(extendedFlags)) return extendedFlags;
 
   const tagIsUpdate = isBitSet(extendedFlags, 6);
   const crcDataPresent = isBitSet(extendedFlags, 5);
@@ -60,7 +53,6 @@ export const readId3v24ExtendedHeader = (
   // tag is update
   if (tagIsUpdate) {
     const result = readId3v24ExtendedHeaderData(buffer, readOffset);
-    if (!isSuccess(result)) return result;
     readOffset += result.byteLength + 1;
   }
 
@@ -68,7 +60,6 @@ export const readId3v24ExtendedHeader = (
   let crcData;
   if (crcDataPresent) {
     crcData = readId3v24ExtendedHeaderData(buffer, readOffset);
-    if (!isSuccess(crcData)) return crcData;
     readOffset += crcData.byteLength + 1;
   }
 
@@ -76,11 +67,9 @@ export const readId3v24ExtendedHeader = (
   let restrictions;
   if (tagRestrictions) {
     const restrictionsData = readId3v24ExtendedHeaderData(buffer, readOffset);
-    if (!isSuccess(restrictionsData)) return restrictionsData;
     readOffset += restrictionsData.byteLength + 1;
 
     const restrictionsFlags = readUint8(restrictionsData, 0);
-    if (!isSuccess(restrictionsFlags)) return restrictionsFlags;
 
     restrictions = {
       tagSize: restrictionsFlags >> 6,
@@ -103,9 +92,6 @@ export const readId3v24ExtendedHeader = (
   };
 };
 
-const readId3v24ExtendedHeaderData = (buffer: Uint8Array, offset: number): Result<Uint8Array, RangeError> => {
-  const dataSize = readUint8(buffer, offset);
-  if (!isSuccess(dataSize)) return dataSize;
-
-  return readBuffer(buffer, offset + 1, dataSize);
+const readId3v24ExtendedHeaderData = (buffer: Uint8Array, offset: number): Uint8Array => {
+  return readBuffer(buffer, offset + 1, readUint8(buffer, offset));
 };

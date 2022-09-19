@@ -23,7 +23,6 @@ test("decode 16 bit big endian floating point number", () => {
   expect(readFloat16be(buffer, FLOAT16_SIZE * 2)).toBe(1);
   expect(readFloat16be(buffer, FLOAT16_SIZE * 3)).toBe(0);
   expect(readFloat16be(buffer, FLOAT16_SIZE * 4)).toBe(Number.NEGATIVE_INFINITY);
-  expect(readFloat16be(buffer, FLOAT16_SIZE * 5)).toBeInstanceOf(RangeError);
 });
 
 test("decode 16 bit little endian floating point number", () => {
@@ -37,7 +36,6 @@ test("decode 16 bit little endian floating point number", () => {
   expect(readFloat16le(buffer, FLOAT16_SIZE * 2)).toBe(1);
   expect(readFloat16le(buffer, FLOAT16_SIZE * 3)).toBe(-0);
   expect(readFloat16le(buffer, FLOAT16_SIZE * 4)).toBe(Number.POSITIVE_INFINITY);
-  expect(readFloat16le(buffer, FLOAT16_SIZE * 5)).toBeInstanceOf(RangeError);
 });
 
 test("decode 32 bit big endian floating point number", () => {
@@ -52,7 +50,6 @@ test("decode 32 bit big endian floating point number", () => {
   expect(readFloat32be(buffer, FLOAT32_SIZE * 2)).toBe(1);
   expect(readFloat32be(buffer, FLOAT32_SIZE * 3)).toBe(0);
   expect(readFloat32be(buffer, FLOAT32_SIZE * 4)).toBe(Number.NEGATIVE_INFINITY);
-  expect(readFloat32be(buffer, FLOAT32_SIZE * 5)).toBeInstanceOf(RangeError);
 });
 
 test("decode 32 bit little endian floating point number", () => {
@@ -67,7 +64,6 @@ test("decode 32 bit little endian floating point number", () => {
   expect(readFloat32le(buffer, FLOAT32_SIZE * 2)).toBe(1);
   expect(readFloat32le(buffer, FLOAT32_SIZE * 3)).toBe(-0);
   expect(readFloat32le(buffer, FLOAT32_SIZE * 4)).toBe(Number.POSITIVE_INFINITY);
-  expect(readFloat32le(buffer, FLOAT32_SIZE * 5)).toBeInstanceOf(RangeError);
 });
 
 test("decode 64 bit big endian floating point number", () => {
@@ -84,7 +80,6 @@ test("decode 64 bit big endian floating point number", () => {
   expect(readFloat64be(buffer, FLOAT64_SIZE * 2)).toBe(1);
   expect(readFloat64be(buffer, FLOAT64_SIZE * 3)).toBe(-0);
   expect(readFloat64be(buffer, FLOAT64_SIZE * 4)).toBe(Number.POSITIVE_INFINITY);
-  expect(readFloat64be(buffer, FLOAT64_SIZE * 5)).toBeInstanceOf(RangeError);
 });
 
 test("decode 64 bit little endian floating point number", () => {
@@ -101,5 +96,4 @@ test("decode 64 bit little endian floating point number", () => {
   expect(readFloat64le(buffer, FLOAT64_SIZE * 2)).toBe(1);
   expect(readFloat64le(buffer, FLOAT64_SIZE * 3)).toBe(-0);
   expect(readFloat64le(buffer, FLOAT64_SIZE * 4)).toBe(Number.POSITIVE_INFINITY);
-  expect(readFloat64le(buffer, FLOAT64_SIZE * 5)).toBeInstanceOf(RangeError);
 });
