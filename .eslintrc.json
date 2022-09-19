@@ -147,7 +147,7 @@
     "import/no-nodejs-modules": "warn",
     "import/no-self-import": "error",
     "import/no-unassigned-import": "error",
-    "import/no-unused-modules": ["warn", { "unusedExports": true }],
+    // "import/no-unused-modules": ["warn", { "unusedExports": true }],
     "import/no-useless-path-segments": ["error", { "noUselessIndex": true }],
     "import/order": [
       "error",

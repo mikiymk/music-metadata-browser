@@ -31,27 +31,50 @@ export function getBit(buf: Uint8Array, off: number, bit: number): boolean {
 
 /**
  * Found delimiting zero in uint8Array
+ * @param buffer Uint8Array to find the zero delimiter in
+ * @param start Offset in uint8Array
+ * @param end Last position to parse in uint8Array
+ * @param encoding The string encoding used
+ * @returns Absolute position on uint8Array where zero found
+ */
+export function findZero(buffer: Uint8Array, start: number, end: number): number {
+  for (let i = start; i < end; i++) {
+    if (buffer[i] === 0) return i;
+  }
+
+  return end;
+}
+
+/**
+ * Found delimiting zero in uint8Array
+ * @param buffer Uint8Array to find the zero delimiter in
+ * @param start Offset in uint8Array
+ * @param end Last position to parse in uint8Array
+ * @returns Absolute position on uint8Array where zero found
+ */
+export function findZeroZero(buffer: Uint8Array, start: number, end: number): number {
+  for (let i = start; i < end; i += 2) {
+    if (buffer[i] === 0 && buffer[i + 1] === 0) return i;
+  }
+
+  return end;
+}
+
+/**
+ * Found delimiting zero in uint8Array
  * @param uint8Array Uint8Array to find the zero delimiter in
  * @param start Offset in uint8Array
  * @param end Last position to parse in uint8Array
  * @param encoding The string encoding used
  * @returns Absolute position on uint8Array where zero found
  */
-export function findZero(uint8Array: Uint8Array, start: number, end: number, encoding?: StringEncoding): number {
-  let i = start;
-  if (encoding === "utf16le") {
-    while (uint8Array[i] !== 0 || uint8Array[i + 1] !== 0) {
-      if (i >= end) return end;
-      i += 2;
-    }
-    return i;
-  } else {
-    while (uint8Array[i] !== 0) {
-      if (i >= end) return end;
-      i++;
-    }
-    return i;
-  }
+export function findZeroByEncode(
+  uint8Array: Uint8Array,
+  start: number,
+  end: number,
+  encoding?: StringEncoding
+): number {
+  return encoding === "utf16le" ? findZeroZero(uint8Array, start, end) : findZero(uint8Array, start, end);
 }
 
 /**
@@ -63,6 +86,10 @@ export function trimRightNull(x: string): string {
   const pos0 = x.indexOf("\0");
   return pos0 === -1 ? x : x.slice(0, pos0);
 }
+
+export const trimNulls = (str: string): string => {
+  return str.replace(/\0+$/, "").trim();
+};
 
 /**
  *

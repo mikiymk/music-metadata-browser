@@ -22,3 +22,13 @@ export class SourceStream extends Readable {
 }
 
 export const samplePath = join(__dirname, "samples");
+
+export const generateBuffer = (...buffers: (string | number | number[] | Uint8Array)[]) => {
+  return new Uint8Array(
+    buffers.flatMap((buf) => {
+      if (typeof buf === "string") return [...buf].map((v) => v.codePointAt(0));
+      if (buf instanceof Uint8Array) return [...buf];
+      return buf;
+    })
+  );
+};

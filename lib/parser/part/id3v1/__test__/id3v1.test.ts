@@ -33,7 +33,7 @@ test("read ID3v1.1 tag", async () => {
   expect(tag).toEqual({
     album: "ID3v1 album name",
     artist: "ID3v1 artist name",
-    comment: "ID3v1 comment aaaaaaaaaaaaaa",
+    comment: "ID3v1 comment aaaaaaaaaaaaaa\u0000\u0001",
     genre: 41,
     header: "TAG",
     title: "ID3v1 track name",

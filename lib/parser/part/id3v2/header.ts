@@ -52,7 +52,8 @@ export const readId3v2Header = (buffer: Uint8Array, offset: number): Result<Id3v
   if (!isSuccess(versionMajor)) return versionMajor;
   const versionRevision = readUint8(buffer, offset + 4);
   if (!isSuccess(versionRevision)) return versionRevision;
-  if (versionMajor !== 2 && versionMajor !== 3 && versionMajor !== 4) return new ParseError("incompatible ID3v2 version");
+  if (versionMajor !== 2 && versionMajor !== 3 && versionMajor !== 4)
+    return new ParseError("incompatible ID3v2 version");
 
   // ID3v2 flags
   const flags = readUint8(buffer, offset + 5);
