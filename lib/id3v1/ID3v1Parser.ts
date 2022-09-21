@@ -29,6 +29,8 @@ export class ID3v1Parser extends BasicParser {
       debug("Already consumed the last 128 bytes");
       return;
     }
+
+    // tokenizer read token
     const uint8Array = new Uint8Array(ID3V1_SIZE);
     const len = await this.tokenizer.readBuffer(uint8Array, { position: offset });
     if (len < ID3V1_SIZE) throw new EndOfStreamError();
