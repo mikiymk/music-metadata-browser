@@ -1,11 +1,11 @@
 import { getBit } from "../common/Util";
 import { decodeLatin1 } from "../compat/text-decoder";
-import { readUint32be } from "../parser/base/unsigned-integer";
+import { readBuffer } from "../parser/base/buffer";
+import { readUint24be, readUint32be } from "../parser/base/unsigned-integer";
 import { ID3V2_EXTENDED_HEADER_SIZE_SIZE, readId3v2ExtendedHeaderSize } from "../parser/part/id3v2/extended-header";
 import { Id3v2Header, ID3V2_HEADER_SIZE, readId3v2Header } from "../parser/part/id3v2/header";
 import { readSyncSafeUint32be } from "../parser/part/id3v2/syncsafe-integer";
-import { readToken } from "../parser/token";
-import { Uint8ArrayType, UINT24_BE } from "../token-types";
+import { readSizedToken, readToken } from "../parser/token";
 
 import { FrameParser } from "./FrameParser";
 
@@ -49,7 +49,7 @@ export class ID3v2Parser {
     this.metadata = metadata;
     this.options = options;
 
-    this.id3Header = await readToken(this.tokenizer, this.tokenizer.position, ID3V2_HEADER_SIZE, readId3v2Header);
+    this.id3Header = await readToken(this.tokenizer, ID3V2_HEADER_SIZE, readId3v2Header);
 
     if (this.id3Header.id !== "ID3") {
       throw new Error("expected ID3-header file-identifier 'ID3' was not found");
@@ -65,7 +65,6 @@ export class ID3v2Parser {
   private async parseExtendedHeader(): Promise<void> {
     const extendedHeaderSize = await readToken(
       this.tokenizer,
-      this.tokenizer.position,
       ID3V2_EXTENDED_HEADER_SIZE_SIZE,
       readId3v2ExtendedHeaderSize
     );
@@ -76,7 +75,7 @@ export class ID3v2Parser {
   }
 
   private async parseId3Data(dataLen: number): Promise<void> {
-    const uint8Array = await this.tokenizer.readToken(new Uint8ArrayType(dataLen));
+    const uint8Array = await readSizedToken(this.tokenizer, dataLen, readBuffer);
     for (const tag of this.parseMetadata(uint8Array)) {
       switch (tag.id) {
         case "TXXX": {
@@ -157,7 +156,7 @@ export class ID3v2Parser {
     switch (majorVer) {
       case 2:
         id = decodeLatin1(uint8Array.slice(0, 3));
-        length = UINT24_BE.get(uint8Array, 3);
+        length = readUint24be(uint8Array, 3);
 
         if (!/[\dA-Z]{3}/g.test(id)) {
           this.metadata.addWarning(`Invalid ID3v2.${this.id3Header.versionMajor} frame-header-ID: ${id}`);

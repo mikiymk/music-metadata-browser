@@ -1,13 +1,14 @@
 import { BasicParser } from "../common/BasicParser";
-import { FourCcToken } from "../common/FourCC";
 import initDebug from "../debug";
 import { ID3v2Parser } from "../id3v2/ID3v2Parser";
-import * as iff from "../iff";
+import { Header } from "../iff";
+import { readBuffer } from "../parser/base/buffer";
+import { readCommonToken } from "../parser/part/aiff/common";
+import { FOUR_CC_TOKEN_SIZE, readFourCcToken } from "../parser/part/fourcc/fourcc";
+import { IffChunkHeader, IFF_CHUNK_HEADER_SIZE, readIffChunkHeader } from "../parser/part/iff/chunk-header";
+import { readSizedToken, readToken } from "../parser/token";
 import { EndOfStreamError } from "../strtok3";
 import { fromBuffer } from "../strtok3/fromBuffer";
-import { Uint8ArrayType } from "../token-types";
-
-import * as AiffToken from "./AiffTokenCommon";
 
 const debug = initDebug("music-metadata:parser:aiff");
 
@@ -22,10 +23,11 @@ export class AIFFParser extends BasicParser {
   private isCompressed: boolean;
 
   public async parse(): Promise<void> {
-    const header = await this.tokenizer.readToken<iff.IChunkHeader>(iff.Header);
-    if (header.chunkID !== "FORM") throw new Error("Invalid Chunk-ID, expected 'FORM'"); // Not AIFF format
+    const header = await readToken(this.tokenizer, IFF_CHUNK_HEADER_SIZE, readIffChunkHeader);
 
-    const type = await this.tokenizer.readToken<string>(FourCcToken);
+    if (header.id !== "FORM") throw new Error("Invalid Chunk-ID, expected 'FORM'"); // Not AIFF format
+
+    const type = await readToken(this.tokenizer, FOUR_CC_TOKEN_SIZE, readFourCcToken);
     switch (type) {
       case "AIFF":
         this.metadata.setFormat("container", type);
@@ -45,13 +47,13 @@ export class AIFFParser extends BasicParser {
     try {
       while (
         this.tokenizer.fileInfo.size === 0 ||
-        this.tokenizer.fileInfo.size - this.tokenizer.position >= iff.Header.len
+        this.tokenizer.fileInfo.size - this.tokenizer.position >= Header.len
       ) {
         debug(`Reading AIFF chunk at offset=${this.tokenizer.position}`);
-        const chunkHeader = await this.tokenizer.readToken<iff.IChunkHeader>(iff.Header);
+        const chunkHeader = await readToken(this.tokenizer, IFF_CHUNK_HEADER_SIZE, readIffChunkHeader);
 
-        debug(`Chunk id=${chunkHeader.chunkID}`);
-        const nextChunk = 2 * Math.round(chunkHeader.chunkSize / 2);
+        debug(`Chunk id=${chunkHeader.id}`);
+        const nextChunk = 2 * Math.round(chunkHeader.size / 2);
         const bytesRead = await this.readData(chunkHeader);
         await this.tokenizer.ignore(nextChunk - bytesRead);
       }
@@ -64,31 +66,30 @@ export class AIFFParser extends BasicParser {
     }
   }
 
-  public async readData(header: iff.IChunkHeader): Promise<number> {
-    switch (header.chunkID) {
+  public async readData(header: IffChunkHeader): Promise<number> {
+    switch (header.id) {
       case "COMM": {
         // The Common Chunk
-        const common = await this.tokenizer.readToken<AiffToken.ICommon>(
-          new AiffToken.Common(header, this.isCompressed)
-        );
+        const common = await readSizedToken(this.tokenizer, header.size, readCommonToken, this.isCompressed);
         this.metadata.setFormat("bitsPerSample", common.sampleSize);
         this.metadata.setFormat("sampleRate", common.sampleRate);
         this.metadata.setFormat("numberOfChannels", common.numChannels);
         this.metadata.setFormat("numberOfSamples", common.numSampleFrames);
         this.metadata.setFormat("duration", common.numSampleFrames / common.sampleRate);
         this.metadata.setFormat("codec", common.compressionName);
-        return header.chunkSize;
+        return header.size;
       }
       case "ID3 ": {
         // ID3-meta-data
-        const id3_data = await this.tokenizer.readToken<Uint8Array>(new Uint8ArrayType(header.chunkSize));
+        const id3_data = await readSizedToken(this.tokenizer, header.size, readBuffer);
+
         const rst = fromBuffer(id3_data);
         await new ID3v2Parser().parse(this.metadata, rst, this.options);
-        return header.chunkSize;
+        return header.size;
       }
       case "SSND": // Sound Data Chunk
         if (this.metadata.format.duration) {
-          this.metadata.setFormat("bitrate", (8 * header.chunkSize) / this.metadata.format.duration);
+          this.metadata.setFormat("bitrate", (8 * header.size) / this.metadata.format.duration);
         }
         return 0;
 

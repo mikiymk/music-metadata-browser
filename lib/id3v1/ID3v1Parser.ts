@@ -30,7 +30,8 @@ export class ID3v1Parser extends BasicParser {
       return;
     }
 
-    const header = await readToken(this.tokenizer, offset, ID3V1_SIZE, readId3v1);
+    await this.tokenizer.ignore(offset - this.tokenizer.position);
+    const header = await readToken(this.tokenizer, ID3V1_SIZE, readId3v1);
 
     if (header) {
       debug("ID3v1 header found at: pos=%s", this.tokenizer.fileInfo.size - ID3V1_SIZE);
