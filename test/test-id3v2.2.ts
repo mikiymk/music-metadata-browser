@@ -4,7 +4,7 @@ import { describe, test, expect } from "vitest";
 
 import { orderTags } from "../lib";
 import { parseGenre } from "../lib/id3v2/FrameParser";
-import { ID3v2Parser } from "../lib/id3v2/ID3v2Parser";
+import { removeUnsyncBytes } from "../lib/id3v2/ID3v2Parser";
 
 import { Parsers } from "./metadata-parsers";
 import { samplePath } from "./util";
@@ -15,7 +15,7 @@ describe.each(Parsers)("ID3v2Parser %s", (_, parser) => {
   test("should be able to remove unsynchronisation bytes from buffer", () => {
     const expected = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00]);
     const sample = Buffer.from([0xff, 0xd8, 0xff, 0x00, 0xe0, 0x00]);
-    const output = ID3v2Parser.removeUnsyncBytes(sample);
+    const output = removeUnsyncBytes(sample);
 
     expect(output, "bytes").toStrictEqual(expected);
   });

@@ -2,7 +2,7 @@
  * The picture type according to the ID3v2 APIC frame
  * Ref: http://id3.org/id3v2.3.0#Attached_picture
  */
-export enum AttachedPictureType {
+export const AttachedPictureType = [
   "Other",
   "32x32 pixels 'file icon' (PNG only)",
   "Other file icon",
@@ -24,4 +24,4 @@ export enum AttachedPictureType {
   "Illustration",
   "Band/artist logotype",
   "Publisher/Studio logotype",
-}
+];

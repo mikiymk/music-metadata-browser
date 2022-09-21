@@ -2,6 +2,7 @@ import { BasicParser } from "../common/BasicParser";
 import initDebug from "../debug";
 import { ID3v1Parser } from "../id3v1/ID3v1Parser";
 import { ID3V2_HEADER_SIZE, readId3v2Header } from "../parser/part/id3v2/header";
+import { peekToken } from "../parser/token";
 import { EndOfStreamError, ITokenizer } from "../strtok3";
 
 import { ID3v2Parser } from "./ID3v2Parser";
@@ -12,16 +13,6 @@ const debug = initDebug("music-metadata:parser:ID3");
  * Abstract parser which tries take ID3v2 and ID3v1 headers.
  */
 export abstract class AbstractID3Parser extends BasicParser {
-  public static async startsWithID3v2Header(tokenizer: ITokenizer): Promise<boolean> {
-    // tokenizer peek token
-    const uint8Array = new Uint8Array(ID3V2_HEADER_SIZE);
-    const len = await tokenizer.peekBuffer(uint8Array);
-    if (len < ID3V2_HEADER_SIZE) throw new EndOfStreamError();
-    const header = readId3v2Header(uint8Array, 0);
-
-    return header.id === "ID3";
-  }
-
   private id3parser = new ID3v2Parser();
 
   public async parse(): Promise<void> {
@@ -60,10 +51,16 @@ export abstract class AbstractID3Parser extends BasicParser {
   }
 
   private async tryReadId3v2Headers(): Promise<void> {
-    if (await AbstractID3Parser.startsWithID3v2Header(this.tokenizer)) {
+    if (await startsWithID3v2Header(this.tokenizer)) {
       debug("Found ID3v2 header, pos=%s", this.tokenizer.position);
       await this.id3parser.parse(this.metadata, this.tokenizer, this.options);
       return this.tryReadId3v2Headers();
     }
   }
 }
+
+export const startsWithID3v2Header = async (tokenizer: ITokenizer): Promise<boolean> => {
+  const header = await peekToken(tokenizer, tokenizer.position, ID3V2_HEADER_SIZE, readId3v2Header);
+
+  return header.id === "ID3";
+};

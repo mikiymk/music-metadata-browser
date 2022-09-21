@@ -88,7 +88,7 @@ export function trimRightNull(x: string): string {
 }
 
 export const trimNulls = (str: string): string => {
-  return str.replace(/\0+$/, "").trim();
+  return str.replace(/\0+$/, "");
 };
 
 /**

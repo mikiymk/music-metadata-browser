@@ -4,7 +4,7 @@ import { decodeLatin1 } from "../compat/text-decoder";
 import initDebug from "../debug";
 import { Genres } from "../parser/part/id3v1/genres";
 import { readId3v1, ID3V1_SIZE } from "../parser/part/id3v1/id3v1";
-import { EndOfStreamError } from "../peek-readable";
+import { readToken } from "../parser/token";
 
 import type { IRandomReader } from "../type";
 
@@ -30,11 +30,7 @@ export class ID3v1Parser extends BasicParser {
       return;
     }
 
-    // tokenizer read token
-    const uint8Array = new Uint8Array(ID3V1_SIZE);
-    const len = await this.tokenizer.readBuffer(uint8Array, { position: offset });
-    if (len < ID3V1_SIZE) throw new EndOfStreamError();
-    const header = readId3v1(uint8Array, 0);
+    const header = await readToken(this.tokenizer, offset, ID3V1_SIZE, readId3v1);
 
     if (header) {
       debug("ID3v1 header found at: pos=%s", this.tokenizer.fileInfo.size - ID3V1_SIZE);

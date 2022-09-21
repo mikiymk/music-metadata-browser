@@ -6,11 +6,11 @@ describe("split value", () => {
   const cases: [string, string[]][] = [
     ["", [""]],
     ["abc", ["abc"]],
-    ["abc   ", ["abc"]],
+    ["abc   ", ["abc   "]],
     ["abc def", ["abc def"]],
     ["abc\0def", ["abc", "def"]],
-    ["abc  \0def", ["abc", "def"]],
-    ["abc\0def\0 ", ["abc", "def", ""]],
+    ["abc  \0def", ["abc  ", "def"]],
+    ["abc\0def\0 ", ["abc", "def", " "]],
   ];
 
   test.each(cases)("%s -> %s", (source, expected) => {
