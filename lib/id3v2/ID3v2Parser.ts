@@ -195,28 +195,22 @@ export const removeUnsyncBytes = (buffer: Uint8Array): Uint8Array => {
 };
 
 const getFrameHeaderLength = (majorVer: ID3v2MajorVersion): number => {
-  switch (majorVer) {
-    case 2:
-      return 6;
-    case 3:
-    case 4:
-      return 10;
-  }
+  return { 2: 6, 3: 10, 4: 10 }[majorVer];
 };
 
-const readFrameFlags = (b: Uint8Array): IFrameFlags => {
+const readFrameFlags = (buffer: Uint8Array): IFrameFlags => {
   return {
     status: {
-      tag_alter_preservation: getBit(b, 0, 6),
-      file_alter_preservation: getBit(b, 0, 5),
-      read_only: getBit(b, 0, 4),
+      tag_alter_preservation: getBit(buffer, 0, 6),
+      file_alter_preservation: getBit(buffer, 0, 5),
+      read_only: getBit(buffer, 0, 4),
     },
     format: {
-      grouping_identity: getBit(b, 1, 7),
-      compression: getBit(b, 1, 3),
-      encryption: getBit(b, 1, 2),
-      unsynchronisation: getBit(b, 1, 1),
-      data_length_indicator: getBit(b, 1, 0),
+      grouping_identity: getBit(buffer, 1, 7),
+      compression: getBit(buffer, 1, 3),
+      encryption: getBit(buffer, 1, 2),
+      unsynchronisation: getBit(buffer, 1, 1),
+      data_length_indicator: getBit(buffer, 1, 0),
     },
   };
 };
@@ -238,7 +232,7 @@ const readFrameData = (
         uint8Array = removeUnsyncBytes(uint8Array);
       }
       if (frameHeader.flags.format.data_length_indicator) {
-        uint8Array = uint8Array.slice(4, uint8Array.length);
+        uint8Array = uint8Array.slice(4);
       }
       return frameParser.readData(uint8Array, frameHeader.id, includeCovers);
   }
@@ -250,6 +244,6 @@ const readFrameData = (
  * @param description e.g. iTunPGAP
  * @returns string e.g. COM:iTunPGAP
  */
-const makeDescriptionTagName = (tag: string, description: string): string => {
+const makeDescriptionTagName = (tag: string, description?: string): string => {
   return tag + (description ? ":" + description : "");
 };

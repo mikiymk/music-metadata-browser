@@ -1,7 +1,7 @@
 import { readUint8 } from "../../base/unsigned-integer";
 
-import { readIdentifierAndData, splitValue } from "./frame-utils";
 import { readId3v2String } from "./string";
+import { readIdentifierAndData, splitValue } from "./utils";
 
 interface UserDefinedText {
   description: string;

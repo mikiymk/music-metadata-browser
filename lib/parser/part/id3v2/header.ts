@@ -42,13 +42,10 @@ export const ID3V2_HEADER_SIZE = 10;
 export const readId3v2Header = (buffer: Uint8Array, offset: number): Id3v2Header => {
   // ID3v2/file identifier   "ID3"
   const id = readLatin1String(buffer, offset, 3);
-  // if (id !== "ID3") throw new ParseError("Buffer does not contain ID3v2");
 
   // ID3v2 versionIndex
   const versionMajor = readUint8(buffer, offset + 3);
   const versionRevision = readUint8(buffer, offset + 4);
-  // if (versionMajor !== 2 && versionMajor !== 3 && versionMajor !== 4)
-  //   throw new ParseError("incompatible ID3v2 version");
 
   // ID3v2 flags
   const flags = readUint8(buffer, offset + 5);

@@ -1,6 +1,7 @@
 import { test, expect, describe } from "vitest";
 
-import { splitValue, parseGenre, functionList } from "../frame-utils";
+import { generateBuffer } from "../../../../../test/util";
+import { splitValue, parseGenre, functionList, readIdentifierAndData, readNullTerminatedString } from "../utils";
 
 describe("split value", () => {
   const cases: [string, string[]][] = [
@@ -54,5 +55,47 @@ describe("split value", () => {
 
   test.each(tests)("%j -> %j", (source, expected) => {
     expect(functionList(source)).toEqual(expected);
+  });
+});
+
+describe("read id and data", () => {
+  test("0 - 7", () => {
+    const buffer = generateBuffer("id", 0x00, [0x01, 0x02, 0x03, 0x04]);
+
+    expect(readIdentifierAndData(buffer, 0, 7, 0)).toEqual({
+      id: "id",
+      data: new Uint8Array([0x01, 0x02, 0x03, 0x04]),
+    });
+  });
+
+  test("100 - 107", () => {
+    const buffer = generateBuffer(new Uint8Array(100), "id", 0x00, [0x01, 0x02, 0x03, 0x04]);
+
+    expect(readIdentifierAndData(buffer, 100, 107, 0)).toEqual({
+      id: "id",
+      data: new Uint8Array([0x01, 0x02, 0x03, 0x04]),
+    });
+  });
+});
+
+describe("read null terminated string", () => {
+  const latin1Tests: [Uint8Array, [string, number]][] = [
+    [generateBuffer("string", 0x00), ["string", 7]],
+    [generateBuffer("str\0ing", 0x00), ["str", 4]],
+    [generateBuffer(0x00), ["", 1]],
+  ];
+
+  test.each(latin1Tests)("read encode:latin1 %s", (buffer, expected) => {
+    expect(readNullTerminatedString(buffer, 0, buffer.length, "latin1")).toEqual(expected);
+  });
+
+  const utf16Tests: [Uint8Array, [string, number]][] = [
+    [generateBuffer("s", 0x00, "t", 0x00, "r", 0x00, "i", 0x00, "n", 0x00, "g", 0x00, 0x00, 0x00), ["string", 14]],
+    [generateBuffer("s", 0x00, "t", 0x00, "r", 0x00, "\0", 0x00, "i", 0x00, "n", 0x00, "g", 0x00, 0x00), ["str", 8]],
+    [generateBuffer(0x00, 0x00), ["", 2]],
+  ];
+
+  test.each(utf16Tests)("read encode:utf16le %s", (buffer, expected) => {
+    expect(readNullTerminatedString(buffer, 0, buffer.length, "utf16le")).toEqual(expected);
   });
 });

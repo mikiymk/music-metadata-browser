@@ -1,6 +1,6 @@
-import { StringEncoding, decodeString, findZeroByEncode, trimNulls } from "../common/Util";
+import { StringEncoding, decodeString, trimNulls } from "../common/Util";
 import initDebug from "../debug";
-import { Genres } from "../parser/part/id3v1/genres";
+import { functionList, parseGenre, readNullTerminatedString } from "../parser/part/id3v2/utils";
 import { UINT32_BE, UINT8 } from "../token-types";
 
 import { AttachedPictureType } from "./AttachedPictureType";
@@ -65,10 +65,11 @@ export class FrameParser {
         switch (type) {
           case "TXX":
           case "TXXX": {
-            const data = readIdentifierAndData(uint8Array, 1, length, encoding);
+            const [id, offset] = readNullTerminatedString(uint8Array, 1, length, encoding);
+
             return {
-              description: data.id,
-              text: this.splitValue(type, trimNulls(decodeString(data.data, encoding))),
+              description: id,
+              text: this.splitValue(type, trimNulls(decodeString(uint8Array.slice(offset, length), encoding))),
             };
           }
 
@@ -119,7 +120,7 @@ export class FrameParser {
               break;
             case 3:
             case 4:
-              [format, offset] = readNullTerminatedLatin1String(uint8Array, 1, length);
+              [format, offset] = readNullTerminatedString(uint8Array, 1, length);
               break;
 
             default:
@@ -167,19 +168,19 @@ export class FrameParser {
       }
 
       case "UFID": {
-        const data = readIdentifierAndData(uint8Array, 0, length, defaultEnc);
+        const data = readIdentifierAndData(uint8Array, 0, length);
         return { owner_identifier: data.id, identifier: data.data };
       }
 
       case "PRIV": {
         // private frame
-        const data = readIdentifierAndData(uint8Array, 0, length, defaultEnc);
+        const data = readIdentifierAndData(uint8Array, 0, length);
         return { owner_identifier: data.id, data: data.data };
       }
 
       case "POPM": {
         // Popularimeter
-        const [email, offset] = readNullTerminatedLatin1String(uint8Array, 0, length);
+        const [email, offset] = readNullTerminatedString(uint8Array, 0, length);
 
         const dataLen = length - offset;
         return {
@@ -191,9 +192,9 @@ export class FrameParser {
 
       case "GEOB": {
         // General encapsulated object
-        const [mimeType, offsetM] = readNullTerminatedLatin1String(uint8Array, 1, length);
-        const [filename, offsetF] = readNullTerminatedLatin1String(uint8Array, offsetM, length);
-        const [description, offsetD] = readNullTerminatedLatin1String(uint8Array, offsetF, length);
+        const [mimeType, offsetM] = readNullTerminatedString(uint8Array, 1, length);
+        const [filename, offsetF] = readNullTerminatedString(uint8Array, offsetM, length);
+        const [description, offsetD] = readNullTerminatedString(uint8Array, offsetF, length);
 
         return {
           type: mimeType,
@@ -248,74 +249,17 @@ export class FrameParser {
    * @returns Split tag value
    */
   private splitValue(tag: string, text: string): string[] {
-    let values: string[];
+    let values: string[] = text.split(/\0/g);
     if (this.major < 4) {
-      values = text.split(/\0/g);
       if (values.length > 1) {
         this.warningCollector.addWarning(`ID3v2.${this.major} ${tag} uses non standard null-separator.`);
       } else {
         values = text.split(/\//g);
       }
-    } else {
-      values = text.split(/\0/g);
     }
-    return trimArray(values);
+    return values.map((value) => trimNulls(value).trim());
   }
 }
-
-/**
- *
- * @param origVal
- * @returns
- */
-export const parseGenre = (origVal: string): string[] => {
-  // match everything inside parentheses
-  const genres = [];
-  let code: string;
-  let word = "";
-  for (const c of origVal) {
-    if (typeof code === "string") {
-      if (c === "(" && code === "") {
-        word += "(";
-        code = undefined;
-      } else if (c === ")") {
-        if (word !== "") {
-          genres.push(word);
-          word = "";
-        }
-        const genre = parseGenreCode(code);
-        if (genre) {
-          genres.push(genre);
-        }
-        code = undefined;
-      } else code += c;
-    } else if (c === "(") {
-      code = "";
-    } else {
-      word += c;
-    }
-  }
-  if (word) {
-    if (genres.length === 0 && /^\d*$/.test(word)) {
-      word = Genres[Number.parseInt(word, 10)];
-    }
-    genres.push(word);
-  }
-  return genres;
-};
-
-/**
- *
- * @param code
- * @returns
- */
-const parseGenreCode = (code: string): string => {
-  if (code === "RX") return "Remix";
-  if (code === "CR") return "Cover";
-  if (/^\d*$/.test(code)) {
-    return Genres[Number.parseInt(code, 10)];
-  }
-};
 
 const fixPictureMimeType = (pictureType: string): string => {
   pictureType = pictureType.toLocaleLowerCase();
@@ -328,54 +272,12 @@ const fixPictureMimeType = (pictureType: string): string => {
   return pictureType;
 };
 
-/**
- * Converts TMCL (Musician credits list) or TIPL (Involved people list)
- * @param entries
- * @returns
- */
-const functionList = (entries: string[]): Record<string, string[]> => {
-  const res: Record<string, string[]> = {};
-  for (let i = 0; i + 1 < entries.length; i += 2) {
-    const names: string[] = entries[i + 1].split(",");
-    res[entries[i]] = Object.prototype.hasOwnProperty.call(res, entries[i]) ? [...res[entries[i]], ...names] : names;
-  }
-  return res;
-};
-
-const trimArray = (values: string[]): string[] => {
-  return values.map((value) => value.replace(/\0+$/, "").trim());
-};
-
 const readIdentifierAndData = (
   uint8Array: Uint8Array,
   offset: number,
-  length: number,
-  encoding: StringEncoding
+  length: number
 ): { id: string; data: Uint8Array } => {
-  const [id, offsetI] = readNullTerminatedString(uint8Array, offset, length, encoding);
+  const [id, offsetI] = readNullTerminatedString(uint8Array, offset, length, defaultEnc);
 
   return { id, data: uint8Array.slice(offsetI, length) };
-};
-
-const getNullTerminatorLength = (enc: StringEncoding): number => {
-  return enc === "utf16le" ? 2 : 1;
-};
-
-const readNullTerminatedLatin1String = (
-  buffer: Uint8Array,
-  offset: number,
-  length: number
-): [text: string, offset: number] => {
-  return readNullTerminatedString(buffer, offset, length, defaultEnc);
-};
-
-const readNullTerminatedString = (
-  buffer: Uint8Array,
-  offset: number,
-  length: number,
-  encoding: StringEncoding
-): [text: string, offset: number] => {
-  const fzero = findZeroByEncode(buffer, offset, length, encoding);
-  const text = decodeString(buffer.slice(offset, fzero), encoding);
-  return [text, fzero + getNullTerminatorLength(encoding)];
 };

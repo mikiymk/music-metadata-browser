@@ -1,4 +1,11 @@
-import { findZero, findZeroZero, trimNulls } from "../../../common/Util";
+import {
+  decodeString,
+  findZero,
+  findZeroByEncode,
+  findZeroZero,
+  StringEncoding,
+  trimNulls,
+} from "../../../common/Util";
 import { readBuffer } from "../../base/buffer";
 import { Genres } from "../id3v1/genres";
 
@@ -57,6 +64,10 @@ export const parseGenre = (origVal: string): string[] => {
   return genres;
 };
 
+const parseGenreCode = (code: string): string | undefined => {
+  return Genres[Number.parseInt(code, 10)] ?? { RX: "Remix", CR: "Cover" }[code];
+};
+
 /**
  * Converts TMCL (Musician credits list) or TIPL (Involved people list)
  * @param entries
@@ -69,19 +80,6 @@ export const functionList = (entries: string[]): Record<string, string[]> => {
     res[entries[i]] = Object.hasOwn(res, entries[i]) ? [...res[entries[i]], ...names] : names;
   }
   return res;
-};
-
-/**
- *
- * @param code
- * @returns
- */
-const parseGenreCode = (code: string): string => {
-  if (code === "RX") return "Remix";
-  if (code === "CR") return "Cover";
-  if (/^\d*$/.test(code)) {
-    return Genres[Number.parseInt(code, 10)];
-  }
 };
 
 export const readIdentifierAndData = (
@@ -101,4 +99,17 @@ export const readIdentifierAndData = (
 
 const getNullTerminatorLength = (enc: number): number => {
   return [1, 2, 2][enc] ?? 1;
+};
+
+const defaultEnc: StringEncoding = "latin1"; // latin1 == iso-8859-1;
+
+export const readNullTerminatedString = (
+  buffer: Uint8Array,
+  start: number,
+  end: number,
+  encode: StringEncoding = defaultEnc
+): [text: string, offset: number] => {
+  const fzero = findZeroByEncode(buffer, start, end, encode);
+  const text = decodeString(buffer.slice(start, fzero), encode);
+  return [text, fzero + (encode === "utf16le" ? 2 : 1)];
 };

@@ -3,7 +3,6 @@ import { join } from "node:path";
 import { describe, test, expect } from "vitest";
 
 import { orderTags } from "../lib";
-import { parseGenre } from "../lib/id3v2/FrameParser";
 import { removeUnsyncBytes } from "../lib/id3v2/ID3v2Parser";
 
 import { Parsers } from "./metadata-parsers";
@@ -165,30 +164,5 @@ describe.each(Parsers)("ID3v2Parser %s", (_, parser) => {
 
       expect(common.bpm, "common.bpm,").toBe(177);
     });
-  });
-});
-
-describe("Post parse genre", () => {
-  const tests: [string, string[]][] = [
-    ["52", ["Electronic"]],
-    ["Electronic", ["Electronic"]],
-    ["(52)(RX)", ["Electronic", "Remix"]],
-    ["(52)(CR)", ["Electronic", "Cover"]],
-    ["(0)", ["Blues"]],
-    ["(0)(1)(2)", ["Blues", "Classic Rock", "Country"]],
-    ["(0)(160)(2)", ["Blues", "Electroclash", "Country"]],
-    ["(0)(192)(2)", ["Blues", "Country"]],
-    ["(0)(255)(2)", ["Blues", "Country"]],
-    ["(4)Eurodisco", ["Disco", "Eurodisco"]],
-    ["(4)Eurodisco(0)Mopey", ["Disco", "Eurodisco", "Blues", "Mopey"]],
-    ["(RX)(CR)", ["Remix", "Cover"]],
-    ["1stuff", ["1stuff"]],
-    ["RX/CR", ["RX/CR"]],
-    ["((52)(RX)", ["(52)", "Remix"]],
-    ["((52)((RX)", ["(52)(RX)"]],
-  ];
-
-  test.each(tests)("parse genres: %s", (source, expected) => {
-    expect(parseGenre(source)).toStrictEqual(expected);
   });
 });

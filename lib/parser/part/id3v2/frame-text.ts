@@ -1,7 +1,7 @@
 import { readUint8 } from "../../base/unsigned-integer";
 
-import { functionList, parseGenre, splitValue } from "./frame-utils";
 import { readId3v2String } from "./string";
+import { functionList, parseGenre, splitValue } from "./utils";
 
 interface readFrameText {
   (type: "TMCL" | "TIPL" | "IPLS", buffer: Uint8Array): Record<string, string[]>;
