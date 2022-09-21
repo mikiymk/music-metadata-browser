@@ -1,6 +1,6 @@
 import * as util from "../common/Util";
 import initDebug from "../debug";
-import { Genres } from "../id3v1/ID3v1Genres";
+import { Genres } from "../parser/part/id3v1/genres";
 import { UINT32_BE, UINT8 } from "../token-types";
 
 import { AttachedPictureType } from "./AttachedPictureType";

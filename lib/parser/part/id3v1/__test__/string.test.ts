@@ -28,6 +28,6 @@ describe("read ID3v1 string", () => {
     const buffer = new Uint8Array([0x41, 0x62, 0x63, 0x00, 0x7a]);
     const result = readId3v1String(buffer, 0, buffer.byteLength);
 
-    expect(result).toBe("Abc\0z");
+    expect(result).toBe("Abc");
   });
 });

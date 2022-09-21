@@ -2,7 +2,7 @@ import { BasicParser } from "../common/BasicParser";
 import { toHexString } from "../compat/hex";
 import { decodeLatin1, decodeUtf8 } from "../compat/text-decoder";
 import initDebug from "../debug";
-import { Genres } from "../id3v1/ID3v1Genres";
+import { Genres } from "../parser/part/id3v1/genres";
 import {
   INT8,
   UINT8,
