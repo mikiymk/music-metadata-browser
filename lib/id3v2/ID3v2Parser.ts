@@ -1,12 +1,12 @@
 import { getBit } from "../common/Util";
 import { decodeLatin1 } from "../compat/text-decoder";
 import { readUint32be } from "../parser/base/unsigned-integer";
+import { ID3V2_EXTENDED_HEADER_SIZE_SIZE, readId3v2ExtendedHeaderSize } from "../parser/part/id3v2/extended-header";
 import { Id3v2Header, ID3V2_HEADER_SIZE, readId3v2Header } from "../parser/part/id3v2/header";
 import { readSyncSafeUint32be } from "../parser/part/id3v2/syncsafe-integer";
 import { EndOfStreamError, ITokenizer } from "../strtok3";
 import { Uint8ArrayType, UINT24_BE } from "../token-types";
 
-import { ExtendedHeader } from "./ExtendedHeader";
 import { FrameParser } from "./FrameParser";
 
 import type { TagType } from "../common/GenericTagTypes";
@@ -146,15 +146,16 @@ export class ID3v2Parser {
   }
 
   private async parseExtendedHeader(): Promise<void> {
-    const extendedHeader = await this.tokenizer.readToken(ExtendedHeader);
-    const dataRemaining = extendedHeader.size - ExtendedHeader.len;
-    return dataRemaining > 0
-      ? this.parseExtendedHeaderData(dataRemaining, extendedHeader.size)
-      : this.parseId3Data(this.id3Header.size - extendedHeader.size);
-  }
+    // tokenizer read token
+    const uint8Array = new Uint8Array(ID3V2_EXTENDED_HEADER_SIZE_SIZE);
+    const len = await this.tokenizer.readBuffer(uint8Array);
+    if (len < ID3V2_EXTENDED_HEADER_SIZE_SIZE) throw new EndOfStreamError();
+    const extendedHeaderSize = readId3v2ExtendedHeaderSize(uint8Array, 0);
 
-  private async parseExtendedHeaderData(dataRemaining: number, extendedHeaderSize: number): Promise<void> {
-    await this.tokenizer.ignore(dataRemaining);
+    const dataRemaining = extendedHeaderSize - ID3V2_EXTENDED_HEADER_SIZE_SIZE;
+
+    if (dataRemaining > 0) await this.tokenizer.ignore(dataRemaining);
+
     return this.parseId3Data(this.id3Header.size - extendedHeaderSize);
   }
 

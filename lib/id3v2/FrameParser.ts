@@ -93,6 +93,7 @@ export class FrameParser {
       this.warningCollector.addWarning(`id3v2.${this.major} header has empty tag type=${type}`);
       return;
     }
+
     const { encoding, bom } = TextEncodingToken.get(uint8Array, 0);
     const length = uint8Array.length;
     let offset = 0;
