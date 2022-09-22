@@ -21,14 +21,13 @@ export const peekToken = async <
   RestArgs extends unknown[]
 >(
   tokenizer: ITokenizer,
-  offset: number,
   tokenSize: number,
   tokenReader: TokenReader,
   ...args: RestArgs
 ): Promise<ReturnType<TokenReader>> => {
   // tokenizer read token
   const uint8Array = new Uint8Array(tokenSize);
-  const len = await tokenizer.peekBuffer(uint8Array, { position: offset });
+  const len = await tokenizer.peekBuffer(uint8Array);
   if (len < tokenSize) throw new EndOfStreamError();
   return tokenReader(uint8Array, 0, ...args) as ReturnType<TokenReader>;
 };

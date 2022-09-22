@@ -1,4 +1,4 @@
-import { APEv2Parser } from "../../apev2/APEv2Parser";
+import { tryParseApeHeader } from "../../apev2/APEv2Parser";
 import { BasicParser } from "../../common/BasicParser";
 import { FourCcToken } from "../../common/FourCC";
 import initDebug from "../../debug";
@@ -49,7 +49,7 @@ export class MpcSv8Parser extends BasicParser {
 
         case "SE": // Stream End
           this.metadata.setFormat("bitrate", (this.audioLength * 8) / this.metadata.format.duration);
-          return APEv2Parser.tryParseApeHeader(this.metadata, this.tokenizer, this.options);
+          return tryParseApeHeader(this.metadata, this.tokenizer, this.options);
 
         default:
           throw new Error(`Unexpected header: ${header.key}`);

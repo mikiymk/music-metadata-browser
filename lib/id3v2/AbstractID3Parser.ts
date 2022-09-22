@@ -60,7 +60,7 @@ export abstract class AbstractID3Parser extends BasicParser {
 }
 
 export const startsWithID3v2Header = async (tokenizer: ITokenizer): Promise<boolean> => {
-  const header = await peekToken(tokenizer, tokenizer.position, ID3V2_HEADER_SIZE, readId3v2Header);
+  const header = await peekToken(tokenizer, ID3V2_HEADER_SIZE, readId3v2Header);
 
   return header.id === "ID3";
 };

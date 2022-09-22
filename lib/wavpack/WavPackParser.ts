@@ -1,4 +1,4 @@
-import { APEv2Parser } from "../apev2/APEv2Parser";
+import { tryParseApeHeader } from "../apev2/APEv2Parser";
 import { BasicParser } from "../common/BasicParser";
 import { FourCcToken } from "../common/FourCC";
 import { toHexString } from "../compat/hex";
@@ -23,7 +23,7 @@ export class WavPackParser extends BasicParser {
     await this.parseWavPackBlocks();
     // try to parse APEv2 header
 
-    return APEv2Parser.tryParseApeHeader(this.metadata, this.tokenizer, this.options);
+    return tryParseApeHeader(this.metadata, this.tokenizer, this.options);
   }
 
   public async parseWavPackBlocks(): Promise<void> {

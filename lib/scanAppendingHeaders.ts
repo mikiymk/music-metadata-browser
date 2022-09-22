@@ -1,4 +1,4 @@
-import { APEv2Parser } from "./apev2/APEv2Parser";
+import { findApeFooterOffset } from "./apev2/APEv2Parser";
 import { hasID3v1Header } from "./id3v1/ID3v1Parser";
 import { getLyricsHeaderLength } from "./lyrics3/Lyrics3";
 
@@ -17,5 +17,5 @@ export async function scanAppendingHeaders(randomReader: IRandomReader, options:
     apeOffset -= lyricsLen;
   }
 
-  options.apeHeader = await APEv2Parser.findApeFooterOffset(randomReader, apeOffset);
+  options.apeHeader = await findApeFooterOffset(randomReader, apeOffset);
 }
