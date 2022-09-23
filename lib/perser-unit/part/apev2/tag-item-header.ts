@@ -1,6 +1,7 @@
-import { readUint32le } from "../../base/unsigned-integer";
+import { u32le } from "../../base/unsigned-integer";
+import { seqMap, TokenReader } from "../../token";
 
-import { readApev2TagFlags, Apev2TagFlags } from "./tag-flags";
+import { Apev2TagFlags, apev2TagFlags } from "./tag-flags";
 
 /**
  * APE Tag v2.0 Item Header
@@ -13,11 +14,8 @@ export interface Apev2TagItemHeader {
   flags: Apev2TagFlags;
 }
 
-export const APEV2_TAG_ITEM_HEADER_SIZE = 8;
-
-export const readApev2TagItemHeader = (buffer: Uint8Array, offset: number): Apev2TagItemHeader => {
-  return {
-    size: readUint32le(buffer, offset),
-    flags: readApev2TagFlags(buffer, offset + 4),
-  };
-};
+export const apev2TagItemHeader: TokenReader<Apev2TagItemHeader> = seqMap(
+  (size, flags) => ({ size, flags }),
+  u32le,
+  apev2TagFlags
+);

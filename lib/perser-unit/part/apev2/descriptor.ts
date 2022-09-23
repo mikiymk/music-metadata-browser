@@ -1,6 +1,6 @@
 import { bytes } from "../../base/buffer";
 import { u32le } from "../../base/unsigned-integer";
-import { map, seq, TokenReader, toObj } from "../../token";
+import { map, seqMap, TokenReader } from "../../token";
 import { fourCc } from "../fourcc/fourcc";
 
 /*
@@ -30,7 +30,32 @@ export interface Apev2Descriptor {
   fileMD5: Uint8Array;
 }
 
-const apev2DescriptorSeq = seq(
+export const apev2Descriptor: TokenReader<Apev2Descriptor> = seqMap(
+  (
+    id,
+    version,
+    descriptorBytes,
+    headerBytes,
+    seekTableBytes,
+    headerDataBytes,
+    apeFrameDataBytes,
+    apeFrameDataBytesHigh,
+    terminatingDataBytes,
+    fileMD5
+  ) => {
+    return {
+      id,
+      version,
+      descriptorBytes,
+      headerBytes,
+      seekTableBytes,
+      headerDataBytes,
+      apeFrameDataBytes,
+      apeFrameDataBytesHigh,
+      terminatingDataBytes,
+      fileMD5,
+    };
+  },
   fourCc,
   map(u32le, (num) => num / 1000),
   u32le,
@@ -42,18 +67,3 @@ const apev2DescriptorSeq = seq(
   u32le,
   bytes(16)
 );
-
-const descriptorKeys = [
-  "id",
-  "version",
-  "descriptorBytes",
-  "headerBytes",
-  "seekTableBytes",
-  "headerDataBytes",
-  "apeFrameDataBytes",
-  "apeFrameDataBytesHigh",
-  "terminatingDataBytes",
-  "fileMD5",
-] as const;
-
-export const apev2Descriptor: TokenReader<Apev2Descriptor> = toObj(descriptorKeys, apev2DescriptorSeq);

@@ -10,7 +10,7 @@ import { fourCc } from "../fourcc/fourcc";
  * Describes fundamental parameters of the waveform data such as sample rate, bit resolution, and how many channels of
  * digital audio are stored in the FORM AIFF.
  */
-export interface Common {
+export interface AiffCommonChunk {
   numChannels: number;
   numSampleFrames: number;
   sampleSize: number;
@@ -18,15 +18,6 @@ export interface Common {
   compressionType?: string;
   compressionName?: string;
 }
-
-type AiffCommonChunk = [
-  numChannels: number,
-  numSampleFrames: number,
-  sampleSize: number,
-  sampleRate: number,
-  compressionType: string | undefined,
-  compressionName: string
-];
 
 const common = (
   numChannels: number,
@@ -44,10 +35,10 @@ const common = (
   compressionName,
 });
 
-export const aiffCommonChunk = (length: number, isCompressed: boolean): TokenReader<Common> => {
+export const aiffCommonChunk = (length: number, isCompressed: boolean): TokenReader<AiffCommonChunk> => {
   return isCompressed
     ? seqMap(common, u16be, u32be, u16be, f80, fourCc, pstring(length - 22))
-    : seqMap(common, u16be, u32be, u16be, f80, ignore(0), cVal("PCM"));
+    : seqMap(common, u16be, u32be, u16be, f80, ignore(length - 18), cVal("PCM"));
 };
 
 export const f80 = seqMap(

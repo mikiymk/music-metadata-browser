@@ -6,10 +6,10 @@ import {
   StringEncoding,
   trimNulls,
 } from "../../../common/Util";
-import { readBuffer } from "../../base/buffer";
+import { bytes } from "../../base/buffer";
 import { Genres } from "../id3v1/genres";
 
-import { readId3v2String } from "./string";
+import { Id3v2Encoding, id3v2String } from "./encoding";
 
 /**
  * id3v2.4 defines that multiple T* values are separated by 0x00
@@ -86,13 +86,13 @@ export const readIdentifierAndData = (
   buffer: Uint8Array,
   start: number,
   end: number,
-  encoding: number
+  encoding: Id3v2Encoding
 ): { id: string; data: Uint8Array } => {
   const zero = (encoding === 1 || encoding === 2 ? findZeroZero : findZero)(buffer, start, end);
-  const id = readId3v2String(encoding)(buffer, start, zero - start);
+  const id = id3v2String(encoding, zero - start)[1](buffer, start);
 
   start = zero + getNullTerminatorLength(encoding);
-  const data = readBuffer(buffer, start, end - start);
+  const data = bytes(end - start)[1](buffer, start);
 
   return { id, data };
 };

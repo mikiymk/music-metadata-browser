@@ -1,7 +1,9 @@
 import { expect, test } from "vitest";
 
 import { generateBuffer } from "../../../../../test/util";
-import { readApev2TagFlags, Apev2TagFlags } from "../tag-flags";
+import { apev2TagFlags, Apev2TagFlags } from "../tag-flags";
+
+const [size, reader] = apev2TagFlags;
 
 const cases: [number[], Apev2TagFlags][] = [
   [
@@ -56,7 +58,11 @@ const cases: [number[], Apev2TagFlags][] = [
   ],
 ];
 
+test("apev2 tag flags size = 4", () => {
+  expect(size).toBe(4);
+});
+
 test.each(cases)("read flags from %s", (source, expected) => {
-  const result = readApev2TagFlags(generateBuffer(source), 0);
+  const result = reader(generateBuffer(source), 0);
   expect(result).toEqual(expected);
 });

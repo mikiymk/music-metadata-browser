@@ -1,4 +1,5 @@
-import { readUint16le, readUint32le } from "../../base/unsigned-integer";
+import { u16le, u32le } from "../../base/unsigned-integer";
+import { seqMap } from "../../token";
 
 /**
  * APE_HEADER: describes all of the necessary information about the APE file
@@ -22,17 +23,32 @@ export interface Apev2Header {
   sampleRate: number;
 }
 
-export const APEV2_HEADER_SIZE = 24;
-
-export const readApev2Header = (buffer: Uint8Array, offset: number): Apev2Header => {
-  return {
-    compressionLevel: readUint16le(buffer, offset),
-    formatFlags: readUint16le(buffer, offset + 2),
-    blocksPerFrame: readUint32le(buffer, offset + 4),
-    finalFrameBlocks: readUint32le(buffer, offset + 8),
-    totalFrames: readUint32le(buffer, offset + 12),
-    bitsPerSample: readUint16le(buffer, offset + 16),
-    channel: readUint16le(buffer, offset + 18),
-    sampleRate: readUint32le(buffer, offset + 20),
-  };
-};
+export const apev2Header = seqMap(
+  (
+    compressionLevel,
+    formatFlags,
+    blocksPerFrame,
+    finalFrameBlocks,
+    totalFrames,
+    bitsPerSample,
+    channel,
+    sampleRate
+  ) => ({
+    compressionLevel,
+    formatFlags,
+    blocksPerFrame,
+    finalFrameBlocks,
+    totalFrames,
+    bitsPerSample,
+    channel,
+    sampleRate,
+  }),
+  u16le,
+  u16le,
+  u32le,
+  u32le,
+  u32le,
+  u16le,
+  u16le,
+  u32le
+);

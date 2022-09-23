@@ -1,6 +1,6 @@
 import { trimRightNull } from "../../../common/Util";
-import { readLatin1String } from "../../base/string";
+import { latin1 } from "../../base/string";
+import { map, TokenReader } from "../../token";
 
-export const readId3v1String = (buffer: Uint8Array, offset: number, length: number): string => {
-  return trimRightNull(readLatin1String(buffer, offset, length)).trim();
-};
+export const id3v1String = (length: number): TokenReader<string> =>
+  map(latin1(length), (value) => trimRightNull(value).trim());

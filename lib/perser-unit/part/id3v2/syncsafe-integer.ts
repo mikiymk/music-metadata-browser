@@ -1,7 +1,6 @@
-import { assertLength } from "../../../errors/range-error";
-import { readBuffer } from "../../base/buffer";
+import { bytes } from "../../base/buffer";
+import { seqMap } from "../../token";
 
-export const SYNCSAFE_UINT32_SIZE = 4;
 const bitMask = 0x7f;
 
 /**
@@ -11,7 +10,4 @@ const bitMask = 0x7f;
  * @param offset
  * @returns 32 bit unsigned integer big endian
  */
-export const readSyncSafeUint32be = (buffer: Uint8Array, offset: number): number => {
-  assertLength(buffer, offset + SYNCSAFE_UINT32_SIZE);
-  return readBuffer(buffer, offset, 4).reduce((prev, curr) => (prev << 7) | (curr & bitMask), 0);
-};
+export const syncsafeU32be = seqMap((data) => data.reduce((prev, curr) => (prev << 7) | (curr & bitMask), 0), bytes(4));

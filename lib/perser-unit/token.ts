@@ -39,22 +39,6 @@ export const seqMap = <TokenReaders extends TokenReader<unknown>[], U>(
   ...readers: TokenReaders
 ): TokenReader<U> => map(seq(...readers), (values) => fn(...values));
 
-export const toObj = <Seq extends [] | unknown[], Names extends { [key in keyof Seq]: string | undefined }>(
-  names: Names,
-  [size, reader]: TokenReader<Seq>
-): TokenReader<{ [key in keyof Seq as Names[key]]: Names[key] extends undefined ? never : Seq[key] }> => [
-  size,
-  (buffer, offset) => {
-    return Object.fromEntries(
-      reader(buffer, offset)
-        .map((value, key) => [names[key], value])
-        .filter(([k]) => k)
-    ) as {
-      [key in keyof Seq as Names[key]]: Names[key] extends undefined ? never : Seq[key];
-    };
-  },
-];
-
 export const readToken = async <T>(tokenizer: ITokenizer, [size, reader]: TokenReader<T>): Promise<T> => {
   // tokenizer read token
   const uint8Array = new Uint8Array(size);

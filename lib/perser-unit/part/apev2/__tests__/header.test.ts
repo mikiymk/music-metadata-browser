@@ -1,13 +1,15 @@
 import { expect, test } from "vitest";
 
 import { generateBuffer } from "../../../../../test/util";
-import { APEV2_HEADER_SIZE, readApev2Header } from "../header";
+import { apev2Header } from "../header";
 
-test("apev2 descriptor size = 52", () => {
-  expect(APEV2_HEADER_SIZE).toBe(24);
+const [size, reader] = apev2Header;
+
+test("apev2 header size = 24", () => {
+  expect(size).toBe(24);
 });
 
-test("read apev2 descriptor", () => {
+test("read apev2 header", () => {
   const buffer = generateBuffer(
     [0x01, 0x02],
     [0x02, 0x02],
@@ -18,7 +20,7 @@ test("read apev2 descriptor", () => {
     [0x07, 0x02],
     [0x08, 0x02, 0x03, 0x04]
   );
-  const result = readApev2Header(buffer, 0);
+  const result = reader(buffer, 0);
   expect(result).toEqual({
     compressionLevel: 0x02_01,
     formatFlags: 0x02_02,

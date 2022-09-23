@@ -1,10 +1,12 @@
 import { expect, test } from "vitest";
 
 import { generateBuffer } from "../../../../../test/util";
-import { APEV2_FOOTER_SIZE, readApev2Footer } from "../footer";
+import { apev2Footer } from "../footer";
+
+const [size, reader] = apev2Footer;
 
 test("apev2 descriptor size = 52", () => {
-  expect(APEV2_FOOTER_SIZE).toBe(32);
+  expect(size).toBe(32);
 });
 
 test("read apev2 descriptor", () => {
@@ -15,7 +17,7 @@ test("read apev2 descriptor", () => {
     [0x03, 0x02, 0x03, 0x04],
     [0x04, 0x02, 0x03, 0x04]
   );
-  const result = readApev2Footer(buffer, 0);
+  const result = reader(buffer, 0);
   expect(result).toEqual({
     id: "APETAGEX",
     version: 0x04_03_02_01,

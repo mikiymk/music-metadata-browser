@@ -1,10 +1,12 @@
 import { test, expect } from "vitest";
 
 import { generateBuffer } from "../../../../../test/util";
-import { ID3V1_SIZE, readId3v1, type Id3v1Header } from "../id3v1";
+import { id3v1Header, type Id3v1Header } from "../id3v1";
+
+const [size, reader] = id3v1Header;
 
 test("ID3v1 tag size is 128 bytes", () => {
-  expect(ID3V1_SIZE).toBe(128);
+  expect(size).toBe(128);
 });
 
 test("read ID3v1.0 tag", () => {
@@ -18,7 +20,7 @@ test("read ID3v1.0 tag", () => {
     0x29
   );
 
-  const tag: Id3v1Header = readId3v1(buffer, 0);
+  const tag: Id3v1Header = reader(buffer, 0);
 
   expect(tag).toEqual({
     header: "TAG",
@@ -45,7 +47,7 @@ test("read ID3v1.1 tag", () => {
     0x01,
     0x29
   );
-  const tag: Id3v1Header = readId3v1(buffer, buffer.byteLength - 128);
+  const tag: Id3v1Header = reader(buffer, buffer.byteLength - 128);
 
   expect(tag).toEqual({
     header: "TAG",

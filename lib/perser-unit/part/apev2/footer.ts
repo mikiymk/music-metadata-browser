@@ -1,7 +1,9 @@
-import { readLatin1String } from "../../base/string";
-import { readUint32le } from "../../base/unsigned-integer";
+import { ignore } from "../../base/ignore";
+import { latin1 } from "../../base/string";
+import { u32le } from "../../base/unsigned-integer";
+import { seqMap } from "../../token";
 
-import { readApev2TagFlags, Apev2TagFlags } from "./tag-flags";
+import { apev2TagFlags, Apev2TagFlags } from "./tag-flags";
 
 /**
  * APE Tag Header/Footer Version 2.0
@@ -21,14 +23,12 @@ export interface Apev2Footer {
   flags: Apev2TagFlags; // ToDo: what is this???
 }
 
-export const APEV2_FOOTER_SIZE = 32;
-
-export const readApev2Footer = (buffer: Uint8Array, offset: number): Apev2Footer => {
-  return {
-    id: readLatin1String(buffer, offset, 8),
-    version: readUint32le(buffer, offset + 8),
-    size: readUint32le(buffer, offset + 12),
-    fields: readUint32le(buffer, offset + 16),
-    flags: readApev2TagFlags(buffer, offset + 20),
-  };
-};
+export const apev2Footer = seqMap(
+  (id, version, size, fields, flags) => ({ id, version, size, fields, flags }),
+  latin1(8),
+  u32le,
+  u32le,
+  u32le,
+  apev2TagFlags,
+  ignore(8)
+);

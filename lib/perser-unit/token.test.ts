@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest";
 
-import { seq, map, seqMap, toObj } from "./token";
+import { u8 } from "./base/unsigned-integer";
+import { seq, map, seqMap } from "./token";
 
 describe("sequence", () => {
   test("seq 0 = size 0", () => {
@@ -14,9 +15,26 @@ describe("sequence", () => {
   });
 });
 
-// 勝ち
-type A<T extends [] | any[], U extends { [key in keyof T as key extends number ? string : never]: key }> = {
-  [key in keyof U]: U[key] extends keyof T ? T[U[key]] : never;
-};
+describe("map", () => {
+  const [size, reader] = map(u8, (v) => v + 1);
 
-type B = A<[number, string, boolean], { a: 0; b: 1; c: 2 }>;
+  test("map size = size", () => {
+    expect(size).toBe(u8[0]);
+  });
+
+  test("map value changes", () => {
+    expect(reader(new Uint8Array([1, 4, 9]), 0)).toBe(2);
+  });
+});
+
+describe("sequence map", () => {
+  const [size, reader] = seqMap((a, b, c) => a + b + c + 1, u8, u8, u8);
+
+  test("map size = size", () => {
+    expect(size).toBe(u8[0] + u8[0] + u8[0]);
+  });
+
+  test("map value changes", () => {
+    expect(reader(new Uint8Array([1, 2, 3]), 0)).toBe(7);
+  });
+});
