@@ -6,10 +6,23 @@ import * as iff from "../iff";
 import { EndOfStreamError } from "../strtok3";
 import { fromBuffer } from "../strtok3/fromBuffer";
 import { Uint8ArrayType } from "../token-types";
+import { Latin1StringType } from "../token-types/string";
 
 import * as AiffToken from "./AiffTokenCommon";
 
 const debug = initDebug("music-metadata:parser:aiff");
+
+const compressionTypes: Record<string, string> = {
+  NONE: "not compressed	PCM	Apple Computer",
+  sowt: "PCM (byte swapped)",
+  fl32: "32-bit floating point IEEE 32-bit float",
+  fl64: "64-bit floating point IEEE 64-bit float	Apple Computer",
+  alaw: "ALaw 2:1	8-bit ITU-T G.711 A-law",
+  ulaw: "µLaw 2:1	8-bit ITU-T G.711 µ-law	Apple Computer",
+  ULAW: "CCITT G.711 u-law 8-bit ITU-T G.711 µ-law",
+  ALAW: "CCITT G.711 A-law 8-bit ITU-T G.711 A-law",
+  FL32: "Float 32	IEEE 32-bit float ",
+};
 
 /**
  * AIFF - Audio Interchange File Format
@@ -19,7 +32,7 @@ const debug = initDebug("music-metadata:parser:aiff");
  * - http://www-mmsp.ece.mcgill.ca/Documents/AudioFormats/AIFF/Docs/AIFF-1.3.pdf
  */
 export class AIFFParser extends BasicParser {
-  private isCompressed: boolean;
+  private isCompressed = false;
 
   public async parse(): Promise<void> {
     const header = await this.tokenizer.readToken<iff.IChunkHeader>(iff.Header);
@@ -50,7 +63,6 @@ export class AIFFParser extends BasicParser {
         debug(`Reading AIFF chunk at offset=${this.tokenizer.position}`);
         const chunkHeader = await this.tokenizer.readToken<iff.IChunkHeader>(iff.Header);
 
-        debug(`Chunk id=${chunkHeader.chunkID}`);
         const nextChunk = 2 * Math.round(chunkHeader.chunkSize / 2);
         const bytesRead = await this.readData(chunkHeader);
         await this.tokenizer.ignore(nextChunk - bytesRead);
@@ -76,7 +88,7 @@ export class AIFFParser extends BasicParser {
         this.metadata.setFormat("numberOfChannels", common.numChannels);
         this.metadata.setFormat("numberOfSamples", common.numSampleFrames);
         this.metadata.setFormat("duration", common.numSampleFrames / common.sampleRate);
-        this.metadata.setFormat("codec", common.compressionName);
+        this.metadata.setFormat("codec", common.compressionName ?? compressionTypes[common.compressionType]);
         return header.chunkSize;
       }
       case "ID3 ": {
@@ -92,8 +104,26 @@ export class AIFFParser extends BasicParser {
         }
         return 0;
 
+      case "NAME": // Sample name chunk
+      case "AUTH": // Author chunk
+      case "(c) ": // Copyright chunk
+      case "ANNO": // Annotation chunk
+        return this.readTextChunk(header);
+
       default:
+        debug(`Ignore chunk id=${header.chunkID}, size=${header.chunkSize}`);
         return 0;
     }
+  }
+
+  public async readTextChunk(header: iff.IChunkHeader): Promise<number> {
+    const value = await this.tokenizer.readToken(new Latin1StringType(header.chunkSize));
+    for (const item of value
+      .split("\0")
+      .map((v) => v.trim())
+      .filter((v) => v && v.length > 0)) {
+      this.metadata.addTag("AIFF", header.chunkID, item.trim());
+    }
+    return header.chunkSize;
   }
 }

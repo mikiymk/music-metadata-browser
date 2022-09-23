@@ -33,6 +33,7 @@ const TagPriority: TagType[] = [
   "exif",
   "asf",
   "iTunes",
+  "AIFF",
   "ID3v1",
 ];
 
@@ -41,7 +42,7 @@ const TagPriority: TagType[] = [
  * Responsible for triggering async updates
  */
 export class MetadataCollector implements INativeMetadataCollector {
-  public readonly format: IFormat = {
+  public readonly format: IFormat & { tagTypes: TagType[]; trackInfo: ITrackInfo[] } = {
     tagTypes: [],
     trackInfo: [],
   };
@@ -51,7 +52,7 @@ export class MetadataCollector implements INativeMetadataCollector {
   public readonly common: ICommonTagsResult = {
     track: { no: null, of: null },
     disk: { no: null, of: null },
-    movementIndex: {},
+    movementIndex: { no: null, of: null },
   };
 
   public readonly quality: IQualityInformation = {
@@ -76,7 +77,7 @@ export class MetadataCollector implements INativeMetadataCollector {
       this.originPriority[tagType] = priority++;
     }
     this.originPriority.artificial = 500; // Filled using alternative tags
-    this.originPriority.id3v1 = 600; // Consider worst due to field length limit
+    this.originPriority.id3v1 = 600; // Consider as the worst because of the field length limit
   }
 
   /**
@@ -261,7 +262,7 @@ export class MetadataCollector implements INativeMetadataCollector {
    * Fix some common issues with picture object
    * @param picture Picture
    */
-  private async postFixPicture(picture: IPicture): Promise<IPicture> {
+  private async postFixPicture(picture: IPicture): Promise<IPicture | null> {
     if (picture.data && picture.data.length > 0) {
       if (!picture.format) {
         const fileType = await fileTypeFromBuffer(picture.data);

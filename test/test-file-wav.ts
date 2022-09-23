@@ -2,7 +2,7 @@ import { join } from "node:path";
 
 import { describe, test, expect } from "vitest";
 
-import { orderTags } from "../lib";
+import { orderTags, parseFile } from "../lib";
 
 import { Parsers } from "./metadata-parsers";
 import { samplePath } from "./util";
@@ -113,7 +113,7 @@ describe.each(Parsers)("parser: %s", (_, parser) => {
     expect(format.sampleRate).toBe(48_000);
     expect(format.bitsPerSample).toBe(24);
     expect(format.numberOfSamples).toBe(363_448);
-    expect(metadata.format.duration, "file's duration").toBe(format.numberOfSamples / format.sampleRate);
+    expect(metadata.format.duration, "file's duration").toBe(363_448 / 48_000);
   });
 
   describe("non-PCM", () => {
@@ -128,7 +128,7 @@ describe.each(Parsers)("parser: %s", (_, parser) => {
         expect(format.sampleRate).toBe(22_050);
         expect(format.bitsPerSample).toBe(4);
         expect(format.numberOfSamples).toBe(4_660_260);
-        expect(metadata.format.duration, "file's duration is 3'31\"").toBe(format.numberOfSamples / format.sampleRate);
+        expect(metadata.format.duration, "file's duration is 3'31\"").toBe(4_660_260 / 22_050);
       });
     });
   });
@@ -166,5 +166,22 @@ describe.each(Parsers)("parser: %s", (_, parser) => {
     expect(format.codec).toBe("PCM");
     // expect(format.numberOfSamples, 'format.numberOfSamples').toBe(2158080);
     expect(format.duration, "format.duration").toBeCloseTo(2478 / 16_000, 2);
+  });
+
+  // https://github.com/Borewit/music-metadata/issues/1163
+  test("Support chunk size larger then BWF extension", async () => {
+    // const filePath = path.join(wavSamples, 'unreadable-tags.wav');
+    const filePath = join(wavSamples, "issue-1163.bwf");
+    const { format, common, native } = await parseFile(filePath);
+
+    expect(format.container, "format.container").toBe("WAVE");
+    expect(format.codec, "format.codec").toBe("PCM");
+
+    expect(common.artist, "common.artists").toBe("Some Composer");
+    expect(common.title, "common.title").toBe("Title Redacted");
+    expect(common.track, "common.track").toEqual({ no: 1, of: 12 });
+
+    const exif = orderTags(native.exif);
+    expect(exif["bext.originator"], "BWF: exif.bext.originator").toEqual(["Pro Tools"]);
   });
 });

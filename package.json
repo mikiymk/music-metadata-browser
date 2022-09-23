@@ -1,7 +1,7 @@
 {
   "name": "music-metadata",
   "description": "Music metadata parser for Node.js, supporting virtual any audio and tag format.",
-  "version": "7.12.3",
+  "version": "8.1.0",
   "author": {
     "name": "Borewit",
     "url": "https://github.com/Borewit"
@@ -10,6 +10,7 @@
     "type": "github",
     "url": "https://github.com/sponsors/Borewit"
   },
+  "type": "module",
   "keywords": [
     "music",
     "metadata",
@@ -66,12 +67,15 @@
     "dist/**/*.js",
     "dist/**/*.d.ts"
   ],
+  "exports": {
+    ".": "./dist/core.js"
+  },
   "scripts": {
     "clean": "del-cli dist",
     "validate": "run-s format lint build test:coverage",
     "node-ci": "run-s lint build test:coverage",
     "format": "prettier --cache --write lib test doc-gen example",
-    "build": "run-s clean build:*",
+    "build": "run-s clean build:lib",
     "build:lib": "tsc -p tsconfig.build.json",
     "build:doc": "ts-node doc-gen/gen.ts",
     "lint": "run-s lint:*",
@@ -88,10 +92,10 @@
     "watch:typescript": "tsc -p tsconfig.check.json -w"
   },
   "devDependencies": {
-    "@types/node": "^18.7.17",
-    "@typescript-eslint/eslint-plugin": "^5.37.0",
-    "@typescript-eslint/parser": "^5.37.0",
-    "@vitest/coverage-c8": "^0.23.2",
+    "@types/node": "^18.7.18",
+    "@typescript-eslint/eslint-plugin": "^5.38.0",
+    "@typescript-eslint/parser": "^5.38.0",
+    "@vitest/coverage-c8": "^0.23.4",
     "c8": "^7.12.0",
     "del-cli": "^5.0.0",
     "eslint": "^8.23.1",
@@ -109,11 +113,11 @@
     "remark-preset-lint-recommended": "^6.1.2",
     "ts-node": "^10.9.1",
     "typescript": "^4.8.3",
-    "vite": "^3.1.0",
-    "vitest": "^0.23.2"
+    "vite": "^3.1.3",
+    "vitest": "^0.23.4"
   },
   "engines": {
-    "node": ">=10"
+    "node": "^14.13.1 || >=16.0.0"
   },
   "repository": {
     "type": "git",

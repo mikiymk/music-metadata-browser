@@ -2,10 +2,10 @@ import { join } from "node:path";
 
 import { describe, expect, test } from "vitest";
 
+import { IFormat, parseFile } from "../lib";
+
 import { Parsers } from "./metadata-parsers";
 import { samplePath } from "./util";
-
-import type { IFormat } from "../lib";
 
 // Parse AIFF (Audio Interchange File Format)
 
@@ -21,7 +21,7 @@ function checkFormat(
 ) {
   const lossless = codec === "PCM";
   const dataFormat = lossless ? "AIFF" : "AIFF-C";
-  const duration = samples / format.sampleRate;
+  const duration = samples / sampleRate;
 
   expect(format.container, "format.container").toBe(dataFormat);
   expect(format.lossless, "format.lossless").toBe(lossless);
@@ -50,6 +50,17 @@ describe("Parse AIFF-C", () => {
     const filePath = join(aiffSamplePath, "M1F1-AlawC-AFsp.aif");
     const metadata = await parser(filePath, "audio/aiff");
     checkFormat(metadata.format, "Alaw 2:1", 8000, 2, 16, 23_493);
+  });
+
+  // Issue: https://github.com/Borewit/music-metadata/issues/1211
+  test("Uncompressed AIFC", async () => {
+    const filePath = join(aiffSamplePath, "hit-broken.aif");
+
+    const { format } = await parseFile(filePath);
+
+    expect(format.container, "format.container").toBe("AIFF-C");
+    expect(format.codec, "format.codec").toBe("32-bit floating point IEEE 32-bit float");
+    expect(format.sampleRate, "format.sampleRate").toBe(44_100);
   });
 });
 
@@ -122,4 +133,19 @@ test.each(Parsers)('Parse tag "(c) ": %s', async (_, parser) => {
   expect(common.artists, "common.artists").toStrictEqual(["Chris Jones"]);
   expect(common.encodersettings, "common.encodersettings").toBe("Lavf58.29.100");
   expect(common.year, "common.year").toBe(2020);
+});
+
+test("text chunks", async () => {
+  const filePath = join(aiffSamplePath, "M1F1-AlawC-AFsp.aif");
+
+  const { format, common } = await parseFile(filePath);
+
+  expect(format.container, "format.container").toBe("AIFF-C");
+  expect(format.codec, "format.codec").toBe("Alaw 2:1");
+
+  expect(common.comment, "common.comment").toEqual([
+    "AFspdate: 2003-01-30 03:28:34 UTC",
+    "user: kabal@CAPELLA",
+    "program: CopyAudio",
+  ]);
 });

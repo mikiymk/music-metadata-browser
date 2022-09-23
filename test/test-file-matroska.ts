@@ -2,6 +2,8 @@ import { join } from "node:path";
 
 import { describe, test, expect } from "vitest";
 
+import { parseFile } from "../lib";
+
 import { Parsers } from "./metadata-parsers";
 import { samplePath } from "./util";
 
@@ -69,9 +71,9 @@ describe.each(Parsers)("parser: %s", (_, parser) => {
       // common metadata
       expect(common.title, "common.title").toBe("Big Buck Bunny");
       expect(common.picture, "common.picture").toBeDefined();
-      expect(common.picture[0].format, "common.picture[0].format").toBe("image/jpeg");
-      expect(common.picture[0].description, "common.picture[0].description").toBe("Poster");
-      expect(common.picture[0].name, "common.picture[0].name").toBe("Big buck bunny poster.jpg");
+      expect(common.picture![0].format, "common.picture[0].format").toBe("image/jpeg");
+      expect(common.picture![0].description, "common.picture[0].description").toBe("Poster");
+      expect(common.picture![0].name, "common.picture[0].name").toBe("Big buck bunny poster.jpg");
     });
 
     test('parse: "02 - Poxfil - Solid Ground (5 sec).opus.webm"', async () => {
@@ -158,6 +160,16 @@ describe.each(Parsers)("parser: %s", (_, parser) => {
       expect(format.container, "format.container").toBe("EBML/webm");
       expect(format.codec, "format.codec").toBe("OPUS");
       expect(format.numberOfChannels, "format.numberOfChannels").toBe(1);
+    });
+  });
+
+  describe("Handle corrupt Matroska file", () => {
+    const mkvPath = join(matroskaSamplePath, "corrupt.mkv");
+
+    // Ensure similar issue (CVE-2022-36313) as found in file-type, does not occur here
+    // https://nvd.nist.gov/vuln/detail/CVE-2022-36313
+    test("Be able to hande CVE-2022-36313 sample", async () => {
+      await expect(parseFile(mkvPath)).rejects.toThrow(Error);
     });
   });
 });

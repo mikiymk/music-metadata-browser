@@ -10,7 +10,8 @@ export type TagType =
   | "asf"
   | "iTunes"
   | "exif"
-  | "matroska";
+  | "matroska"
+  | "AIFF";
 
 export interface IGenericTag<Id extends GenericTagId = GenericTagId> {
   id: Id;

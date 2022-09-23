@@ -16,7 +16,7 @@ export interface ICommon {
   sampleSize: number;
   sampleRate: number;
   compressionType?: string;
-  compressionName?: string;
+  compressionName?: string | undefined;
 }
 
 export class Common implements IGetToken<ICommon> {
@@ -45,11 +45,15 @@ export class Common implements IGetToken<ICommon> {
       res.compressionType = FourCcToken.get(buf, off + 18);
       if (this.len > 22) {
         const strLen = INT8.get(buf, off + 22);
-        const padding = (strLen + 1) % 2;
-        if (23 + strLen + padding === this.len) {
-          res.compressionName = new Latin1StringType(strLen).get(buf, off + 23);
+        if (strLen > 0) {
+          const padding = (strLen + 1) % 2;
+          if (23 + strLen + padding === this.len) {
+            res.compressionName = new Latin1StringType(strLen).get(buf, off + 23);
+          } else {
+            throw new Error("Illegal pstring length");
+          }
         } else {
-          throw new Error("Illegal pstring length");
+          res.compressionName = undefined;
         }
       }
     } else {
