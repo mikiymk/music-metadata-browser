@@ -38,7 +38,7 @@ export const streamPropertiesObject = (size: number): Unit<StreamPropertiesObjec
         streamType: 0,
         errorCorrectionType: 1,
       },
-      map(guid, (value) => decodeMediaType(value)),
+      map(guid, decodeMediaType),
       guid
     ),
     size

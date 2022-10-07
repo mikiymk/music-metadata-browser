@@ -48,7 +48,7 @@ export function isNumberBitSet(bits: number, offset: number): boolean {
  * @returns Absolute position on uint8Array where zero found
  */
 export function findZero(uint8Array: Uint8Array, start: number, end: number, encoding?: StringEncoding): number {
-  return encoding === "utf16le" ? findZero2(uint8Array, start, end) : findZero1(uint8Array, start, end);
+  return (encoding === "utf16le" ? findZero2 : findZero1)(uint8Array, start, end);
 }
 
 /**
@@ -59,13 +59,10 @@ export function findZero(uint8Array: Uint8Array, start: number, end: number, enc
  * @returns Absolute position on uint8Array where zero found
  */
 export function findZero1(uint8Array: Uint8Array, start: number, end: number): number {
-  let i = start;
-
-  while (uint8Array[i] !== 0) {
-    if (i >= end) return end;
-    i++;
+  for (let i = start; i < end; i++) {
+    if (uint8Array[i] === 0) return i;
   }
-  return i;
+  return end;
 }
 
 /**
@@ -76,12 +73,10 @@ export function findZero1(uint8Array: Uint8Array, start: number, end: number): n
  * @returns Absolute position on uint8Array where zero found
  */
 export function findZero2(uint8Array: Uint8Array, start: number, end: number): number {
-  let i = start;
-  while (uint8Array[i] !== 0 || uint8Array[i + 1] !== 0) {
-    if (i >= end) return end;
-    i += 2;
+  for (let i = start; i < end; i += 2) {
+    if (uint8Array[i] === 0 && uint8Array[i + 1] === 0) return i;
   }
-  return i;
+  return end;
 }
 
 /**
