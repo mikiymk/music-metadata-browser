@@ -1,6 +1,8 @@
 import { sequenceToObject } from "../combinate/sequence-to-object";
 import { u64le } from "../primitive/integer";
 
+import type { Unit } from "../type/unit";
+
 /**
  * Interface to DSD payload chunk
  */
@@ -17,7 +19,7 @@ export interface DsdChunk {
   metadataPointer: bigint;
 }
 
-export const dsdChunk = sequenceToObject(
+export const dsdChunk: Unit<DsdChunk, RangeError> = sequenceToObject(
   {
     fileSize: 0,
     metadataPointer: 1,

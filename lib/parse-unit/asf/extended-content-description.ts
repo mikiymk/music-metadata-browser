@@ -8,6 +8,7 @@ import { readUnitFromBufferTokenizer } from "../utility/read-unit";
 import { contentDescriptionRecord } from "./content-description-record";
 
 import type { ITag } from "../../type";
+import type { Unit } from "../type/unit";
 
 /**
  * 3.11 Extended Content Description Object (optional, one only)
@@ -15,7 +16,7 @@ import type { ITag } from "../../type";
  * @param size
  * @returns
  */
-export const extendedContentDescriptionObject = (size: number) =>
+export const extendedContentDescriptionObject = (size: number) : Unit<ITag[],RangeError>=>
   sequenceMap(u16le, bytesTokenizer(size - 2), (count, data) => {
     const tags: ITag[] = [];
     for (let i = 0; i < count; i++) {

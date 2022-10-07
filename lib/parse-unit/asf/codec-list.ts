@@ -29,7 +29,7 @@ export interface CodecListObject {
   codecs: CodecEntry[];
 }
 
-const parseString = (tokenizer: BufferTokenizer) => {
+const parseString = (tokenizer: BufferTokenizer): string => {
   const length = readUnitFromBufferTokenizer(tokenizer, u16le);
   return readUnitFromBufferTokenizer(tokenizer, utf16le(length * 2)).replace(/\0$/, "");
 };

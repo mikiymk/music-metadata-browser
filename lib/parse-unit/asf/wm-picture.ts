@@ -7,6 +7,7 @@ import { utf16le } from "../primitive/string";
 import { readUnitFromBuffer } from "../utility/read-unit";
 
 import type { IPicture } from "../../type";
+import type { Unit } from "../type/unit";
 
 /**
  * Ref: https://msdn.microsoft.com/en-us/library/windows/desktop/dd757977(v=vs.85).aspx
@@ -19,7 +20,7 @@ export interface WmPicture extends IPicture {
   data: Uint8Array;
 }
 
-export const wmPicture = (length: number) =>
+export const wmPicture = (length: number): Unit<WmPicture, RangeError> =>
   sequenceMap(u8, i32le, bytes(length - 5), (type, size, data) => {
     const [format, formatTerminate] = readUtf16NullTerminated(data, 0, data.byteLength);
     const [description, descriptionTerminate] = readUtf16NullTerminated(data, formatTerminate, data.byteLength);
