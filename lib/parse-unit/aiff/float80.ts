@@ -30,7 +30,7 @@ const getFloat80 = (buffer: Uint8Array, offset: number): number => {
 };
 
 export const f80: Unit<number, RangeError> = [10, getFloat80];
-export const f80Alt: Unit<number, RangeError> = map(sequence(u16be, u16be, skip(6)), ([shift, base]) => {
+export const f80Alt: Unit<number, RangeError> = sequenceMap(u16be, u16be, skip(6), (shift, base) => {
   shift -= 16_398;
   return shift < 0 ? base >> Math.abs(shift) : base << shift;
 });

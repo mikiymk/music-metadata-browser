@@ -1,6 +1,5 @@
 import { stripNulls } from "../../common/Util";
-import { map } from "../combinate/map";
-import { sequence } from "../combinate/sequence";
+import { sequenceMap } from "../combinate/sequence-map";
 import { bytesTokenizer } from "../primitive/bytes";
 import { u16le } from "../primitive/integer";
 import { utf16le } from "../primitive/string";
@@ -14,9 +13,14 @@ import type { ITag } from "../../type";
  */
 
 export const contentDescriptionObject = (size: number) =>
-  map(
-    sequence(u16le, u16le, u16le, u16le, u16le, bytesTokenizer(size - 10)),
-    ([titleSize, authorSize, copyrightSize, descriptionSize, ratingSize, data]) => {
+  sequenceMap(
+    u16le,
+    u16le,
+    u16le,
+    u16le,
+    u16le,
+    bytesTokenizer(size - 10),
+    (titleSize, authorSize, copyrightSize, descriptionSize, ratingSize, data) => {
       const tags: ITag[] = [];
 
       for (const [id, strSize] of [

@@ -1,6 +1,5 @@
 import { stripNulls } from "../../common/Util";
-import { map } from "../combinate/map";
-import { sequence } from "../combinate/sequence";
+import { sequenceMap } from "../combinate/sequence-map";
 import { bytesTokenizer } from "../primitive/bytes";
 import { u16le } from "../primitive/integer";
 import { utf16le } from "../primitive/string";
@@ -17,7 +16,7 @@ import type { ITag } from "../../type";
  * @returns
  */
 export const extendedContentDescriptionObject = (size: number) =>
-  map(sequence(u16le, bytesTokenizer(size - 2)), ([count, data]) => {
+  sequenceMap(u16le, bytesTokenizer(size - 2), (count, data) => {
     const tags: ITag[] = [];
     for (let i = 0; i < count; i++) {
       const nameLen = readUnitFromBufferTokenizer(data, u16le);

@@ -1,7 +1,6 @@
 import { findZero2 } from "../../common/Util";
 import { AttachedPictureType } from "../../id3v2/AttachedPictureType";
-import { map } from "../combinate/map";
-import { sequence } from "../combinate/sequence";
+import { sequenceMap } from "../combinate/sequence-map";
 import { bytes } from "../primitive/bytes";
 import { i32le, u8 } from "../primitive/integer";
 import { utf16le } from "../primitive/string";
@@ -21,7 +20,7 @@ export interface WmPicture extends IPicture {
 }
 
 export const wmPicture = (length: number) =>
-  map(sequence(u8, i32le, bytes(length - 5)), ([type, size, data]) => {
+  sequenceMap(u8, i32le, bytes(length - 5), (type, size, data) => {
     const [format, formatTerminate] = readUtf16NullTerminated(data, 0, data.byteLength);
     const [description, descriptionTerminate] = readUtf16NullTerminated(data, formatTerminate, data.byteLength);
 

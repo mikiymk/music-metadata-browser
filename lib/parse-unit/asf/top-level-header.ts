@@ -1,5 +1,4 @@
-import { map } from "../combinate/map";
-import { sequence } from "../combinate/sequence";
+import { sequenceMap } from "../combinate/sequence-map";
 import { u32le } from "../primitive/integer";
 import { skip } from "../primitive/skip";
 
@@ -15,9 +14,11 @@ export interface AsfTopLevelHeaderObject extends AsfObjectHeader {
   numberOfHeaderObjects: number;
 }
 
-export const asfTopLevelHeaderObject: Unit<AsfTopLevelHeaderObject, RangeError> = map(
-  sequence(asfObjectHeader, u32le, skip(2)),
-  ([header, numberOfHeaderObjects]) => {
+export const asfTopLevelHeaderObject: Unit<AsfTopLevelHeaderObject, RangeError> = sequenceMap(
+  asfObjectHeader,
+  u32le,
+  skip(2),
+  (header, numberOfHeaderObjects) => {
     return {
       ...header,
       numberOfHeaderObjects,

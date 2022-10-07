@@ -1,6 +1,5 @@
 import { isNumberBitSet } from "../../common/Util";
-import { map } from "../combinate/map";
-import { sequence } from "../combinate/sequence";
+import { sequenceMap } from "../combinate/sequence-map";
 import { bytes, bytesTokenizer } from "../primitive/bytes";
 import { u16le, u32le } from "../primitive/integer";
 import { utf16le } from "../primitive/string";
@@ -36,7 +35,7 @@ const parseString = (tokenizer: BufferTokenizer) => {
 };
 
 export const codecListObject = (size: number): Unit<CodecListObject, RangeError> =>
-  map(sequence(guid, u32le, bytesTokenizer(size - 20)), ([reserved, codecEntriesCount, tokenizer]) => {
+  sequenceMap(guid, u32le, bytesTokenizer(size - 20), (reserved, codecEntriesCount, tokenizer) => {
     const codecs: CodecEntry[] = [];
 
     for (let i = 0; i < codecEntriesCount; i++) {
