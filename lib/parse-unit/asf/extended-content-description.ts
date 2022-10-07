@@ -16,7 +16,7 @@ import type { Unit } from "../type/unit";
  * @param size
  * @returns
  */
-export const extendedContentDescriptionObject = (size: number) : Unit<ITag[],RangeError>=>
+export const extendedContentDescriptionObject = (size: number): Unit<ITag[], RangeError> =>
   sequenceMap(u16le, bytesTokenizer(size - 2), (count, data) => {
     const tags: ITag[] = [];
     for (let i = 0; i < count; i++) {
