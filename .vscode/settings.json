@@ -6,8 +6,11 @@
         "FLAC",
         "matroska",
         "parens",
+        "strtok3",
+        "Syncsafe",
         "TXXX",
         "UFID",
+        "unsynchronisation",
         "vorbis"
     ]
 }
