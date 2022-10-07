@@ -45,10 +45,13 @@ export const id3v1Header: Unit<Id3v1Header, RangeError> = map(
     u8
   ),
   (value) => {
-    const track = value.comment;
+    const comment = value.comment;
 
-    const comment = readUnitFromBuffer(id3v1String(30), track, 0);
-
-    return { ...value, comment, zeroByte: track[28], track: track[29] };
+    return {
+      ...value,
+      comment: readUnitFromBuffer(id3v1String(30), comment, 0),
+      zeroByte: comment[28],
+      track: comment[29],
+    };
   }
 );

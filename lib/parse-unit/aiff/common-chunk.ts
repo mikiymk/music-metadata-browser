@@ -1,5 +1,4 @@
-import { map } from "../combinate/map";
-import { sequence } from "../combinate/sequence";
+import { sequenceMap } from "../combinate/sequence-map";
 import { sequenceToObject } from "../combinate/sequence-to-object";
 import { fourCc } from "../iff/four-cc";
 import { u16be, u32be } from "../primitive/integer";
@@ -42,10 +41,10 @@ export const commonChunk = (length: number, isComplessed: boolean): Unit<AiffCom
   if (length < minimumChunkSize) throw new Error(`COMMON CHUNK size should always be at least ${minimumChunkSize}`);
 
   return isComplessed
-    ? map(sequence(aiff, fourCc, pstring(length - 22)), ([value, compressionType, compressionName]) => {
+    ? sequenceMap(aiff, fourCc, pstring(length - 22), (value, compressionType, compressionName) => {
         return { ...value, compressionType, compressionName };
       })
-    : map(sequence(aiff, skip(length - 18)), ([value]) => {
+    : sequenceMap(aiff, skip(length - 18), (value) => {
         return { ...value, compressionName: "PCM" };
       });
 };

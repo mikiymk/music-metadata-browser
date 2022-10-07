@@ -1,6 +1,5 @@
 import { toFixedHexString, toHexString } from "../../compat/hex";
-import { map } from "../combinate/map";
-import { sequence } from "../combinate/sequence";
+import { sequenceMap } from "../combinate/sequence-map";
 import { bytes } from "../primitive/bytes";
 import { u16be, u16le, u32le } from "../primitive/integer";
 
@@ -26,9 +25,13 @@ export type GUID = Nominal<string, "GUID">;
 /**
  * Decode GUID in format like "B503BF5F-2EA9-CF11-8EE3-00C00C205365"
  */
-export const guid: Unit<GUID, RangeError> = map(
-  sequence(u32le, u16le, u16le, u16be, bytes(6)),
-  ([data1, data2, data3, data4a, data4b]) => {
+export const guid: Unit<GUID, RangeError> = sequenceMap(
+  u32le,
+  u16le,
+  u16le,
+  u16be,
+  bytes(6),
+  (data1, data2, data3, data4a, data4b) => {
     return [
       toFixedHexString(data1, 8),
       toFixedHexString(data2, 4),
