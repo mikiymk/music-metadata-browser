@@ -76,7 +76,7 @@
     "node-ci": "run-s lint build test:coverage",
     "format": "prettier --cache --write lib test doc-gen example",
     "format:force": "prettier --write lib test doc-gen example",
-    "build": "run-s clean build:lib",
+    "build": "run-s clean build:lib build:bundle",
     "build:lib": "tsc -p tsconfig.build.json",
     "build:doc": "ts-node doc-gen/gen.ts",
     "build:bundle": "vite build",
