@@ -61,10 +61,10 @@ export const flacBlockStreaminfo: Unit<FlacBlockStreaminfo, RangeError> = map(
   ({ data1, data2, ...value }) => {
     return {
       ...value,
-      sampleRate: (data1 & 0xff_ff_f0_00) >> 12,
-      channels: (data1 & 0x0e_00) >> 9,
-      bitsPerSample: (data1 & 0x01_f0) >> 4,
-      totalSamples: (data1 & 0x0f) * 2 ** 32 + data2,
+      sampleRate: (data1 & 0b1111_1111_1111_1111_1111_0000_0000_0000) >> 12,
+      channels: ((data1 & 0b0000_0000_0000_0000_0000_1110_0000_0000) >> 9) + 1,
+      bitsPerSample: ((data1 & 0b0000_0000_0000_0000_0000_0001_1111_0000) >> 4) + 1,
+      totalSamples: (data1 & 0b0000_0000_0000_0000_0000_0000_0000_1111) * 2 ** 32 + data2,
     };
   }
 );

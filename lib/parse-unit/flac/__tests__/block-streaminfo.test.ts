@@ -25,8 +25,8 @@ const cases: Case[] = [
       minimumFrameSize: 0x3a_3b_3c,
       maximumFrameSize: 0x4a_4b_4c,
       sampleRate: 0x5_a5_b5,
-      channels: 6,
-      bitsPerSample: 5,
+      channels: 6 + 1,
+      bitsPerSample: 5 + 1,
       totalSamples: 0xd_6a_6b_6c_6d,
       fileMD5: new Uint8Array([
         0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7a, 0x7b, 0x7c, 0x7d, 0x7e, 0x7f,

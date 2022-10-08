@@ -1,13 +1,14 @@
-import { FourCcToken } from "../common/FourCC";
 import initDebug from "../debug";
 import { AbstractID3Parser } from "../id3v2/AbstractID3Parser";
 import { VorbisDecoder } from "../ogg/vorbis/VorbisDecoder";
 import { VorbisParser } from "../ogg/vorbis/VorbisParser";
 import { IVorbisPicture, VorbisPictureToken } from "../ogg/vorbis/VorbisPicture";
-import { Uint8ArrayType } from "../token-types";
+import { FlacBlockHeader, flacBlockHeader } from "../parse-unit/flac/block-header";
+import { flacBlockStreaminfo } from "../parse-unit/flac/block-streaminfo";
+import { fourCc } from "../parse-unit/iff/four-cc";
+import { bytes } from "../parse-unit/primitive/bytes";
+import { readUnitFromTokenizer } from "../parse-unit/utility/read-unit";
 
-import { BlockHeader, IBlockHeader } from "./BlockHeader";
-import { BlockStreamInfo, IBlockStreamInfo } from "./BlockStreamInfo";
 import { BlockType } from "./BlockType";
 
 import type { INativeMetadataCollector } from "../common/INativeMetadataCollector";
@@ -36,15 +37,15 @@ export class FlacParser extends AbstractID3Parser {
   }
 
   public async postId3v2Parse(): Promise<void> {
-    const fourCC = await this.tokenizer.readToken<string>(FourCcToken);
+    const fourCC = await readUnitFromTokenizer(this.tokenizer, fourCc);
     if (fourCC.toString() !== "fLaC") {
       throw new Error("Invalid FLAC preamble");
     }
 
-    let blockHeader: IBlockHeader;
+    let blockHeader: FlacBlockHeader;
     do {
       // Read block header
-      blockHeader = await this.tokenizer.readToken<IBlockHeader>(BlockHeader);
+      blockHeader = await readUnitFromTokenizer(this.tokenizer, flacBlockHeader);
       // Parse block data
       await this.parseDataBlock(blockHeader);
     } while (!blockHeader.lastBlock);
@@ -55,7 +56,7 @@ export class FlacParser extends AbstractID3Parser {
     }
   }
 
-  private parseDataBlock(blockHeader: IBlockHeader): Promise<void> {
+  private parseDataBlock(blockHeader: FlacBlockHeader): Promise<void> {
     debug(`blockHeader type=${blockHeader.type}, length=${blockHeader.length}`);
     switch (blockHeader.type) {
       case BlockType.STREAMINFO:
@@ -85,9 +86,9 @@ export class FlacParser extends AbstractID3Parser {
    * @param dataLen
    */
   private async parseBlockStreamInfo(dataLen: number): Promise<void> {
-    if (dataLen !== BlockStreamInfo.len) throw new Error("Unexpected block-stream-info length");
+    if (dataLen !== flacBlockStreaminfo[0]) throw new Error("Unexpected block-stream-info length");
 
-    const streamInfo = await this.tokenizer.readToken<IBlockStreamInfo>(BlockStreamInfo);
+    const streamInfo = await readUnitFromTokenizer(this.tokenizer, flacBlockStreaminfo);
     this.metadata.setFormat("container", "FLAC");
     this.metadata.setFormat("codec", "FLAC");
     this.metadata.setFormat("lossless", true);
@@ -105,7 +106,7 @@ export class FlacParser extends AbstractID3Parser {
    * @param dataLen
    */
   private async parseComment(dataLen: number): Promise<void> {
-    const data = await this.tokenizer.readToken<Uint8Array>(new Uint8ArrayType(dataLen));
+    const data = await readUnitFromTokenizer(this.tokenizer, bytes(dataLen));
     const decoder = new VorbisDecoder(data, 0);
     decoder.readStringUtf8(); // vendor (skip)
     const commentListLength = decoder.readInt32();
