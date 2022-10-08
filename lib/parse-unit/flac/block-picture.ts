@@ -24,9 +24,9 @@ export interface FlacBlockPicture extends IPicture {
   /** The height of the picture in pixels. */
   height: number;
   /** The color depth of the picture in bits-per-pixel. */
-  colourDepth: number;
+  colour_depth: number;
   /** For indexed-color pictures (e.g. GIF), the number of colors used, or 0 for non-indexed pictures. */
-  indexedColor: number;
+  indexed_color: number;
 }
 
 /**
@@ -46,8 +46,8 @@ export const flacBlockPicture = (length: number): Unit<FlacBlockPicture, RangeEr
 
     const width = readUnitFromBufferTokenizer(tokenizer, u32be);
     const height = readUnitFromBufferTokenizer(tokenizer, u32be);
-    const colourDepth = readUnitFromBufferTokenizer(tokenizer, u32be);
-    const indexedColor = readUnitFromBufferTokenizer(tokenizer, u32be);
+    const colour_depth = readUnitFromBufferTokenizer(tokenizer, u32be);
+    const indexed_color = readUnitFromBufferTokenizer(tokenizer, u32be);
 
     const dataLen = readUnitFromBufferTokenizer(tokenizer, u32be);
     const data = readUnitFromBufferTokenizer(tokenizer, bytes(dataLen));
@@ -58,8 +58,8 @@ export const flacBlockPicture = (length: number): Unit<FlacBlockPicture, RangeEr
       description,
       width,
       height,
-      colourDepth,
-      indexedColor,
+      colour_depth,
+      indexed_color,
       data,
     };
   });

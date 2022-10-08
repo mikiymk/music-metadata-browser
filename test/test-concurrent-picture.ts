@@ -12,7 +12,7 @@ describe.each(Parsers)("parser: %s", (_, parser) => {
   test.each(files)("should handle concurrent parsing of pictures %s", async (file) => {
     const path = join(samplePath, file);
     const result = await parser(path);
-    const data = readFileSync(path + ".jpg");
+    const data = Uint8Array.from(readFileSync(path + ".jpg"));
     expect(result.common.picture![0].data, "check picture").toEqual(data);
   });
 });

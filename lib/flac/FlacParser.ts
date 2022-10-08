@@ -2,8 +2,8 @@ import initDebug from "../debug";
 import { AbstractID3Parser } from "../id3v2/AbstractID3Parser";
 import { VorbisDecoder } from "../ogg/vorbis/VorbisDecoder";
 import { VorbisParser } from "../ogg/vorbis/VorbisParser";
-import { IVorbisPicture, VorbisPictureToken } from "../ogg/vorbis/VorbisPicture";
 import { FlacBlockHeader, flacBlockHeader } from "../parse-unit/flac/block-header";
+import { flacBlockPicture } from "../parse-unit/flac/block-picture";
 import { flacBlockStreaminfo } from "../parse-unit/flac/block-streaminfo";
 import { fourCc } from "../parse-unit/iff/four-cc";
 import { bytes } from "../parse-unit/primitive/bytes";
@@ -120,7 +120,7 @@ export class FlacParser extends AbstractID3Parser {
     if (this.options.skipCovers) {
       return this.tokenizer.ignore(dataLen);
     } else {
-      const picture = await this.tokenizer.readToken<IVorbisPicture>(new VorbisPictureToken(dataLen));
+      const picture = await readUnitFromTokenizer(this.tokenizer, flacBlockPicture(dataLen));
       this.vorbisParser.addTag("METADATA_BLOCK_PICTURE", picture);
     }
   }
