@@ -6,7 +6,7 @@ import { readUnitFromTokenizer } from "../../utility/read-unit";
 import { vintLength } from "../vint-length";
 
 test("EBML variable length integer size", () => {
-  const [size] = vintLength;
+  const [size] = vintLength(8);
 
   expect(size).toBe(1);
 });
@@ -28,7 +28,7 @@ describe("unit: EBML variable length integer", () => {
   test.each(cases)("%s", async (_, bytes, expected) => {
     const buffer = new Uint8Array(bytes);
     const tokenizer = new BufferTokenizer(buffer);
-    const result = readUnitFromTokenizer(tokenizer, vintLength);
+    const result = readUnitFromTokenizer(tokenizer, vintLength(8));
 
     await expect(result).resolves.toEqual(expected);
 

@@ -1,16 +1,26 @@
 import { map } from "../combinate/map";
 import { u8 } from "../primitive/integer";
 
-/** Variable-Size Integer */
-export const vintLength = map(u8, (value) => {
-  let mask = 0b1000_0000;
-  let oc = 1;
+import type { Unit } from "../type/unit";
 
-  // Calculate VINT_WIDTH
-  while (mask && !(value & mask)) {
-    ++oc;
-    mask >>= 1;
-  }
+/**
+ * Variable-Size Integer
+ * @param maxLength
+ * @returns
+ */
+export const vintLength = (maxLength: number): Unit<number, Error | RangeError> =>
+  map(u8, (value) => {
+    let mask = 0b1000_0000;
+    let oc = 1;
 
-  return oc;
-});
+    // Calculate VINT_WIDTH
+    while (mask && !(value & mask)) {
+      if (oc > maxLength) {
+        return new Error("VINT value exceeding maximum size");
+      }
+      ++oc;
+      mask >>= 1;
+    }
+
+    return oc;
+  });
