@@ -1,13 +1,12 @@
 import { BasicParser } from "../common/BasicParser";
-import { readUintBE } from "../compat/buffer";
 import initDebug from "../debug";
 import { matrsokaData } from "../parse-unit/matroska/data";
+import { EBMLHeader, ebmlHeader } from "../parse-unit/matroska/ebml-header";
 import { readUnitFromTokenizer } from "../parse-unit/utility/read-unit";
 import { EndOfStreamError } from "../peek-readable/EndOfFileStream";
-import { UINT8 } from "../token-types";
 
 import { ContainerType, elements } from "./MatroskaDtd";
-import { IHeader, IMatroskaDoc, ITrackEntry, ITree, TargetType, TrackType } from "./types";
+import { IMatroskaDoc, ITrackEntry, ITree, TargetType, TrackType } from "./types";
 
 import type { INativeMetadataCollector } from "../common/INativeMetadataCollector";
 import type { ITokenParser } from "../ParserFactory";
@@ -130,9 +129,9 @@ export class MatroskaParser extends BasicParser {
   private async parseContainer(container: ContainerType, posDone: number, path: string[]): Promise<ITree> {
     const tree: ITree = {};
     while (this.tokenizer.position < posDone) {
-      let element: IHeader;
+      let element: EBMLHeader;
       try {
-        element = await this.readElement();
+        element = await ebmlHeader(this.tokenizer);
       } catch (error) {
         if (error instanceof EndOfStreamError) {
           break;
@@ -145,7 +144,7 @@ export class MatroskaParser extends BasicParser {
         if ("container" in type) {
           const res = await this.parseContainer(
             type.container,
-            element.len >= 0 ? this.tokenizer.position + element.len : -1,
+            element.length >= 0 ? this.tokenizer.position + element.length : -1,
             [...path, type.name]
           );
           if (type.multiple) {
@@ -157,51 +156,22 @@ export class MatroskaParser extends BasicParser {
             tree[type.name] = res;
           }
         } else {
-          tree[type.name] = await readUnitFromTokenizer(this.tokenizer, matrsokaData(type.value, element.len));
+          tree[type.name] = await readUnitFromTokenizer(this.tokenizer, matrsokaData(type.value, element.length));
         }
       } else {
         switch (element.id) {
           case 0xec: // void
-            this.padding += element.len;
-            await this.tokenizer.ignore(element.len);
+            this.padding += element.length;
+            await this.tokenizer.ignore(element.length);
             break;
           default:
             debug(`parseEbml: path=${path.join("/")}, unknown element: id=${element.id.toString(16)}`);
-            this.padding += element.len;
-            await this.tokenizer.ignore(element.len);
+            this.padding += element.length;
+            await this.tokenizer.ignore(element.length);
         }
       }
     }
     return tree;
-  }
-
-  private async readVintData(maxLength: number): Promise<Uint8Array> {
-    const msb = await this.tokenizer.peekNumber(UINT8);
-    let mask = 0x80;
-    let oc = 1;
-
-    // Calculate VINT_WIDTH
-    while ((msb & mask) === 0) {
-      if (oc > maxLength) {
-        throw new Error("VINT value exceeding maximum size");
-      }
-      ++oc;
-      mask >>= 1;
-    }
-    const id = new Uint8Array(oc);
-    await this.tokenizer.readBuffer(id);
-    return id;
-  }
-
-  private async readElement(): Promise<IHeader> {
-    const id = await this.readVintData(this.ebmlMaxIDLength);
-    const lenField = await this.readVintData(this.ebmlMaxSizeLength);
-    lenField[0] ^= 0x80 >> (lenField.length - 1); // remove VINT_MARKER
-    const nrLen = Math.min(6, lenField.length); // JavaScript can max read 6 bytes integer
-    return {
-      id: readUintBE(id, 0, id.length),
-      len: readUintBE(lenField, lenField.length - nrLen, nrLen),
-    };
   }
 
   private addTag(tagId: string, value: any) {
