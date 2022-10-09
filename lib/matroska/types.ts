@@ -3,24 +3,6 @@ export interface IHeader {
   len: number;
 }
 
-export enum DataType {
-  "string",
-  uint,
-  uid,
-  bool,
-  binary,
-  float,
-}
-
-export interface IElementType {
-  readonly name: string;
-  readonly value?: DataType;
-  readonly container?: IContainerType;
-  readonly multiple?: boolean;
-}
-
-export type IContainerType = Record<number, IElementType>;
-
 export interface ITree {
   [name: string]: string | number | boolean | Uint8Array | ITree | ITree[];
 }

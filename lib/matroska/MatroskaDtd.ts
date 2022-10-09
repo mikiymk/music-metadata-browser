@@ -1,4 +1,29 @@
-import { DataType, IContainerType } from "./types";
+import {
+  DataType,
+  matroskaBinaryType,
+  matroskaBooleanType,
+  matroskaFloatType,
+  matroskaStringType,
+  matroskaUidType,
+  matroskaUintType,
+} from "../parse-unit/matroska/data";
+
+interface BaseElementType {
+  readonly name: string;
+}
+
+interface ValueElementType extends BaseElementType {
+  readonly value: DataType;
+}
+
+interface ContainerElementType extends BaseElementType {
+  readonly container: ContainerType;
+  readonly multiple?: boolean;
+}
+
+type ElementType = ValueElementType | ContainerElementType;
+
+export type ContainerType = Record<number, ElementType>;
 
 /**
  * Elements of document type description
@@ -6,18 +31,18 @@ import { DataType, IContainerType } from "./types";
  * Extended with:
  * - https://www.matroska.org/technical/specs/index.html
  */
-export const elements: IContainerType = {
+export const elements: ContainerType = {
   0x1a_45_df_a3: {
     // 5.1
     name: "ebml",
     container: {
-      0x42_86: { name: "ebmlVersion", value: DataType.uint }, // 5.1.1
-      0x42_f7: { name: "ebmlReadVersion", value: DataType.uint }, // 5.1.2
-      0x42_f2: { name: "ebmlMaxIDWidth", value: DataType.uint }, // 5.1.3
-      0x42_f3: { name: "ebmlMaxSizeWidth", value: DataType.uint }, // 5.1.4
-      0x42_82: { name: "docType", value: DataType.string }, // 5.1.5
-      0x42_87: { name: "docTypeVersion", value: DataType.uint }, // 5.1.6
-      0x42_85: { name: "docTypeReadVersion", value: DataType.uint }, // 5.1.7
+      0x42_86: { name: "ebmlVersion", value: matroskaUintType }, // 5.1.1
+      0x42_f7: { name: "ebmlReadVersion", value: matroskaUintType }, // 5.1.2
+      0x42_f2: { name: "ebmlMaxIDWidth", value: matroskaUintType }, // 5.1.3
+      0x42_f3: { name: "ebmlMaxSizeWidth", value: matroskaUintType }, // 5.1.4
+      0x42_82: { name: "docType", value: matroskaStringType }, // 5.1.5
+      0x42_87: { name: "docTypeVersion", value: matroskaUintType }, // 5.1.6
+      0x42_85: { name: "docTypeReadVersion", value: matroskaUintType }, // 5.1.7
     },
   },
 
@@ -32,8 +57,8 @@ export const elements: IContainerType = {
           0x4d_bb: {
             name: "seek",
             container: {
-              0x53_ab: { name: "seekId", value: DataType.binary },
-              0x53_ac: { name: "seekPosition", value: DataType.uint },
+              0x53_ab: { name: "seekId", value: matroskaBinaryType },
+              0x53_ac: { name: "seekPosition", value: matroskaUintType },
             },
           },
         },
@@ -43,18 +68,18 @@ export const elements: IContainerType = {
       0x15_49_a9_66: {
         name: "info",
         container: {
-          0x73_a4: { name: "uid", value: DataType.uid },
-          0x73_84: { name: "filename", value: DataType.string },
-          0x3c_b9_23: { name: "prevUID", value: DataType.uid },
-          0x3c_83_ab: { name: "prevFilename", value: DataType.string },
-          0x3e_b9_23: { name: "nextUID", value: DataType.uid },
-          0x3e_83_bb: { name: "nextFilename", value: DataType.string },
-          0x2a_d7_b1: { name: "timecodeScale", value: DataType.uint },
-          0x44_89: { name: "duration", value: DataType.float },
-          0x44_61: { name: "dateUTC", value: DataType.uint },
-          0x7b_a9: { name: "title", value: DataType.string },
-          0x4d_80: { name: "muxingApp", value: DataType.string },
-          0x57_41: { name: "writingApp", value: DataType.string },
+          0x73_a4: { name: "uid", value: matroskaUidType },
+          0x73_84: { name: "filename", value: matroskaStringType },
+          0x3c_b9_23: { name: "prevUID", value: matroskaUidType },
+          0x3c_83_ab: { name: "prevFilename", value: matroskaStringType },
+          0x3e_b9_23: { name: "nextUID", value: matroskaUidType },
+          0x3e_83_bb: { name: "nextFilename", value: matroskaStringType },
+          0x2a_d7_b1: { name: "timecodeScale", value: matroskaUintType },
+          0x44_89: { name: "duration", value: matroskaFloatType },
+          0x44_61: { name: "dateUTC", value: matroskaUintType },
+          0x7b_a9: { name: "title", value: matroskaStringType },
+          0x4d_80: { name: "muxingApp", value: matroskaStringType },
+          0x57_41: { name: "writingApp", value: matroskaStringType },
         },
       },
 
@@ -63,10 +88,10 @@ export const elements: IContainerType = {
         name: "cluster",
         multiple: true,
         container: {
-          0xe7: { name: "timecode", value: DataType.uid },
-          0xa3: { name: "unknown", value: DataType.binary },
-          0xa7: { name: "position", value: DataType.uid },
-          0xab: { name: "prevSize", value: DataType.uid },
+          0xe7: { name: "timecode", value: matroskaUidType },
+          0xa3: { name: "unknown", value: matroskaBinaryType },
+          0xa7: { name: "position", value: matroskaUidType },
+          0xab: { name: "prevSize", value: matroskaUidType },
         },
       },
 
@@ -78,41 +103,41 @@ export const elements: IContainerType = {
             name: "entries",
             multiple: true,
             container: {
-              0xd7: { name: "trackNumber", value: DataType.uint },
-              0x73_c5: { name: "uid", value: DataType.uid },
-              0x83: { name: "trackType", value: DataType.uint },
-              0xb9: { name: "flagEnabled", value: DataType.bool },
-              0x88: { name: "flagDefault", value: DataType.bool },
-              0x55_aa: { name: "flagForced", value: DataType.bool }, // extended
-              0x9c: { name: "flagLacing", value: DataType.bool },
-              0x6d_e7: { name: "minCache", value: DataType.uint },
-              0x6d_e8: { name: "maxCache", value: DataType.uint },
-              0x23_e3_83: { name: "defaultDuration", value: DataType.uint },
-              0x23_31_4f: { name: "timecodeScale", value: DataType.float },
-              0x53_6e: { name: "name", value: DataType.string },
-              0x22_b5_9c: { name: "language", value: DataType.string },
-              0x86: { name: "codecID", value: DataType.string },
-              0x63_a2: { name: "codecPrivate", value: DataType.binary },
-              0x25_86_88: { name: "codecName", value: DataType.string },
-              0x3a_96_97: { name: "codecSettings", value: DataType.string },
-              0x3b_40_40: { name: "codecInfoUrl", value: DataType.string },
-              0x26_b2_40: { name: "codecDownloadUrl", value: DataType.string },
-              0xaa: { name: "codecDecodeAll", value: DataType.bool },
-              0x6f_ab: { name: "trackOverlay", value: DataType.uint },
+              0xd7: { name: "trackNumber", value: matroskaUintType },
+              0x73_c5: { name: "uid", value: matroskaUidType },
+              0x83: { name: "trackType", value: matroskaUintType },
+              0xb9: { name: "flagEnabled", value: matroskaBooleanType },
+              0x88: { name: "flagDefault", value: matroskaBooleanType },
+              0x55_aa: { name: "flagForced", value: matroskaBooleanType }, // extended
+              0x9c: { name: "flagLacing", value: matroskaBooleanType },
+              0x6d_e7: { name: "minCache", value: matroskaUintType },
+              0x6d_e8: { name: "maxCache", value: matroskaUintType },
+              0x23_e3_83: { name: "defaultDuration", value: matroskaUintType },
+              0x23_31_4f: { name: "timecodeScale", value: matroskaFloatType },
+              0x53_6e: { name: "name", value: matroskaStringType },
+              0x22_b5_9c: { name: "language", value: matroskaStringType },
+              0x86: { name: "codecID", value: matroskaStringType },
+              0x63_a2: { name: "codecPrivate", value: matroskaBinaryType },
+              0x25_86_88: { name: "codecName", value: matroskaStringType },
+              0x3a_96_97: { name: "codecSettings", value: matroskaStringType },
+              0x3b_40_40: { name: "codecInfoUrl", value: matroskaStringType },
+              0x26_b2_40: { name: "codecDownloadUrl", value: matroskaStringType },
+              0xaa: { name: "codecDecodeAll", value: matroskaBooleanType },
+              0x6f_ab: { name: "trackOverlay", value: matroskaUintType },
 
               // Video
               0xe0: {
                 name: "video",
                 container: {
-                  0x9a: { name: "flagInterlaced", value: DataType.bool },
-                  0x53_b8: { name: "stereoMode", value: DataType.uint },
-                  0xb0: { name: "pixelWidth", value: DataType.uint },
-                  0xba: { name: "pixelHeight", value: DataType.uint },
-                  0x54_b0: { name: "displayWidth", value: DataType.uint },
-                  0x54_ba: { name: "displayHeight", value: DataType.uint },
-                  0x54_b3: { name: "aspectRatioType", value: DataType.uint },
-                  0x2e_b5_24: { name: "colourSpace", value: DataType.uint },
-                  0x2f_b5_23: { name: "gammaValue", value: DataType.float },
+                  0x9a: { name: "flagInterlaced", value: matroskaBooleanType },
+                  0x53_b8: { name: "stereoMode", value: matroskaUintType },
+                  0xb0: { name: "pixelWidth", value: matroskaUintType },
+                  0xba: { name: "pixelHeight", value: matroskaUintType },
+                  0x54_b0: { name: "displayWidth", value: matroskaUintType },
+                  0x54_ba: { name: "displayHeight", value: matroskaUintType },
+                  0x54_b3: { name: "aspectRatioType", value: matroskaUintType },
+                  0x2e_b5_24: { name: "colourSpace", value: matroskaUintType },
+                  0x2f_b5_23: { name: "gammaValue", value: matroskaFloatType },
                 },
               },
 
@@ -120,15 +145,15 @@ export const elements: IContainerType = {
               0xe1: {
                 name: "audio",
                 container: {
-                  0xb5: { name: "samplingFrequency", value: DataType.float },
+                  0xb5: { name: "samplingFrequency", value: matroskaFloatType },
                   0x78_b5: {
                     name: "outputSamplingFrequency",
-                    value: DataType.float,
+                    value: matroskaFloatType,
                   },
-                  0x9f: { name: "channels", value: DataType.uint }, // https://www.matroska.org/technical/specs/index.html
-                  0x94: { name: "channels", value: DataType.uint },
-                  0x7d_7b: { name: "channelPositions", value: DataType.binary },
-                  0x62_64: { name: "bitDepth", value: DataType.uint },
+                  0x9f: { name: "channels", value: matroskaUintType }, // https://www.matroska.org/technical/specs/index.html
+                  0x94: { name: "channels", value: matroskaUintType },
+                  0x7d_7b: { name: "channelPositions", value: matroskaBinaryType },
+                  0x62_64: { name: "bitDepth", value: matroskaUintType },
                 },
               },
 
@@ -139,19 +164,19 @@ export const elements: IContainerType = {
                   0x62_40: {
                     name: "contentEncoding",
                     container: {
-                      0x50_31: { name: "order", value: DataType.uint },
-                      0x50_32: { name: "scope", value: DataType.bool },
-                      0x50_33: { name: "type", value: DataType.uint },
+                      0x50_31: { name: "order", value: matroskaUintType },
+                      0x50_32: { name: "scope", value: matroskaBooleanType },
+                      0x50_33: { name: "type", value: matroskaUintType },
                       0x50_34: {
                         name: "contentEncoding",
                         container: {
                           0x42_54: {
                             name: "contentCompAlgo",
-                            value: DataType.uint,
+                            value: matroskaUintType,
                           },
                           0x42_55: {
                             name: "contentCompSettings",
-                            value: DataType.binary,
+                            value: matroskaBinaryType,
                           },
                         },
                       },
@@ -160,31 +185,31 @@ export const elements: IContainerType = {
                         container: {
                           0x47_e1: {
                             name: "contentEncAlgo",
-                            value: DataType.uint,
+                            value: matroskaUintType,
                           },
                           0x47_e2: {
                             name: "contentEncKeyID",
-                            value: DataType.binary,
+                            value: matroskaBinaryType,
                           },
                           0x47_e3: {
                             name: "contentSignature ",
-                            value: DataType.binary,
+                            value: matroskaBinaryType,
                           },
                           0x47_e4: {
                             name: "ContentSigKeyID  ",
-                            value: DataType.binary,
+                            value: matroskaBinaryType,
                           },
                           0x47_e5: {
                             name: "contentSigAlgo ",
-                            value: DataType.uint,
+                            value: matroskaUintType,
                           },
                           0x47_e6: {
                             name: "contentSigHashAlgo ",
-                            value: DataType.uint,
+                            value: matroskaUintType,
                           },
                         },
                       },
-                      0x62_64: { name: "bitDepth", value: DataType.uint },
+                      0x62_64: { name: "bitDepth", value: matroskaUintType },
                     },
                   },
                 },
@@ -201,24 +226,24 @@ export const elements: IContainerType = {
           0xbb: {
             name: "cuePoint",
             container: {
-              0xb3: { name: "cueTime", value: DataType.uid },
+              0xb3: { name: "cueTime", value: matroskaUidType },
               0xb7: {
                 name: "positions",
                 container: {
-                  0xf7: { name: "track", value: DataType.uint },
-                  0xf1: { name: "clusterPosition", value: DataType.uint },
-                  0x53_78: { name: "blockNumber", value: DataType.uint },
-                  0xea: { name: "codecState", value: DataType.uint },
+                  0xf7: { name: "track", value: matroskaUintType },
+                  0xf1: { name: "clusterPosition", value: matroskaUintType },
+                  0x53_78: { name: "blockNumber", value: matroskaUintType },
+                  0xea: { name: "codecState", value: matroskaUintType },
                   0xdb: {
                     name: "reference",
                     container: {
-                      0x96: { name: "time", value: DataType.uint },
-                      0x97: { name: "cluster", value: DataType.uint },
-                      0x53_5f: { name: "number", value: DataType.uint },
-                      0xeb: { name: "codecState", value: DataType.uint },
+                      0x96: { name: "time", value: matroskaUintType },
+                      0x97: { name: "cluster", value: matroskaUintType },
+                      0x53_5f: { name: "number", value: matroskaUintType },
+                      0xeb: { name: "codecState", value: matroskaUintType },
                     },
                   },
-                  0xf0: { name: "relativePosition", value: DataType.uint }, // extended
+                  0xf0: { name: "relativePosition", value: matroskaUintType }, // extended
                 },
               },
             },
@@ -234,11 +259,11 @@ export const elements: IContainerType = {
             name: "attachedFiles",
             multiple: true,
             container: {
-              0x46_7e: { name: "description", value: DataType.string },
-              0x46_6e: { name: "name", value: DataType.string },
-              0x46_60: { name: "mimeType", value: DataType.string },
-              0x46_5c: { name: "data", value: DataType.binary },
-              0x46_ae: { name: "uid", value: DataType.uid },
+              0x46_7e: { name: "description", value: matroskaStringType },
+              0x46_6e: { name: "name", value: matroskaStringType },
+              0x46_60: { name: "mimeType", value: matroskaStringType },
+              0x46_5c: { name: "data", value: matroskaBinaryType },
+              0x46_ae: { name: "uid", value: matroskaUidType },
             },
           },
         },
@@ -254,24 +279,24 @@ export const elements: IContainerType = {
               0xb6: {
                 name: "chapterAtom",
                 container: {
-                  0x73_c4: { name: "uid", value: DataType.uid },
-                  0x91: { name: "timeStart", value: DataType.uint },
-                  0x92: { name: "timeEnd", value: DataType.uid },
-                  0x98: { name: "hidden", value: DataType.bool },
-                  0x45_98: { name: "enabled", value: DataType.uid },
+                  0x73_c4: { name: "uid", value: matroskaUidType },
+                  0x91: { name: "timeStart", value: matroskaUintType },
+                  0x92: { name: "timeEnd", value: matroskaUidType },
+                  0x98: { name: "hidden", value: matroskaBooleanType },
+                  0x45_98: { name: "enabled", value: matroskaUidType },
                   0x8f: {
                     name: "track",
                     container: {
-                      0x89: { name: "trackNumber", value: DataType.uid },
+                      0x89: { name: "trackNumber", value: matroskaUidType },
                       0x80: {
                         name: "display",
                         container: {
-                          0x85: { name: "string", value: DataType.string },
+                          0x85: { name: "string", value: matroskaStringType },
                           0x43_7c: {
                             name: "language ",
-                            value: DataType.string,
+                            value: matroskaStringType,
                           },
-                          0x43_7e: { name: "country ", value: DataType.string },
+                          0x43_7e: { name: "country ", value: matroskaStringType },
                         },
                       },
                     },
@@ -294,24 +319,24 @@ export const elements: IContainerType = {
               0x63_c0: {
                 name: "target",
                 container: {
-                  0x63_c5: { name: "tagTrackUID", value: DataType.uid },
-                  0x63_c4: { name: "tagChapterUID", value: DataType.uint },
-                  0x63_c6: { name: "tagAttachmentUID", value: DataType.uid },
-                  0x63_ca: { name: "targetType", value: DataType.string }, // extended
-                  0x68_ca: { name: "targetTypeValue", value: DataType.uint }, // extended
-                  0x63_c9: { name: "tagEditionUID", value: DataType.uid }, // extended
+                  0x63_c5: { name: "tagTrackUID", value: matroskaUidType },
+                  0x63_c4: { name: "tagChapterUID", value: matroskaUintType },
+                  0x63_c6: { name: "tagAttachmentUID", value: matroskaUidType },
+                  0x63_ca: { name: "targetType", value: matroskaStringType }, // extended
+                  0x68_ca: { name: "targetTypeValue", value: matroskaUintType }, // extended
+                  0x63_c9: { name: "tagEditionUID", value: matroskaUidType }, // extended
                 },
               },
               0x67_c8: {
                 name: "simpleTags",
                 multiple: true,
                 container: {
-                  0x45_a3: { name: "name", value: DataType.string },
-                  0x44_87: { name: "string", value: DataType.string },
-                  0x44_85: { name: "binary", value: DataType.binary },
-                  0x44_7a: { name: "language", value: DataType.string }, // extended
-                  0x44_7b: { name: "languageIETF", value: DataType.string }, // extended
-                  0x44_84: { name: "default", value: DataType.bool }, // extended
+                  0x45_a3: { name: "name", value: matroskaStringType },
+                  0x44_87: { name: "string", value: matroskaStringType },
+                  0x44_85: { name: "binary", value: matroskaBinaryType },
+                  0x44_7a: { name: "language", value: matroskaStringType }, // extended
+                  0x44_7b: { name: "languageIETF", value: matroskaStringType }, // extended
+                  0x44_84: { name: "default", value: matroskaBooleanType }, // extended
                 },
               },
             },
