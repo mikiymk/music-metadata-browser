@@ -1,12 +1,12 @@
 import { BasicParser } from "../common/BasicParser";
-import { readUintBE } from "../compat/buffer";
 import initDebug from "../debug";
+import { matrsokaData } from "../parse-unit/matroska/data";
+import { EBMLHeader, ebmlHeader } from "../parse-unit/matroska/ebml-header";
+import { readUnitFromTokenizer } from "../parse-unit/utility/read-unit";
 import { EndOfStreamError } from "../peek-readable/EndOfFileStream";
-import { Float32_BE, Float64_BE, UINT8 } from "../token-types";
-import { Utf8StringType } from "../token-types/string";
 
-import { elements } from "./MatroskaDtd";
-import { DataType, IContainerType, IHeader, IMatroskaDoc, ITrackEntry, ITree, TargetType, TrackType } from "./types";
+import { ContainerType, elements } from "./MatroskaDtd";
+import { IMatroskaDoc, ITrackEntry, ITree, TargetType, TrackType } from "./types";
 
 import type { INativeMetadataCollector } from "../common/INativeMetadataCollector";
 import type { ITokenParser } from "../ParserFactory";
@@ -25,20 +25,8 @@ const debug = initDebug("music-metadata:parser:matroska");
 export class MatroskaParser extends BasicParser {
   private padding = 0;
 
-  private parserMap = new Map<DataType, (e: IHeader) => Promise<any>>();
-
   private ebmlMaxIDLength = 4;
   private ebmlMaxSizeLength = 8;
-
-  constructor() {
-    super();
-    this.parserMap.set(DataType.uint, (e) => this.readUint(e));
-    this.parserMap.set(DataType.string, (e) => this.readString(e));
-    this.parserMap.set(DataType.binary, (e) => this.readBuffer(e));
-    this.parserMap.set(DataType.uid, async (e) => (await this.readUint(e)) === 1);
-    this.parserMap.set(DataType.bool, (e) => this.readFlag(e));
-    this.parserMap.set(DataType.float, (e) => this.readFloat(e));
-  }
 
   /**
    * Initialize parser with output (metadata), input (tokenizer) & parsing options (options).
@@ -138,12 +126,12 @@ export class MatroskaParser extends BasicParser {
     }
   }
 
-  private async parseContainer(container: IContainerType, posDone: number, path: string[]): Promise<ITree> {
+  private async parseContainer(container: ContainerType, posDone: number, path: string[]): Promise<ITree> {
     const tree: ITree = {};
     while (this.tokenizer.position < posDone) {
-      let element: IHeader;
+      let element: EBMLHeader;
       try {
-        element = await this.readElement();
+        element = await ebmlHeader(this.tokenizer);
       } catch (error) {
         if (error instanceof EndOfStreamError) {
           break;
@@ -152,11 +140,11 @@ export class MatroskaParser extends BasicParser {
       }
       const type = container[element.id];
       if (type) {
-        debug(`Element: name=${type.name}, container=${!!type.container}`);
-        if (type.container) {
+        debug(`Element: name=${type.name}, container=${"container" in type}`);
+        if ("container" in type) {
           const res = await this.parseContainer(
             type.container,
-            element.len >= 0 ? this.tokenizer.position + element.len : -1,
+            element.length >= 0 ? this.tokenizer.position + element.length : -1,
             [...path, type.name]
           );
           if (type.multiple) {
@@ -168,97 +156,22 @@ export class MatroskaParser extends BasicParser {
             tree[type.name] = res;
           }
         } else {
-          tree[type.name] = await this.parserMap.get(type.value)(element);
+          tree[type.name] = await readUnitFromTokenizer(this.tokenizer, matrsokaData(type.value, element.length));
         }
       } else {
         switch (element.id) {
           case 0xec: // void
-            this.padding += element.len;
-            await this.tokenizer.ignore(element.len);
+            this.padding += element.length;
+            await this.tokenizer.ignore(element.length);
             break;
           default:
             debug(`parseEbml: path=${path.join("/")}, unknown element: id=${element.id.toString(16)}`);
-            this.padding += element.len;
-            await this.tokenizer.ignore(element.len);
+            this.padding += element.length;
+            await this.tokenizer.ignore(element.length);
         }
       }
     }
     return tree;
-  }
-
-  private async readVintData(maxLength: number): Promise<Uint8Array> {
-    const msb = await this.tokenizer.peekNumber(UINT8);
-    let mask = 0x80;
-    let oc = 1;
-
-    // Calculate VINT_WIDTH
-    while ((msb & mask) === 0) {
-      if (oc > maxLength) {
-        throw new Error("VINT value exceeding maximum size");
-      }
-      ++oc;
-      mask >>= 1;
-    }
-    const id = new Uint8Array(oc);
-    await this.tokenizer.readBuffer(id);
-    return id;
-  }
-
-  private async readElement(): Promise<IHeader> {
-    const id = await this.readVintData(this.ebmlMaxIDLength);
-    const lenField = await this.readVintData(this.ebmlMaxSizeLength);
-    lenField[0] ^= 0x80 >> (lenField.length - 1);
-    const nrLen = Math.min(6, lenField.length); // JavaScript can max read 6 bytes integer
-    return {
-      id: readUintBE(id, 0, id.length),
-      len: readUintBE(lenField, lenField.length - nrLen, nrLen),
-    };
-  }
-
-  private isMaxValue(vintData: Uint8Array) {
-    if (vintData.length === this.ebmlMaxSizeLength) {
-      for (let n = 1; n < this.ebmlMaxSizeLength; ++n) {
-        if (vintData[n] !== 0xff) return false;
-      }
-      return true;
-    }
-    return false;
-  }
-
-  private async readFloat(e: IHeader) {
-    switch (e.len) {
-      case 0:
-        return 0;
-      case 4:
-        return this.tokenizer.readNumber(Float32_BE);
-      case 8:
-        return this.tokenizer.readNumber(Float64_BE);
-      case 10:
-        return this.tokenizer.readNumber(Float64_BE);
-      default:
-        throw new Error(`Invalid IEEE-754 float length: ${e.len}`);
-    }
-  }
-
-  private async readFlag(e: IHeader): Promise<boolean> {
-    return (await this.readUint(e)) === 1;
-  }
-
-  private async readUint(e: IHeader): Promise<number> {
-    const buf = await this.readBuffer(e);
-    const nrLen = Math.min(6, e.len); // JavaScript can max read 6 bytes integer
-    return readUintBE(buf, e.len - nrLen, nrLen);
-  }
-
-  private async readString(e: IHeader): Promise<string> {
-    const rawString = await this.tokenizer.readToken(new Utf8StringType(e.len));
-    return rawString.replace(/\00.*$/g, "");
-  }
-
-  private async readBuffer(e: IHeader): Promise<Uint8Array> {
-    const buf = new Uint8Array(e.len);
-    await this.tokenizer.readBuffer(buf);
-    return buf;
   }
 
   private addTag(tagId: string, value: any) {
