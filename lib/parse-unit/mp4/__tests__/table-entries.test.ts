@@ -3,7 +3,7 @@ import { test, expect, describe } from "vitest";
 import { BufferTokenizer } from "../../../strtok3/BufferTokenizer";
 import { u8 } from "../../primitive/integer";
 import { readUnitFromTokenizer } from "../../utility/read-unit";
-import { mp4AtomTableEntries, type Mp4AtomTableEntries } from "../atom-table-entries";
+import { mp4AtomTableEntries, type Mp4AtomTableEntries } from "../table-entries";
 
 test("MP4 table entries size", () => {
   const [size] = mp4AtomTableEntries(24, u8);

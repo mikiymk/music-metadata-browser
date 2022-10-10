@@ -1,7 +1,7 @@
 import { sequenceMap } from "../combinate/sequence-map";
 import { u32be } from "../primitive/integer";
 
-import { mp4AtomTableEntries } from "./atom-table-entries";
+import { mp4AtomTableEntries } from "./table-entries";
 import { mp4VersionFlags } from "./version-flags";
 
 import type { Unit } from "../type/unit";

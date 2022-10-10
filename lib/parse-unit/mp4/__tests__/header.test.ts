@@ -3,7 +3,7 @@ import { test, expect, describe } from "vitest";
 import { BufferTokenizer } from "../../../strtok3/BufferTokenizer";
 import { u8 } from "../../primitive/integer";
 import { readUnitFromTokenizer } from "../../utility/read-unit";
-import { mp4AtomHeader, type Mp4AtomHeader } from "../atom-header";
+import { mp4AtomHeader, type Mp4AtomHeader } from "../header";
 
 test("MP4 atom header size", () => {
   const [size] = mp4AtomHeader;
