@@ -1,7 +1,7 @@
 import initDebug from "../debug";
-
-import { Header, IAtomHeader } from "./AtomHeader";
-import { ExtendedSize } from "./SoundSampleDescriptionVersion";
+import { Mp4AtomHeader, mp4AtomHeader } from "../parse-unit/mp4/header";
+import { u64be } from "../parse-unit/primitive/integer";
+import { readUnitFromTokenizer } from "../parse-unit/utility/read-unit";
 
 import type { ITokenizer } from "../strtok3/types";
 
@@ -19,10 +19,10 @@ export class Atom {
     // Parse atom header
     const offset = tokenizer.position;
     // debug(`Reading next token on offset=${offset}...`); //  buf.toString('ascii')
-    const header = await tokenizer.readToken<IAtomHeader>(Header);
+    const header = await readUnitFromTokenizer(tokenizer, mp4AtomHeader);
     const extended = header.length === BigInt(1);
     if (extended) {
-      header.length = await tokenizer.readToken<bigint>(ExtendedSize);
+      header.length = await readUnitFromTokenizer(tokenizer, u64be);
     }
     const atomBean = new Atom(header, header.length === BigInt(1), parent);
     const payloadLength = atomBean.getPayloadLength(remaining);
@@ -37,7 +37,7 @@ export class Atom {
   public readonly atomPath: string;
 
   public constructor(
-    public readonly header: IAtomHeader,
+    public readonly header: Mp4AtomHeader,
     public extended: boolean,
     public readonly parent: Atom | null
   ) {

@@ -1,7 +1,7 @@
 import { sequenceMap } from "../combinate/sequence-map";
-import { bytesTokenizer } from "../primitive/bytes";
+import { bytes } from "../primitive/bytes";
 import { u32be } from "../primitive/integer";
-import { readUnitFromBufferTokenizer } from "../utility/read-unit";
+import { readUnitFromBuffer } from "../utility/read-unit";
 
 import { sampleDescription, SampleDescription } from "./entry-sample-description";
 import { mp4VersionFlags } from "./version-flags";
@@ -20,12 +20,18 @@ export interface Mp4AtomStsd {
  * @returns
  */
 export const mp4AtomStsd = (length: number) =>
-  sequenceMap(mp4VersionFlags, u32be, bytesTokenizer(length - 8), (versionFlags, entriesCount, data) => {
+  sequenceMap(mp4VersionFlags, u32be, bytes(length - 8), (versionFlags, entriesCount, data) => {
     const entries: SampleDescription[] = [];
 
+    let offset = 0;
     for (let i = 0; i < entriesCount; ++i) {
-      const entryLen = readUnitFromBufferTokenizer(data, u32be);
-      entries.push(readUnitFromBufferTokenizer(data, sampleDescription(entryLen)));
+      // const entryLen = readUnitFromBufferTokenizer(data, u32be);
+      // entries.push(readUnitFromBufferTokenizer(data, sampleDescription(entryLen)));
+
+      const entryLen = readUnitFromBuffer(u32be, data, offset);
+      offset += u32be[0];
+      entries.push(readUnitFromBuffer(sampleDescription(entryLen), data, offset));
+      offset += entryLen;
     }
 
     return {
