@@ -6,13 +6,17 @@ import { Genres } from "../id3v1/ID3v1Genres";
 import { mp4AtomData } from "../parse-unit/mp4/atom-data";
 import { mp4atomFtyp } from "../parse-unit/mp4/atom-ftyp";
 import { mp4AtomMdhd } from "../parse-unit/mp4/atom-mdhd";
+import { mp4AtomMvhd } from "../parse-unit/mp4/atom-mvhd";
 import { mp4AtomName } from "../parse-unit/mp4/atom-name";
 import { mp4AtomStco } from "../parse-unit/mp4/atom-stco";
 import { mp4AtomStsc } from "../parse-unit/mp4/atom-stsc";
 import { mp4AtomStsd } from "../parse-unit/mp4/atom-stsd";
 import { mp4AtomStsz } from "../parse-unit/mp4/atom-stsz";
 import { mp4AtomStts } from "../parse-unit/mp4/atom-stts";
+import { Mp4AtomTkhd, mp4AtomTkhd } from "../parse-unit/mp4/atom-tkhd";
 import { mp4AtomHeader } from "../parse-unit/mp4/header";
+import { mp4SoundSampleDescriptionVersion } from "../parse-unit/mp4/sound-sample-description-version";
+import { mp4SoundSampleDescriptionVersion0 } from "../parse-unit/mp4/sound-sample-description-version0";
 import { bytes } from "../parse-unit/primitive/bytes";
 import { i8, i16be, i24be, i32be, i64be, u8, u16be, u24be, u32be, u64be } from "../parse-unit/primitive/integer";
 import { utf8 } from "../parse-unit/primitive/string";
@@ -21,12 +25,8 @@ import { peekUnitFromTokenizer, readUnitFromBuffer, readUnitFromTokenizer } from
 import { IChapter, ITrackInfo, TrackType } from "../type";
 
 import { Atom } from "./Atom";
-import { IAtomMvhd, MvhdAtom } from "./AtomMvhd";
-import { ITrackHeaderAtom, TrackHeaderAtom } from "./AtomTrackHeader";
 import { ChapterText } from "./ChapterText";
 import { encoderDict } from "./encoder";
-import { SoundSampleDescriptionV0 } from "./SoundSampleDescriptionV0";
-import { SoundSampleDescriptionVersion } from "./SoundSampleDescriptionVersion";
 
 import type { SampleDescription } from "../parse-unit/mp4/entry-sample-description";
 import type { SampleToChunk } from "../parse-unit/mp4/entry-sample-to-chunk";
@@ -54,7 +54,7 @@ interface ISoundSampleDescription {
   };
 }
 
-interface ITrackDescription extends ITrackHeaderAtom {
+interface ITrackDescription extends Mp4AtomTkhd {
   soundSampleDescription: ISoundSampleDescription[];
   timeScale: number;
   chapterList?: number[];
@@ -382,7 +382,7 @@ export class MP4Parser extends BasicParser {
      * @param len
      */
     mvhd: async (len: number) => {
-      const mvhd = await this.tokenizer.readToken<IAtomMvhd>(new MvhdAtom(len));
+      const mvhd = await readUnitFromTokenizer(this.tokenizer, mp4AtomMvhd(len));
       this.metadata.setFormat("creationTime", mvhd.creationTime);
       this.metadata.setFormat("modificationTime", mvhd.modificationTime);
     },
@@ -415,7 +415,7 @@ export class MP4Parser extends BasicParser {
     },
 
     tkhd: async (len: number) => {
-      const track = (await this.tokenizer.readToken<ITrackHeaderAtom>(new TrackHeaderAtom(len))) as ITrackDescription;
+      const track = (await readUnitFromTokenizer(this.tokenizer, mp4AtomTkhd(len))) as ITrackDescription;
       this.tracks.push(track);
     },
 
@@ -514,12 +514,12 @@ export class MP4Parser extends BasicParser {
     };
 
     let offset = 0;
-    const version = SoundSampleDescriptionVersion.get(sampleDescription.description, offset);
-    offset += SoundSampleDescriptionVersion.len;
+    const version = readUnitFromBuffer(mp4SoundSampleDescriptionVersion, sampleDescription.description, offset);
+    offset += mp4SoundSampleDescriptionVersion[0];
 
     if (version.version === 0 || version.version === 1) {
       // Sound Sample Description (Version 0)
-      ssd.description = SoundSampleDescriptionV0.get(sampleDescription.description, offset);
+      ssd.description = readUnitFromBuffer(mp4SoundSampleDescriptionVersion0, sampleDescription.description, offset);
     } else {
       debug(`Warning: sound-sample-description ${version as unknown as string} not implemented`);
     }
@@ -543,6 +543,12 @@ export class MP4Parser extends BasicParser {
       if (len < 0) throw new Error("Chapter chunk exceeding token length");
       await this.tokenizer.ignore(nextChunkLen);
       const title = await this.tokenizer.readToken(new ChapterText(sampleSize));
+      // const titleLen = await readUnitFromTokenizer(this.tokenizer, u16be);
+      // const title = await readUnitFromTokenizer(this.tokenizer, utf8(Math.min(titleLen, sampleSize - 2)));
+      // if (titleLen < sampleSize - 2) {
+      //   await this.tokenizer.ignore(sampleSize - titleLen - 2);
+      // }
+      //
       debug(`Chapter ${i + 1}: ${title}`);
       const chapter = {
         title,

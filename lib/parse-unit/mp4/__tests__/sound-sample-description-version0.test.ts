@@ -24,7 +24,7 @@ const cases: Case[] = [
       sampleSize: 0x43_44,
       compressionId: 0x51_52,
       packetSize: 0x53_54,
-      sampleRate: 24_930.388_244_628_906_25, // 0x6162.6364
+      sampleRate: 24_932.5444, // 0x6162.6364
     },
   ],
 ];

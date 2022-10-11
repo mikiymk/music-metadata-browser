@@ -1,6 +1,6 @@
-import { map } from "../combinate/map";
+import { sequenceMap } from "../combinate/sequence-map";
 import { sequenceToObject } from "../combinate/sequence-to-object";
-import { u16be, u32be } from "../primitive/integer";
+import { u16be } from "../primitive/integer";
 
 import type { Unit } from "../type/unit";
 
@@ -36,5 +36,5 @@ export const mp4SoundSampleDescriptionVersion0: Unit<Mp4SoundSampleDescriptionVe
   u16be,
   u16be,
   u16be,
-  map(u32be, (value) => value / 0x1_00_00)
+  sequenceMap(u16be, u16be, (integer, fractional) => integer + fractional / 10_000) // TODO
 );
