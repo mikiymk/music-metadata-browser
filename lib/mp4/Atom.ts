@@ -22,6 +22,7 @@ export class Atom {
     const header = await readUnitFromTokenizer(tokenizer, mp4AtomHeader);
     const extended = header.length === BigInt(1);
     if (extended) {
+      // Ref: https://developer.apple.com/library/archive/documentation/QuickTime/QTFF/QTFFChap1/qtff1.html#//apple_ref/doc/uid/TP40000939-CH203-38190
       header.length = await readUnitFromTokenizer(tokenizer, u64be);
     }
     const atomBean = new Atom(header, header.length === BigInt(1), parent);
