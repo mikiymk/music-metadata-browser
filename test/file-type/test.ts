@@ -188,8 +188,8 @@ const falsePositives: Partial<Record<FileExtension, string[]>> = {
   png: ["fixture-corrupt"],
 };
 
-async function checkBufferLike(type: FileExtension, bufferLike: Uint8Array | Buffer) {
-  const fileType = await detectFileType(bufferLike);
+function checkBufferLike(type: FileExtension, bufferLike: Uint8Array | Buffer) {
+  const fileType = detectFileType(bufferLike);
   expect(fileType!.ext).toBe(type);
   expect(fileType!.mime).toBeTypeOf("string");
 }
@@ -205,28 +205,28 @@ const falsePositivesCases = Object.entries(falsePositives).flatMap(([type, typen
 describe.each(cases)("%s.%s", (name, type) => {
   const filePath = join(__dirname, "fixture", `${name}.${type}`);
 
-  test("fromBuffer Buffer", async () => {
+  test("fromBuffer Buffer", () => {
     const chunk = readFileSync(filePath);
-    await checkBufferLike(type, chunk);
+    checkBufferLike(type, chunk);
   });
 
-  test("fromBuffer Uint8Array", async () => {
+  test("fromBuffer Uint8Array", () => {
     const chunk = readFileSync(filePath);
-    await checkBufferLike(type, new Uint8Array(chunk));
+    checkBufferLike(type, new Uint8Array(chunk));
   });
 });
 
 describe.each(falsePositivesCases)("%s.%s", (name, type) => {
   const filePath = join(__dirname, "fixture", `${name}.${type}`);
 
-  test(`false positive - from buffer Buffer`, async () => {
+  test(`false positive - from buffer Buffer`, () => {
     const chunk = readFileSync(filePath);
-    await expect(detectFileType(chunk)).resolves.toBeUndefined();
+    expect(detectFileType(chunk)).toBeUndefined();
   });
 
-  test(`false positive - from buffer Uint8Array`, async () => {
+  test(`false positive - from buffer Uint8Array`, () => {
     const chunk = readFileSync(filePath);
-    await expect(detectFileType(new Uint8Array(chunk))).resolves.toBeUndefined();
+    expect(detectFileType(new Uint8Array(chunk))).toBeUndefined();
   });
 });
 
