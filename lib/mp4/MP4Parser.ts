@@ -25,7 +25,6 @@ import { peekUnitFromTokenizer, readUnitFromBuffer, readUnitFromTokenizer } from
 import { IChapter, ITrackInfo, TrackType } from "../type";
 
 import { Atom } from "./Atom";
-import { ChapterText } from "./ChapterText";
 import { encoderDict } from "./encoder";
 
 import type { SampleDescription } from "../parse-unit/mp4/entry-sample-description";
@@ -542,12 +541,12 @@ export class MP4Parser extends BasicParser {
       len -= nextChunkLen + sampleSize;
       if (len < 0) throw new Error("Chapter chunk exceeding token length");
       await this.tokenizer.ignore(nextChunkLen);
-      const title = await this.tokenizer.readToken(new ChapterText(sampleSize));
-      // const titleLen = await readUnitFromTokenizer(this.tokenizer, u16be);
-      // const title = await readUnitFromTokenizer(this.tokenizer, utf8(Math.min(titleLen, sampleSize - 2)));
-      // if (titleLen < sampleSize - 2) {
-      //   await this.tokenizer.ignore(sampleSize - titleLen - 2);
-      // }
+      // chapter text
+      const titleLen = await readUnitFromTokenizer(this.tokenizer, u16be);
+      const title = await readUnitFromTokenizer(this.tokenizer, utf8(Math.min(titleLen, sampleSize - 2)));
+      if (titleLen < sampleSize - 2) {
+        await this.tokenizer.ignore(sampleSize - titleLen - 2);
+      }
       //
       debug(`Chapter ${i + 1}: ${title}`);
       const chapter = {
