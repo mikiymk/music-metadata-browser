@@ -31,7 +31,7 @@ import type { FileTypeResult } from "./type";
  * //=> {ext: 'mp3', mime: 'audio/mpeg'}
  * ```
  */
-export const detectFileTypeFromTokenizer = (tokenizer: BufferTokenizer): Promise<FileTypeResult | undefined> => {
+export const detectFileTypeFromTokenizer = (tokenizer: BufferTokenizer): Promise<FileTypeResult> | undefined => {
   try {
     return new FileTypeParser().parse(tokenizer);
   } catch (error) {

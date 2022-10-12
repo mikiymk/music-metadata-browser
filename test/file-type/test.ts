@@ -230,17 +230,17 @@ describe.each(falsePositivesCases)("%s.%s", (name, type) => {
   });
 });
 
-test("validate the input argument type", async () => {
-  await expect(detectFileType(Buffer.from("x"))).resolves.not.toThrow();
-  await expect(detectFileType(new Uint8Array())).resolves.not.toThrow();
+test("validate the input argument type", () => {
+  expect(() => detectFileType(Buffer.from("x"))).not.toThrow();
+  expect(() => detectFileType(new Uint8Array())).not.toThrow();
 });
 
-test("odd file sizes", async () => {
+test("odd file sizes", () => {
   const oddFileSizes = [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 255, 256, 257, 511, 512, 513];
 
   for (const size of oddFileSizes) {
     const buffer = Buffer.alloc(size);
 
-    await expect(detectFileType(buffer), `fromBuffer: File size: ${size} bytes`).resolves.not.toThrow();
+    expect(() => detectFileType(buffer), `fromBuffer: File size: ${size} bytes`).not.toThrow();
   }
 });
