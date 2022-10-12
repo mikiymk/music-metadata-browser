@@ -1,5 +1,5 @@
 import initDebug from "../debug";
-import { fileTypeFromBuffer } from "../file-type/fileTypeFromBuffer";
+import { detectFileType } from "../file-type/fileTypeFromBuffer";
 import {
   FormatId,
   IAudioMetadata,
@@ -265,7 +265,7 @@ export class MetadataCollector implements INativeMetadataCollector {
   private async postFixPicture(picture: IPicture): Promise<IPicture | null> {
     if (picture.data && picture.data.length > 0) {
       if (!picture.format) {
-        const fileType = await fileTypeFromBuffer(picture.data);
+        const fileType = await detectFileType(picture.data);
         if (fileType) {
           picture.format = fileType.mime;
         } else {

@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 import { test, expect, describe } from "vitest";
 
-import { fileTypeFromBuffer } from "../../lib/file-type/fileTypeFromBuffer";
+import { detectFileType } from "../../lib/file-type/fileTypeFromBuffer";
 
 import type { FileExtension } from "../../lib/file-type/type";
 
@@ -189,7 +189,7 @@ const falsePositives: Partial<Record<FileExtension, string[]>> = {
 };
 
 async function checkBufferLike(type: FileExtension, bufferLike: Uint8Array | ArrayBuffer | Buffer) {
-  const fileType = await fileTypeFromBuffer(bufferLike);
+  const fileType = await detectFileType(bufferLike);
   expect(fileType!.ext).toBe(type);
   expect(fileType!.mime).toBeTypeOf("string");
 }
@@ -226,24 +226,24 @@ describe.each(falsePositivesCases)("%s.%s", (name, type) => {
 
   test(`false positive - from buffer Buffer`, async () => {
     const chunk = readFileSync(filePath);
-    await expect(fileTypeFromBuffer(chunk)).resolves.toBeUndefined();
+    await expect(detectFileType(chunk)).resolves.toBeUndefined();
   });
 
   test(`false positive - from buffer Uint8Array`, async () => {
     const chunk = readFileSync(filePath);
-    await expect(fileTypeFromBuffer(new Uint8Array(chunk))).resolves.toBeUndefined();
+    await expect(detectFileType(new Uint8Array(chunk))).resolves.toBeUndefined();
   });
 
   test.skip(`false positive - from buffer ArrayBufferLike`, async () => {
     const chunk = readFileSync(filePath);
-    await expect(fileTypeFromBuffer(chunk.buffer)).resolves.toBeUndefined();
+    await expect(detectFileType(chunk.buffer)).resolves.toBeUndefined();
   });
 });
 
 test("validate the input argument type", async () => {
-  await expect(fileTypeFromBuffer(Buffer.from("x"))).resolves.not.toThrow();
-  await expect(fileTypeFromBuffer(new Uint8Array())).resolves.not.toThrow();
-  await expect(fileTypeFromBuffer(new ArrayBuffer(0))).resolves.not.toThrow();
+  await expect(detectFileType(Buffer.from("x"))).resolves.not.toThrow();
+  await expect(detectFileType(new Uint8Array())).resolves.not.toThrow();
+  await expect(detectFileType(new ArrayBuffer(0))).resolves.not.toThrow();
 });
 
 test("odd file sizes", async () => {
@@ -252,6 +252,6 @@ test("odd file sizes", async () => {
   for (const size of oddFileSizes) {
     const buffer = Buffer.alloc(size);
 
-    await expect(fileTypeFromBuffer(buffer), `fromBuffer: File size: ${size} bytes`).resolves.not.toThrow();
+    await expect(detectFileType(buffer), `fromBuffer: File size: ${size} bytes`).resolves.not.toThrow();
   }
 });
