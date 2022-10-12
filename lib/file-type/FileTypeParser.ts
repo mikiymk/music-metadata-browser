@@ -20,7 +20,7 @@ export class FileTypeParser {
   buffer: Uint8Array = new Uint8Array(minimumBytes);
   tokenizer: BufferTokenizer;
 
-  async parse(tokenizer: BufferTokenizer): Promise<FileTypeResult | undefined> {
+  parse(tokenizer: BufferTokenizer): FileTypeResult | undefined {
     this.buffer = new Uint8Array(minimumBytes);
 
     // Keep reading until EOF if the file size is unknown.

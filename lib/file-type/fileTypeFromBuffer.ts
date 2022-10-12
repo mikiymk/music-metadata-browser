@@ -13,7 +13,7 @@ import type { FileTypeResult } from "./type";
  * @param buffer - An Uint8Array or Buffer representing file data. It works best if the buffer contains the entire file, it may work with a smaller portion as well.
  * @returns The detected file type and MIME type, or `undefined` when there is no match.
  */
-export const detectFileType = (buffer: Uint8Array): Promise<FileTypeResult> | undefined => {
+export const detectFileType = (buffer: Uint8Array): FileTypeResult | undefined => {
   if (buffer.length > 1) {
     return detectFileTypeFromTokenizer(fromBuffer(buffer));
   }
