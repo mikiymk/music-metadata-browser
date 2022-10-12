@@ -88,6 +88,7 @@
     "lint:md": "remark -u preset-lint-recommended .",
     "test": "run-s test:vitest",
     "test:vitest": "vitest --run",
+    "test:bench": "vitest bench --run",
     "test:coverage": "vitest --run --coverage",
     "watch:test": "vitest --watch",
     "watch:typescript": "tsc -p tsconfig.check.json -w"
