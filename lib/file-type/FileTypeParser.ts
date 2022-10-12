@@ -1,12 +1,15 @@
 import { indexOf, isSubArray, readUintBE } from "../compat/buffer";
 import { decodeLatin1, decodeUtf8 } from "../compat/text-decoder";
 import { encodeUtf8 } from "../compat/text-encoder";
+import { u32beSyncsafe } from "../parse-unit/id3v2/syncsafe";
+import { i32be, u16be, u16le, u64le, u8 } from "../parse-unit/primitive/integer";
+import { latin1, utf8 } from "../parse-unit/primitive/string";
+import { peekUnitFromBufferTokenizer, readUnitFromBufferTokenizer } from "../parse-unit/utility/read-unit";
 import { EndOfStreamError } from "../peek-readable/EndOfFileStream";
-import { UINT32_LE, UINT16_LE, UINT16_BE, UINT32_BE, UINT8, INT32_BE, UINT64_LE } from "../token-types";
-import { Latin1StringType, Utf8StringType } from "../token-types/string";
+import { UINT32_LE, UINT16_LE, UINT16_BE, UINT32_BE } from "../token-types";
 
 import { detectFileTypeFromTokenizer } from "./fileTypeFromTokenizer";
-import { tarHeaderChecksumMatches, uint32SyncSafeToken, check, checkString } from "./util";
+import { tarHeaderChecksumMatches, check, checkString } from "./util";
 
 import type { BufferTokenizer } from "../strtok3/BufferTokenizer";
 import type { FileTypeResult } from "./type";
@@ -119,7 +122,7 @@ export class FileTypeParser {
 
     if (checkString(this.buffer, "ID3")) {
       tokenizer.ignore(6); // Skip ID3 header until the header size
-      const id3HeaderLength = await tokenizer.readToken(uint32SyncSafeToken);
+      const id3HeaderLength = readUnitFromBufferTokenizer(tokenizer, u32beSyncsafe);
       if (tokenizer.position + id3HeaderLength > tokenizer.fileInfo.size) {
         // Guess file type based on ID3 header for backward compatibility
         return {
@@ -213,7 +216,7 @@ export class FileTypeParser {
             extraFieldLength: UINT16_LE.get(this.buffer, 28),
           };
 
-          zipHeader.filename = await tokenizer.readToken(new Utf8StringType(zipHeader.filenameLength));
+          zipHeader.filename = readUnitFromBufferTokenizer(tokenizer, utf8(zipHeader.filenameLength));
           tokenizer.ignore(zipHeader.extraFieldLength);
 
           // Assumes signed `.xpi` from addons.mozilla.org
@@ -270,7 +273,7 @@ export class FileTypeParser {
           // - one entry indicating specific type of file.
           // MS Office, OpenOffice and LibreOffice may put the parts in different order, so the check should not rely on it.
           if (zipHeader.filename === "mimetype" && zipHeader.compressedSize === zipHeader.uncompressedSize) {
-            const mimeType = await tokenizer.readToken(new Utf8StringType(zipHeader.compressedSize));
+            const mimeType = readUnitFromBufferTokenizer(tokenizer, utf8(zipHeader.compressedSize));
             const trimmedMimeType = mimeType.trim();
 
             switch (trimmedMimeType) {
@@ -558,7 +561,7 @@ export class FileTypeParser {
 
     // TIFF, little-endian type
     if (check(this.buffer, [0x49, 0x49])) {
-      const fileType = await this.readTiffHeader(false);
+      const fileType = this.readTiffHeader(false);
       if (fileType) {
         return fileType;
       }
@@ -566,7 +569,7 @@ export class FileTypeParser {
 
     // TIFF, big-endian type
     if (check(this.buffer, [0x4d, 0x4d])) {
-      const fileType = await this.readTiffHeader(true);
+      const fileType = this.readTiffHeader(true);
       if (fileType) {
         return fileType;
       }
@@ -581,8 +584,8 @@ export class FileTypeParser {
 
     // https://github.com/threatstack/libmagic/blob/master/magic/Magdir/matroska
     if (check(this.buffer, [0x1a, 0x45, 0xdf, 0xa3])) {
-      const re = await readElement(tokenizer);
-      const docType = await readChildren(tokenizer, 1, re.len);
+      const re = readElement(tokenizer);
+      const docType = readChildren(tokenizer, 1, re.len);
 
       switch (docType) {
         case "webm":
@@ -811,7 +814,7 @@ export class FileTypeParser {
 
     if (checkString(this.buffer, "!<arch>")) {
       tokenizer.ignore(8);
-      const str = await tokenizer.readToken(new Latin1StringType(13));
+      const str = readUnitFromBufferTokenizer(tokenizer, latin1(13));
       if (str === "debian-binary") {
         return {
           ext: "deb",
@@ -836,7 +839,7 @@ export class FileTypeParser {
       tokenizer.ignore(8); // ignore PNG signature
 
       do {
-        const chunk = await readChunkHeader(tokenizer);
+        const chunk = readChunkHeader(tokenizer);
         if (chunk.length < 0) {
           return; // Invalid chunk length
         }
@@ -926,7 +929,7 @@ export class FileTypeParser {
       tokenizer.ignore(30);
       // Search for header should be in first 1KB of file.
       while (tokenizer.position + 24 < tokenizer.fileInfo.size) {
-        const header = await readHeader(tokenizer);
+        const header = readHeader(tokenizer);
         let payload = header.size - 24;
         if (
           check(
@@ -1004,7 +1007,7 @@ export class FileTypeParser {
     if (check(this.buffer, [0x00, 0x00, 0x00, 0x0c, 0x6a, 0x50, 0x20, 0x20, 0x0d, 0x0a, 0x87, 0x0a])) {
       // JPEG-2000 family
       tokenizer.ignore(20);
-      const type = await tokenizer.readToken(new Latin1StringType(4));
+      const type = readUnitFromBufferTokenizer(tokenizer, latin1(4));
       switch (type) {
         case "jp2 ":
           return {
@@ -1334,8 +1337,8 @@ export class FileTypeParser {
     }
   }
 
-  async readTiffTag(bigEndian: any): Promise<FileTypeResult | undefined> {
-    const tagId = await this.tokenizer.readToken(bigEndian ? UINT16_BE : UINT16_LE);
+  readTiffTag(bigEndian: any): FileTypeResult | undefined {
+    const tagId = readUnitFromBufferTokenizer(this.tokenizer, bigEndian ? u16be : u16le);
     void this.tokenizer.ignore(10);
     switch (tagId) {
       case 50_341:
@@ -1352,17 +1355,17 @@ export class FileTypeParser {
     }
   }
 
-  async readTiffIFD(bigEndian: boolean): Promise<FileTypeResult | undefined> {
-    const numberOfTags = await this.tokenizer.readToken(bigEndian ? UINT16_BE : UINT16_LE);
+  readTiffIFD(bigEndian: boolean): FileTypeResult | undefined {
+    const numberOfTags = readUnitFromBufferTokenizer(this.tokenizer, bigEndian ? u16be : u16le);
     for (let n = 0; n < numberOfTags; ++n) {
-      const fileType = await this.readTiffTag(bigEndian);
+      const fileType = this.readTiffTag(bigEndian);
       if (fileType) {
         return fileType;
       }
     }
   }
 
-  async readTiffHeader(bigEndian: boolean): Promise<FileTypeResult | undefined> {
+  readTiffHeader(bigEndian: boolean): FileTypeResult | undefined {
     const version = (bigEndian ? UINT16_BE : UINT16_LE).get(this.buffer, 2);
     const ifdOffset = (bigEndian ? UINT32_BE : UINT32_LE).get(this.buffer, 4);
 
@@ -1389,7 +1392,7 @@ export class FileTypeParser {
       }
 
       this.tokenizer.ignore(ifdOffset);
-      const fileType = await this.readTiffIFD(false);
+      const fileType = this.readTiffIFD(false);
       return (
         fileType ?? {
           ext: "tif",
@@ -1412,9 +1415,10 @@ export class FileTypeParser {
 /**
  *
  * @param tokenizer
+ * @returns
  */
-async function readField(tokenizer: BufferTokenizer) {
-  const msb = await tokenizer.peekNumber(UINT8);
+function readField(tokenizer: BufferTokenizer) {
+  const msb = peekUnitFromBufferTokenizer(tokenizer, u8);
   let mask = 0x80;
   let ic = 0; // 0 = A, 1 = B, 2 = C, 3
 
@@ -1432,10 +1436,11 @@ async function readField(tokenizer: BufferTokenizer) {
 /**
  *
  * @param tokenizer
+ * @returns
  */
-async function readElement(tokenizer: BufferTokenizer) {
-  const id = await readField(tokenizer);
-  const lengthField = await readField(tokenizer);
+function readElement(tokenizer: BufferTokenizer) {
+  const id = readField(tokenizer);
+  const lengthField = readField(tokenizer);
   lengthField[0] ^= 0x80 >> (lengthField.length - 1);
   const nrLength = Math.min(6, lengthField.length); // JavaScript can max read 6 bytes integer
   return {
@@ -1449,12 +1454,13 @@ async function readElement(tokenizer: BufferTokenizer) {
  * @param tokenizer
  * @param level
  * @param children
+ * @returns
  */
-async function readChildren(tokenizer: BufferTokenizer, level: number, children: number) {
+function readChildren(tokenizer: BufferTokenizer, level: number, children: number) {
   while (children > 0) {
-    const element = await readElement(tokenizer);
+    const element = readElement(tokenizer);
     if (element.id === 17_026) {
-      const rawValue = await tokenizer.readToken(new Utf8StringType(element.len));
+      const rawValue = readUnitFromBufferTokenizer(tokenizer, utf8(element.len));
       return rawValue.replace(/\00.*$/g, ""); // Return DocType
     }
 
@@ -1466,23 +1472,25 @@ async function readChildren(tokenizer: BufferTokenizer, level: number, children:
 /**
  *
  * @param tokenizer
+ * @returns
  */
-async function readChunkHeader(tokenizer: BufferTokenizer) {
+function readChunkHeader(tokenizer: BufferTokenizer) {
   return {
-    length: await tokenizer.readToken(INT32_BE),
-    type: await tokenizer.readToken(new Latin1StringType(4)),
+    length: readUnitFromBufferTokenizer(tokenizer, i32be),
+    type: readUnitFromBufferTokenizer(tokenizer, latin1(4)),
   };
 }
 
 /**
  *
  * @param tokenizer
+ * @returns
  */
-async function readHeader(tokenizer: BufferTokenizer) {
+function readHeader(tokenizer: BufferTokenizer) {
   const guid = new Uint8Array(16);
   tokenizer.readBuffer(guid);
   return {
     id: guid,
-    size: Number(await tokenizer.readToken(UINT64_LE)),
+    size: Number(readUnitFromBufferTokenizer(tokenizer, u64le)),
   };
 }
