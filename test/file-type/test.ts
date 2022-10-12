@@ -188,7 +188,7 @@ const falsePositives: Partial<Record<FileExtension, string[]>> = {
   png: ["fixture-corrupt"],
 };
 
-async function checkBufferLike(type: FileExtension, bufferLike: Uint8Array | ArrayBuffer | Buffer) {
+async function checkBufferLike(type: FileExtension, bufferLike: Uint8Array | Buffer) {
   const fileType = await detectFileType(bufferLike);
   expect(fileType!.ext).toBe(type);
   expect(fileType!.mime).toBeTypeOf("string");
@@ -214,11 +214,6 @@ describe.each(cases)("%s.%s", (name, type) => {
     const chunk = readFileSync(filePath);
     await checkBufferLike(type, new Uint8Array(chunk));
   });
-
-  test.skip("fromBuffer ArrayBuffer.slice", async () => {
-    const chunk = readFileSync(filePath);
-    await checkBufferLike(type, chunk.buffer.slice(chunk.byteOffset, chunk.byteOffset + chunk.byteLength));
-  });
 });
 
 describe.each(falsePositivesCases)("%s.%s", (name, type) => {
@@ -233,17 +228,11 @@ describe.each(falsePositivesCases)("%s.%s", (name, type) => {
     const chunk = readFileSync(filePath);
     await expect(detectFileType(new Uint8Array(chunk))).resolves.toBeUndefined();
   });
-
-  test.skip(`false positive - from buffer ArrayBufferLike`, async () => {
-    const chunk = readFileSync(filePath);
-    await expect(detectFileType(chunk.buffer)).resolves.toBeUndefined();
-  });
 });
 
 test("validate the input argument type", async () => {
   await expect(detectFileType(Buffer.from("x"))).resolves.not.toThrow();
   await expect(detectFileType(new Uint8Array())).resolves.not.toThrow();
-  await expect(detectFileType(new ArrayBuffer(0))).resolves.not.toThrow();
 });
 
 test("odd file sizes", async () => {
