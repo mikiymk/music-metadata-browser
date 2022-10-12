@@ -1,6 +1,6 @@
 import { fromBuffer } from "../strtok3/fromBuffer";
 
-import { fileTypeFromTokenizer } from "./fileTypeFromTokenizer";
+import { detectFileTypeFromTokenizer } from "./fileTypeFromTokenizer";
 
 import type { FileTypeResult } from "./type";
 
@@ -13,8 +13,8 @@ import type { FileTypeResult } from "./type";
  * @param buffer - An Uint8Array or Buffer representing file data. It works best if the buffer contains the entire file, it may work with a smaller portion as well.
  * @returns The detected file type and MIME type, or `undefined` when there is no match.
  */
-export const detectFileType = async (buffer: Uint8Array): Promise<FileTypeResult | undefined> => {
+export const detectFileType = (buffer: Uint8Array): Promise<FileTypeResult | undefined> => {
   if (buffer.length > 1) {
-    return fileTypeFromTokenizer(fromBuffer(buffer));
+    return detectFileTypeFromTokenizer(fromBuffer(buffer));
   }
 };

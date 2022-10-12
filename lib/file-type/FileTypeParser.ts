@@ -5,7 +5,7 @@ import { EndOfStreamError } from "../peek-readable/EndOfFileStream";
 import { UINT32_LE, UINT16_LE, UINT16_BE, UINT32_BE, UINT8, INT32_BE, UINT64_LE } from "../token-types";
 import { Latin1StringType, Utf8StringType } from "../token-types/string";
 
-import { fileTypeFromTokenizer } from "./fileTypeFromTokenizer";
+import { detectFileTypeFromTokenizer } from "./fileTypeFromTokenizer";
 import { stringToBytes, tarHeaderChecksumMatches, uint32SyncSafeToken, checkUtil } from "./util";
 
 import type { ITokenizer } from "../strtok3/types";
@@ -137,7 +137,7 @@ export class FileTypeParser {
       }
 
       await tokenizer.ignore(id3HeaderLength);
-      return fileTypeFromTokenizer(tokenizer); // Skip ID3 header, recursion
+      return detectFileTypeFromTokenizer(tokenizer); // Skip ID3 header, recursion
     }
 
     // Musepack, SV7
