@@ -2,7 +2,7 @@ import { EndOfStreamError } from "../peek-readable/EndOfFileStream";
 
 import { FileTypeParser } from "./FileTypeParser";
 
-import type { ITokenizer } from "../strtok3/types";
+import type { BufferTokenizer } from "../strtok3/BufferTokenizer";
 import type { FileTypeResult } from "./type";
 
 /**
@@ -31,7 +31,7 @@ import type { FileTypeResult } from "./type";
  * //=> {ext: 'mp3', mime: 'audio/mpeg'}
  * ```
  */
-export const detectFileTypeFromTokenizer = (tokenizer: ITokenizer): Promise<FileTypeResult | undefined> => {
+export const detectFileTypeFromTokenizer = (tokenizer: BufferTokenizer): Promise<FileTypeResult | undefined> => {
   try {
     return new FileTypeParser().parse(tokenizer);
   } catch (error) {

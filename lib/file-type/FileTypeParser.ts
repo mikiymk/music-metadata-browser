@@ -6,22 +6,18 @@ import { UINT32_LE, UINT16_LE, UINT16_BE, UINT32_BE, UINT8, INT32_BE, UINT64_LE 
 import { Latin1StringType, Utf8StringType } from "../token-types/string";
 
 import { detectFileTypeFromTokenizer } from "./fileTypeFromTokenizer";
-import { stringToBytes, tarHeaderChecksumMatches, uint32SyncSafeToken, check, checkString } from "./util";
+import { tarHeaderChecksumMatches, uint32SyncSafeToken, check, checkString } from "./util";
 
-import type { ITokenizer } from "../strtok3/types";
+import type { BufferTokenizer } from "../strtok3/BufferTokenizer";
 import type { FileTypeResult } from "./type";
 
 const minimumBytes = 4100; // A fair amount of file-types are detectable within this range.
 
 export class FileTypeParser {
   buffer: Uint8Array = new Uint8Array(minimumBytes);
-  tokenizer: ITokenizer;
+  tokenizer: BufferTokenizer;
 
-  checkString(header: string, options?: { offset: number }) {
-    return check(this.buffer, stringToBytes(header), options);
-  }
-
-  async parse(tokenizer: ITokenizer): Promise<FileTypeResult | undefined> {
+  async parse(tokenizer: BufferTokenizer): Promise<FileTypeResult | undefined> {
     this.buffer = new Uint8Array(minimumBytes);
 
     // Keep reading until EOF if the file size is unknown.
@@ -31,7 +27,7 @@ export class FileTypeParser {
 
     this.tokenizer = tokenizer;
 
-    await tokenizer.peekBuffer(this.buffer, { length: 12, mayBeLess: true });
+    tokenizer.peekBuffer(this.buffer, { length: 12, mayBeLess: true });
 
     // -- 2-byte signatures --
     if (check(this.buffer, [0x42, 0x4d])) {
@@ -63,7 +59,7 @@ export class FileTypeParser {
     }
 
     if (check(this.buffer, [0x25, 0x21])) {
-      await tokenizer.peekBuffer(this.buffer, { length: 24, mayBeLess: true });
+      tokenizer.peekBuffer(this.buffer, { length: 24, mayBeLess: true });
 
       if (checkString(this.buffer, "PS-Adobe-", { offset: 2 }) && checkString(this.buffer, " EPSF-", { offset: 14 })) {
         return {
@@ -201,7 +197,7 @@ export class FileTypeParser {
       // Local file header signature
       try {
         while (tokenizer.position + 30 < tokenizer.fileInfo.size) {
-          await tokenizer.readBuffer(this.buffer, { length: 30 });
+          tokenizer.readBuffer(this.buffer, { length: 30 });
 
           // https://en.wikipedia.org/wiki/Zip_(file_format)#File_headers
           const zipHeader: {
@@ -307,7 +303,7 @@ export class FileTypeParser {
             let nextHeaderIndex = -1;
 
             while (nextHeaderIndex < 0 && tokenizer.position < tokenizer.fileInfo.size) {
-              await tokenizer.peekBuffer(this.buffer, { mayBeLess: true });
+              tokenizer.peekBuffer(this.buffer, { mayBeLess: true });
 
               nextHeaderIndex = indexOf(this.buffer, Uint8Array.of(0x50, 0x4b, 0x03, 0x04));
               // Move position to the next header if found, skip the whole buffer otherwise
@@ -333,7 +329,7 @@ export class FileTypeParser {
       // This is an OGG container
       await tokenizer.ignore(28);
       const type = new Uint8Array(8);
-      await tokenizer.readBuffer(type);
+      tokenizer.readBuffer(type);
 
       // Needs to be before `ogg` check
       if (check(type, [0x4f, 0x70, 0x75, 0x73, 0x48, 0x65, 0x61, 0x64])) {
@@ -536,7 +532,7 @@ export class FileTypeParser {
       await tokenizer.ignore(1350);
       const maxBufferSize = 10 * 1024 * 1024;
       const buffer = new Uint8Array(Math.min(maxBufferSize, tokenizer.fileInfo.size));
-      await tokenizer.readBuffer(buffer, { mayBeLess: true });
+      tokenizer.readBuffer(buffer, { mayBeLess: true });
 
       // Check if this is an Adobe Illustrator file
       if (isSubArray(buffer, encodeUtf8("AIPrivateData"))) {
@@ -940,7 +936,7 @@ export class FileTypeParser {
         ) {
           // Sync on Stream-Properties-Object (B7DC0791-A9B7-11CF-8EE6-00C00C205365)
           const typeId = new Uint8Array(16);
-          payload -= await tokenizer.readBuffer(typeId);
+          payload -= tokenizer.readBuffer(typeId);
 
           if (
             check(
@@ -1093,7 +1089,7 @@ export class FileTypeParser {
     }
 
     // Increase sample size from 12 to 256.
-    await tokenizer.peekBuffer(this.buffer, {
+    tokenizer.peekBuffer(this.buffer, {
       length: Math.min(256, tokenizer.fileInfo.size),
       mayBeLess: true,
     });
@@ -1258,7 +1254,7 @@ export class FileTypeParser {
     }
 
     // Increase sample size from 256 to 512
-    await tokenizer.peekBuffer(this.buffer, {
+    tokenizer.peekBuffer(this.buffer, {
       length: Math.min(512, tokenizer.fileInfo.size),
       mayBeLess: true,
     });
@@ -1417,7 +1413,7 @@ export class FileTypeParser {
  *
  * @param tokenizer
  */
-async function readField(tokenizer: ITokenizer) {
+async function readField(tokenizer: BufferTokenizer) {
   const msb = await tokenizer.peekNumber(UINT8);
   let mask = 0x80;
   let ic = 0; // 0 = A, 1 = B, 2 = C, 3
@@ -1429,7 +1425,7 @@ async function readField(tokenizer: ITokenizer) {
   }
 
   const id = new Uint8Array(ic + 1);
-  await tokenizer.readBuffer(id);
+  tokenizer.readBuffer(id);
   return id;
 }
 
@@ -1437,7 +1433,7 @@ async function readField(tokenizer: ITokenizer) {
  *
  * @param tokenizer
  */
-async function readElement(tokenizer: ITokenizer) {
+async function readElement(tokenizer: BufferTokenizer) {
   const id = await readField(tokenizer);
   const lengthField = await readField(tokenizer);
   lengthField[0] ^= 0x80 >> (lengthField.length - 1);
@@ -1454,7 +1450,7 @@ async function readElement(tokenizer: ITokenizer) {
  * @param level
  * @param children
  */
-async function readChildren(tokenizer: ITokenizer, level: number, children: number) {
+async function readChildren(tokenizer: BufferTokenizer, level: number, children: number) {
   while (children > 0) {
     const element = await readElement(tokenizer);
     if (element.id === 17_026) {
@@ -1471,7 +1467,7 @@ async function readChildren(tokenizer: ITokenizer, level: number, children: numb
  *
  * @param tokenizer
  */
-async function readChunkHeader(tokenizer: ITokenizer) {
+async function readChunkHeader(tokenizer: BufferTokenizer) {
   return {
     length: await tokenizer.readToken(INT32_BE),
     type: await tokenizer.readToken(new Latin1StringType(4)),
@@ -1482,9 +1478,9 @@ async function readChunkHeader(tokenizer: ITokenizer) {
  *
  * @param tokenizer
  */
-async function readHeader(tokenizer: ITokenizer) {
+async function readHeader(tokenizer: BufferTokenizer) {
   const guid = new Uint8Array(16);
-  await tokenizer.readBuffer(guid);
+  tokenizer.readBuffer(guid);
   return {
     id: guid,
     size: Number(await tokenizer.readToken(UINT64_LE)),
