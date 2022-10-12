@@ -6,7 +6,7 @@ import { UINT32_LE, UINT16_LE, UINT16_BE, UINT32_BE, UINT8, INT32_BE, UINT64_LE 
 import { Latin1StringType, Utf8StringType } from "../token-types/string";
 
 import { detectFileTypeFromTokenizer } from "./fileTypeFromTokenizer";
-import { stringToBytes, tarHeaderChecksumMatches, uint32SyncSafeToken, checkUtil } from "./util";
+import { stringToBytes, tarHeaderChecksumMatches, uint32SyncSafeToken, check, checkString } from "./util";
 
 import type { ITokenizer } from "../strtok3/types";
 import type { FileTypeResult } from "./type";
@@ -17,12 +17,8 @@ export class FileTypeParser {
   buffer: Uint8Array = new Uint8Array(minimumBytes);
   tokenizer: ITokenizer;
 
-  check(header: number[], options?: { offset: number; mask?: number[] }) {
-    return checkUtil(this.buffer, header, options);
-  }
-
   checkString(header: string, options?: { offset: number }) {
-    return this.check(stringToBytes(header), options);
+    return check(this.buffer, stringToBytes(header), options);
   }
 
   async parse(tokenizer: ITokenizer): Promise<FileTypeResult | undefined> {
@@ -38,38 +34,38 @@ export class FileTypeParser {
     await tokenizer.peekBuffer(this.buffer, { length: 12, mayBeLess: true });
 
     // -- 2-byte signatures --
-    if (this.check([0x42, 0x4d])) {
+    if (check(this.buffer, [0x42, 0x4d])) {
       return {
         ext: "bmp",
         mime: "image/bmp",
       };
     }
 
-    if (this.check([0x0b, 0x77])) {
+    if (check(this.buffer, [0x0b, 0x77])) {
       return {
         ext: "ac3",
         mime: "audio/vnd.dolby.dd-raw",
       };
     }
 
-    if (this.check([0x78, 0x01])) {
+    if (check(this.buffer, [0x78, 0x01])) {
       return {
         ext: "dmg",
         mime: "application/x-apple-diskimage",
       };
     }
 
-    if (this.check([0x4d, 0x5a])) {
+    if (check(this.buffer, [0x4d, 0x5a])) {
       return {
         ext: "exe",
         mime: "application/x-msdownload",
       };
     }
 
-    if (this.check([0x25, 0x21])) {
+    if (check(this.buffer, [0x25, 0x21])) {
       await tokenizer.peekBuffer(this.buffer, { length: 24, mayBeLess: true });
 
-      if (this.checkString("PS-Adobe-", { offset: 2 }) && this.checkString(" EPSF-", { offset: 14 })) {
+      if (checkString(this.buffer, "PS-Adobe-", { offset: 2 }) && checkString(this.buffer, " EPSF-", { offset: 14 })) {
         return {
           ext: "eps",
           mime: "application/eps",
@@ -82,7 +78,7 @@ export class FileTypeParser {
       };
     }
 
-    if (this.check([0x1f, 0xa0]) || this.check([0x1f, 0x9d])) {
+    if (check(this.buffer, [0x1f, 0xa0]) || check(this.buffer, [0x1f, 0x9d])) {
       return {
         ext: "Z",
         mime: "application/x-compress",
@@ -90,42 +86,42 @@ export class FileTypeParser {
     }
 
     // -- 3-byte signatures --
-    if (this.check([0x47, 0x49, 0x46])) {
+    if (check(this.buffer, [0x47, 0x49, 0x46])) {
       return {
         ext: "gif",
         mime: "image/gif",
       };
     }
 
-    if (this.check([0xff, 0xd8, 0xff])) {
+    if (check(this.buffer, [0xff, 0xd8, 0xff])) {
       return {
         ext: "jpg",
         mime: "image/jpeg",
       };
     }
 
-    if (this.check([0x49, 0x49, 0xbc])) {
+    if (check(this.buffer, [0x49, 0x49, 0xbc])) {
       return {
         ext: "jxr",
         mime: "image/vnd.ms-photo",
       };
     }
 
-    if (this.check([0x1f, 0x8b, 0x8])) {
+    if (check(this.buffer, [0x1f, 0x8b, 0x8])) {
       return {
         ext: "gz",
         mime: "application/gzip",
       };
     }
 
-    if (this.check([0x42, 0x5a, 0x68])) {
+    if (check(this.buffer, [0x42, 0x5a, 0x68])) {
       return {
         ext: "bz2",
         mime: "application/x-bzip2",
       };
     }
 
-    if (this.checkString("ID3")) {
+    if (checkString(this.buffer, "ID3")) {
       await tokenizer.ignore(6); // Skip ID3 header until the header size
       const id3HeaderLength = await tokenizer.readToken(uint32SyncSafeToken);
       if (tokenizer.position + id3HeaderLength > tokenizer.fileInfo.size) {
@@ -141,14 +137,14 @@ export class FileTypeParser {
     }
 
     // Musepack, SV7
-    if (this.checkString("MP+")) {
+    if (checkString(this.buffer, "MP+")) {
       return {
         ext: "mpc",
         mime: "audio/x-musepack",
       };
     }
 
-    if ((this.buffer[0] === 0x43 || this.buffer[0] === 0x46) && this.check([0x57, 0x53], { offset: 1 })) {
+    if ((this.buffer[0] === 0x43 || this.buffer[0] === 0x46) && check(this.buffer, [0x57, 0x53], { offset: 1 })) {
       return {
         ext: "swf",
         mime: "application/x-shockwave-flash",
@@ -156,21 +152,21 @@ export class FileTypeParser {
     }
 
     // -- 4-byte signatures --
-    if (this.checkString("FLIF")) {
+    if (checkString(this.buffer, "FLIF")) {
       return {
         ext: "flif",
         mime: "image/flif",
       };
     }
 
-    if (this.checkString("8BPS")) {
+    if (checkString(this.buffer, "8BPS")) {
       return {
         ext: "psd",
         mime: "image/vnd.adobe.photoshop",
       };
     }
 
-    if (this.checkString("WEBP", { offset: 8 })) {
+    if (checkString(this.buffer, "WEBP", { offset: 8 })) {
       return {
         ext: "webp",
         mime: "image/webp",
@@ -178,21 +174,21 @@ export class FileTypeParser {
     }
 
     // Musepack, SV8
-    if (this.checkString("MPCK")) {
+    if (checkString(this.buffer, "MPCK")) {
       return {
         ext: "mpc",
         mime: "audio/x-musepack",
       };
     }
 
-    if (this.checkString("FORM")) {
+    if (checkString(this.buffer, "FORM")) {
       return {
         ext: "aif",
         mime: "audio/aiff",
       };
     }
 
-    if (this.checkString("icns", { offset: 0 })) {
+    if (checkString(this.buffer, "icns", { offset: 0 })) {
       return {
         ext: "icns",
         mime: "image/icns",
@@ -201,7 +197,7 @@ export class FileTypeParser {
 
     // Zip-based file formats
     // Need to be before the `zip` check
-    if (this.check([0x50, 0x4b, 0x3, 0x4])) {
+    if (check(this.buffer, [0x50, 0x4b, 0x3, 0x4])) {
       // Local file header signature
       try {
         while (tokenizer.position + 30 < tokenizer.fileInfo.size) {
@@ -333,14 +329,14 @@ export class FileTypeParser {
       };
     }
 
-    if (this.checkString("OggS")) {
+    if (checkString(this.buffer, "OggS")) {
       // This is an OGG container
       await tokenizer.ignore(28);
       const type = new Uint8Array(8);
       await tokenizer.readBuffer(type);
 
       // Needs to be before `ogg` check
-      if (checkUtil(type, [0x4f, 0x70, 0x75, 0x73, 0x48, 0x65, 0x61, 0x64])) {
+      if (check(type, [0x4f, 0x70, 0x75, 0x73, 0x48, 0x65, 0x61, 0x64])) {
         return {
           ext: "opus",
           mime: "audio/opus",
@@ -348,7 +344,7 @@ export class FileTypeParser {
       }
 
       // If ' theora' in header.
-      if (checkUtil(type, [0x80, 0x74, 0x68, 0x65, 0x6f, 0x72, 0x61])) {
+      if (check(type, [0x80, 0x74, 0x68, 0x65, 0x6f, 0x72, 0x61])) {
         return {
           ext: "ogv",
           mime: "video/ogg",
@@ -356,7 +352,7 @@ export class FileTypeParser {
       }
 
       // If '\x01video' in header.
-      if (checkUtil(type, [0x01, 0x76, 0x69, 0x64, 0x65, 0x6f, 0x00])) {
+      if (check(type, [0x01, 0x76, 0x69, 0x64, 0x65, 0x6f, 0x00])) {
         return {
           ext: "ogm",
           mime: "video/ogg",
@@ -364,7 +360,7 @@ export class FileTypeParser {
       }
 
       // If ' FLAC' in header  https://xiph.org/flac/faq.html
-      if (checkUtil(type, [0x7f, 0x46, 0x4c, 0x41, 0x43])) {
+      if (check(type, [0x7f, 0x46, 0x4c, 0x41, 0x43])) {
         return {
           ext: "oga",
           mime: "audio/ogg",
@@ -372,7 +368,7 @@ export class FileTypeParser {
       }
 
       // 'Speex  ' in header https://en.wikipedia.org/wiki/Speex
-      if (checkUtil(type, [0x53, 0x70, 0x65, 0x65, 0x78, 0x20, 0x20])) {
+      if (check(type, [0x53, 0x70, 0x65, 0x65, 0x78, 0x20, 0x20])) {
         return {
           ext: "spx",
           mime: "audio/ogg",
@@ -380,7 +376,7 @@ export class FileTypeParser {
       }
 
       // If '\x01vorbis' in header
-      if (checkUtil(type, [0x01, 0x76, 0x6f, 0x72, 0x62, 0x69, 0x73])) {
+      if (check(type, [0x01, 0x76, 0x6f, 0x72, 0x62, 0x69, 0x73])) {
         return {
           ext: "ogg",
           mime: "audio/ogg",
@@ -395,7 +391,7 @@ export class FileTypeParser {
     }
 
     if (
-      this.check([0x50, 0x4b]) &&
+      check(this.buffer, [0x50, 0x4b]) &&
       (this.buffer[2] === 0x3 || this.buffer[2] === 0x5 || this.buffer[2] === 0x7) &&
       (this.buffer[3] === 0x4 || this.buffer[3] === 0x6 || this.buffer[3] === 0x8)
     ) {
@@ -411,7 +407,7 @@ export class FileTypeParser {
     // `ftyp` box must contain a brand major identifier, which must consist of ISO 8859-1 printable characters.
     // Here we check for 8859-1 printable characters (for simplicity, it's a mask which also catches one non-printable character).
     if (
-      this.checkString("ftyp", { offset: 4 }) &&
+      checkString(this.buffer, "ftyp", { offset: 4 }) &&
       (this.buffer[8] & 0x60) !== 0x00 // Brand major, first character ASCII?
     ) {
       // They all can have MIME `video/mp4` except `application/mp4` special-case which is hard to detect.
@@ -466,7 +462,7 @@ export class FileTypeParser {
       }
     }
 
-    if (this.checkString("MThd")) {
+    if (checkString(this.buffer, "MThd")) {
       return {
         ext: "mid",
         mime: "audio/midi",
@@ -474,8 +470,8 @@ export class FileTypeParser {
     }
 
     if (
-      this.checkString("wOFF") &&
-      (this.check([0x00, 0x01, 0x00, 0x00], { offset: 4 }) || this.checkString("OTTO", { offset: 4 }))
+      checkString(this.buffer, "wOFF") &&
+      (check(this.buffer, [0x00, 0x01, 0x00, 0x00], { offset: 4 }) || checkString(this.buffer, "OTTO", { offset: 4 }))
     ) {
       return {
         ext: "woff",
@@ -484,8 +480,8 @@ export class FileTypeParser {
     }
 
     if (
-      this.checkString("wOF2") &&
-      (this.check([0x00, 0x01, 0x00, 0x00], { offset: 4 }) || this.checkString("OTTO", { offset: 4 }))
+      checkString(this.buffer, "wOF2") &&
+      (check(this.buffer, [0x00, 0x01, 0x00, 0x00], { offset: 4 }) || checkString(this.buffer, "OTTO", { offset: 4 }))
     ) {
       return {
         ext: "woff2",
@@ -493,7 +489,7 @@ export class FileTypeParser {
       };
     }
 
-    if (this.check([0xd4, 0xc3, 0xb2, 0xa1]) || this.check([0xa1, 0xb2, 0xc3, 0xd4])) {
+    if (check(this.buffer, [0xd4, 0xc3, 0xb2, 0xa1]) || check(this.buffer, [0xa1, 0xb2, 0xc3, 0xd4])) {
       return {
         ext: "pcap",
         mime: "application/vnd.tcpdump.pcap",
@@ -501,42 +497,42 @@ export class FileTypeParser {
     }
 
     // Sony DSD Stream File (DSF)
-    if (this.checkString("DSD ")) {
+    if (checkString(this.buffer, "DSD ")) {
       return {
         ext: "dsf",
         mime: "audio/x-dsf", // Non-standard
       };
     }
 
-    if (this.checkString("LZIP")) {
+    if (checkString(this.buffer, "LZIP")) {
       return {
         ext: "lz",
         mime: "application/x-lzip",
       };
     }
 
-    if (this.checkString("fLaC")) {
+    if (checkString(this.buffer, "fLaC")) {
       return {
         ext: "flac",
         mime: "audio/x-flac",
       };
     }
 
-    if (this.check([0x42, 0x50, 0x47, 0xfb])) {
+    if (check(this.buffer, [0x42, 0x50, 0x47, 0xfb])) {
       return {
         ext: "bpg",
         mime: "image/bpg",
       };
     }
 
-    if (this.checkString("wvpk")) {
+    if (checkString(this.buffer, "wvpk")) {
       return {
         ext: "wv",
         mime: "audio/wavpack",
       };
     }
 
-    if (this.checkString("%PDF")) {
+    if (checkString(this.buffer, "%PDF")) {
       await tokenizer.ignore(1350);
       const maxBufferSize = 10 * 1024 * 1024;
       const buffer = new Uint8Array(Math.min(maxBufferSize, tokenizer.fileInfo.size));
@@ -557,7 +553,7 @@ export class FileTypeParser {
       };
     }
 
-    if (this.check([0x00, 0x61, 0x73, 0x6d])) {
+    if (check(this.buffer, [0x00, 0x61, 0x73, 0x6d])) {
       return {
         ext: "wasm",
         mime: "application/wasm",
@@ -565,7 +561,7 @@ export class FileTypeParser {
     }
 
     // TIFF, little-endian type
-    if (this.check([0x49, 0x49])) {
+    if (check(this.buffer, [0x49, 0x49])) {
       const fileType = await this.readTiffHeader(false);
       if (fileType) {
         return fileType;
@@ -573,14 +569,14 @@ export class FileTypeParser {
     }
 
     // TIFF, big-endian type
-    if (this.check([0x4d, 0x4d])) {
+    if (check(this.buffer, [0x4d, 0x4d])) {
       const fileType = await this.readTiffHeader(true);
       if (fileType) {
         return fileType;
       }
     }
 
-    if (this.checkString("MAC ")) {
+    if (checkString(this.buffer, "MAC ")) {
       return {
         ext: "ape",
         mime: "audio/ape",
@@ -588,7 +584,7 @@ export class FileTypeParser {
     }
 
     // https://github.com/threatstack/libmagic/blob/master/magic/Magdir/matroska
-    if (this.check([0x1a, 0x45, 0xdf, 0xa3])) {
+    if (check(this.buffer, [0x1a, 0x45, 0xdf, 0xa3])) {
       const re = await readElement(tokenizer);
       const docType = await readChildren(tokenizer, 1, re.len);
 
@@ -611,15 +607,15 @@ export class FileTypeParser {
     }
 
     // RIFF file format which might be AVI, WAV, QCP, etc
-    if (this.check([0x52, 0x49, 0x46, 0x46])) {
-      if (this.check([0x41, 0x56, 0x49], { offset: 8 })) {
+    if (check(this.buffer, [0x52, 0x49, 0x46, 0x46])) {
+      if (check(this.buffer, [0x41, 0x56, 0x49], { offset: 8 })) {
         return {
           ext: "avi",
           mime: "video/vnd.avi",
         };
       }
 
-      if (this.check([0x57, 0x41, 0x56, 0x45], { offset: 8 })) {
+      if (check(this.buffer, [0x57, 0x41, 0x56, 0x45], { offset: 8 })) {
         return {
           ext: "wav",
           mime: "audio/vnd.wave",
@@ -627,7 +623,7 @@ export class FileTypeParser {
       }
 
       // QLCM, QCP file
-      if (this.check([0x51, 0x4c, 0x43, 0x4d], { offset: 8 })) {
+      if (check(this.buffer, [0x51, 0x4c, 0x43, 0x4d], { offset: 8 })) {
         return {
           ext: "qcp",
           mime: "audio/qcelp",
@@ -635,56 +631,56 @@ export class FileTypeParser {
       }
     }
 
-    if (this.checkString("SQLi")) {
+    if (checkString(this.buffer, "SQLi")) {
       return {
         ext: "sqlite",
         mime: "application/x-sqlite3",
       };
     }
 
-    if (this.check([0x4e, 0x45, 0x53, 0x1a])) {
+    if (check(this.buffer, [0x4e, 0x45, 0x53, 0x1a])) {
       return {
         ext: "nes",
         mime: "application/x-nintendo-nes-rom",
       };
     }
 
-    if (this.checkString("Cr24")) {
+    if (checkString(this.buffer, "Cr24")) {
       return {
         ext: "crx",
         mime: "application/x-google-chrome-extension",
       };
     }
 
-    if (this.checkString("MSCF") || this.checkString("ISc(")) {
+    if (checkString(this.buffer, "MSCF") || checkString(this.buffer, "ISc(")) {
       return {
         ext: "cab",
         mime: "application/vnd.ms-cab-compressed",
       };
     }
 
-    if (this.check([0xed, 0xab, 0xee, 0xdb])) {
+    if (check(this.buffer, [0xed, 0xab, 0xee, 0xdb])) {
       return {
         ext: "rpm",
         mime: "application/x-rpm",
       };
     }
 
-    if (this.check([0xc5, 0xd0, 0xd3, 0xc6])) {
+    if (check(this.buffer, [0xc5, 0xd0, 0xd3, 0xc6])) {
       return {
         ext: "eps",
         mime: "application/eps",
       };
     }
 
-    if (this.check([0x28, 0xb5, 0x2f, 0xfd])) {
+    if (check(this.buffer, [0x28, 0xb5, 0x2f, 0xfd])) {
       return {
         ext: "zst",
         mime: "application/zstd",
       };
     }
 
-    if (this.check([0x7f, 0x45, 0x4c, 0x46])) {
+    if (check(this.buffer, [0x7f, 0x45, 0x4c, 0x46])) {
       return {
         ext: "elf",
         mime: "application/x-elf",
@@ -692,35 +688,35 @@ export class FileTypeParser {
     }
 
     // -- 5-byte signatures --
-    if (this.check([0x4f, 0x54, 0x54, 0x4f, 0x00])) {
+    if (check(this.buffer, [0x4f, 0x54, 0x54, 0x4f, 0x00])) {
       return {
         ext: "otf",
         mime: "font/otf",
       };
     }
 
-    if (this.checkString("#!AMR")) {
+    if (checkString(this.buffer, "#!AMR")) {
       return {
         ext: "amr",
         mime: "audio/amr",
       };
     }
 
-    if (this.checkString("{\\rtf")) {
+    if (checkString(this.buffer, "{\\rtf")) {
       return {
         ext: "rtf",
         mime: "application/rtf",
       };
     }
 
-    if (this.check([0x46, 0x4c, 0x56, 0x01])) {
+    if (check(this.buffer, [0x46, 0x4c, 0x56, 0x01])) {
       return {
         ext: "flv",
         mime: "video/x-flv",
       };
     }
 
-    if (this.checkString("IMPM")) {
+    if (checkString(this.buffer, "IMPM")) {
       return {
         ext: "it",
         mime: "audio/x-it",
@@ -728,18 +724,18 @@ export class FileTypeParser {
     }
 
     if (
-      this.checkString("-lh0-", { offset: 2 }) ||
-      this.checkString("-lh1-", { offset: 2 }) ||
-      this.checkString("-lh2-", { offset: 2 }) ||
-      this.checkString("-lh3-", { offset: 2 }) ||
-      this.checkString("-lh4-", { offset: 2 }) ||
-      this.checkString("-lh5-", { offset: 2 }) ||
-      this.checkString("-lh6-", { offset: 2 }) ||
-      this.checkString("-lh7-", { offset: 2 }) ||
-      this.checkString("-lzs-", { offset: 2 }) ||
-      this.checkString("-lz4-", { offset: 2 }) ||
-      this.checkString("-lz5-", { offset: 2 }) ||
-      this.checkString("-lhd-", { offset: 2 })
+      checkString(this.buffer, "-lh0-", { offset: 2 }) ||
+      checkString(this.buffer, "-lh1-", { offset: 2 }) ||
+      checkString(this.buffer, "-lh2-", { offset: 2 }) ||
+      checkString(this.buffer, "-lh3-", { offset: 2 }) ||
+      checkString(this.buffer, "-lh4-", { offset: 2 }) ||
+      checkString(this.buffer, "-lh5-", { offset: 2 }) ||
+      checkString(this.buffer, "-lh6-", { offset: 2 }) ||
+      checkString(this.buffer, "-lh7-", { offset: 2 }) ||
+      checkString(this.buffer, "-lzs-", { offset: 2 }) ||
+      checkString(this.buffer, "-lz4-", { offset: 2 }) ||
+      checkString(this.buffer, "-lz5-", { offset: 2 }) ||
+      checkString(this.buffer, "-lhd-", { offset: 2 })
     ) {
       return {
         ext: "lzh",
@@ -748,9 +744,9 @@ export class FileTypeParser {
     }
 
     // MPEG program stream (PS or MPEG-PS)
-    if (this.check([0x00, 0x00, 0x01, 0xba])) {
+    if (check(this.buffer, [0x00, 0x00, 0x01, 0xba])) {
       //  MPEG-PS, MPEG-1 Part 1
-      if (this.check([0x21], { offset: 4, mask: [0xf1] })) {
+      if (check(this.buffer, [0x21], { offset: 4, mask: [0xf1] })) {
         return {
           ext: "mpg",
           mime: "video/MP1S",
@@ -758,7 +754,7 @@ export class FileTypeParser {
       }
 
       // MPEG-PS, MPEG-2 Part 1
-      if (this.check([0x44], { offset: 4, mask: [0xc4] })) {
+      if (check(this.buffer, [0x44], { offset: 4, mask: [0xc4] })) {
         return {
           ext: "mpg",
           mime: "video/MP2P",
@@ -766,7 +762,7 @@ export class FileTypeParser {
       }
     }
 
-    if (this.checkString("ITSF")) {
+    if (checkString(this.buffer, "ITSF")) {
       return {
         ext: "chm",
         mime: "application/vnd.ms-htmlhelp",
@@ -774,35 +770,35 @@ export class FileTypeParser {
     }
 
     // -- 6-byte signatures --
-    if (this.check([0xfd, 0x37, 0x7a, 0x58, 0x5a, 0x00])) {
+    if (check(this.buffer, [0xfd, 0x37, 0x7a, 0x58, 0x5a, 0x00])) {
       return {
         ext: "xz",
         mime: "application/x-xz",
       };
     }
 
-    if (this.checkString("<?xml ")) {
+    if (checkString(this.buffer, "<?xml ")) {
       return {
         ext: "xml",
         mime: "application/xml",
       };
     }
 
-    if (this.check([0x37, 0x7a, 0xbc, 0xaf, 0x27, 0x1c])) {
+    if (check(this.buffer, [0x37, 0x7a, 0xbc, 0xaf, 0x27, 0x1c])) {
       return {
         ext: "7z",
         mime: "application/x-7z-compressed",
       };
     }
 
-    if (this.check([0x52, 0x61, 0x72, 0x21, 0x1a, 0x7]) && (this.buffer[6] === 0x0 || this.buffer[6] === 0x1)) {
+    if (check(this.buffer, [0x52, 0x61, 0x72, 0x21, 0x1a, 0x7]) && (this.buffer[6] === 0x0 || this.buffer[6] === 0x1)) {
       return {
         ext: "rar",
         mime: "application/x-rar-compressed",
       };
     }
 
-    if (this.checkString("solid ")) {
+    if (checkString(this.buffer, "solid ")) {
       return {
         ext: "stl",
         mime: "model/stl",
@@ -810,14 +806,14 @@ export class FileTypeParser {
     }
 
     // -- 7-byte signatures --
-    if (this.checkString("BLENDER")) {
+    if (checkString(this.buffer, "BLENDER")) {
       return {
         ext: "blend",
         mime: "application/x-blender",
       };
     }
 
-    if (this.checkString("!<arch>")) {
+    if (checkString(this.buffer, "!<arch>")) {
       await tokenizer.ignore(8);
       const str = await tokenizer.readToken(new Latin1StringType(13));
       if (str === "debian-binary") {
@@ -834,7 +830,7 @@ export class FileTypeParser {
     }
 
     // -- 8-byte signatures --
-    if (this.check([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) {
+    if (check(this.buffer, [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) {
       // APNG format (https://wiki.mozilla.org/APNG_Specification)
       // 1. Find the first IDAT (image data) chunk (49 44 41 54)
       // 2. Check if there is an "acTL" chunk before the IDAT one (61 63 54 4C)
@@ -871,14 +867,14 @@ export class FileTypeParser {
       };
     }
 
-    if (this.check([0x41, 0x52, 0x52, 0x4f, 0x57, 0x31, 0x00, 0x00])) {
+    if (check(this.buffer, [0x41, 0x52, 0x52, 0x4f, 0x57, 0x31, 0x00, 0x00])) {
       return {
         ext: "arrow",
         mime: "application/x-apache-arrow",
       };
     }
 
-    if (this.check([0x67, 0x6c, 0x54, 0x46, 0x02, 0x00, 0x00, 0x00])) {
+    if (check(this.buffer, [0x67, 0x6c, 0x54, 0x46, 0x02, 0x00, 0x00, 0x00])) {
       return {
         ext: "glb",
         mime: "model/gltf-binary",
@@ -887,10 +883,10 @@ export class FileTypeParser {
 
     // `mov` format variants
     if (
-      this.check([0x66, 0x72, 0x65, 0x65], { offset: 4 }) || // `free`
-      this.check([0x6d, 0x64, 0x61, 0x74], { offset: 4 }) || // `mdat` MJPEG
-      this.check([0x6d, 0x6f, 0x6f, 0x76], { offset: 4 }) || // `moov`
-      this.check([0x77, 0x69, 0x64, 0x65], { offset: 4 }) // `wide`
+      check(this.buffer, [0x66, 0x72, 0x65, 0x65], { offset: 4 }) || // `free`
+      check(this.buffer, [0x6d, 0x64, 0x61, 0x74], { offset: 4 }) || // `mdat` MJPEG
+      check(this.buffer, [0x6d, 0x6f, 0x6f, 0x76], { offset: 4 }) || // `moov`
+      check(this.buffer, [0x77, 0x69, 0x64, 0x65], { offset: 4 }) // `wide`
     ) {
       return {
         ext: "mov",
@@ -898,7 +894,7 @@ export class FileTypeParser {
       };
     }
 
-    if (this.check([0xef, 0xbb, 0xbf]) && this.checkString("<?xml", { offset: 3 })) {
+    if (check(this.buffer, [0xef, 0xbb, 0xbf]) && checkString(this.buffer, "<?xml", { offset: 3 })) {
       // UTF-8-BOM
       return {
         ext: "xml",
@@ -907,14 +903,14 @@ export class FileTypeParser {
     }
 
     // -- 9-byte signatures --
-    if (this.check([0x49, 0x49, 0x52, 0x4f, 0x08, 0x00, 0x00, 0x00, 0x18])) {
+    if (check(this.buffer, [0x49, 0x49, 0x52, 0x4f, 0x08, 0x00, 0x00, 0x00, 0x18])) {
       return {
         ext: "orf",
         mime: "image/x-olympus-orf",
       };
     }
 
-    if (this.checkString("gimp xcf ")) {
+    if (checkString(this.buffer, "gimp xcf ")) {
       return {
         ext: "xcf",
         mime: "image/x-xcf",
@@ -922,7 +918,7 @@ export class FileTypeParser {
     }
 
     // -- 12-byte signatures --
-    if (this.check([0x49, 0x49, 0x55, 0x00, 0x18, 0x00, 0x00, 0x00, 0x88, 0xe7, 0x74, 0xd8])) {
+    if (check(this.buffer, [0x49, 0x49, 0x55, 0x00, 0x18, 0x00, 0x00, 0x00, 0x88, 0xe7, 0x74, 0xd8])) {
       return {
         ext: "rw2",
         mime: "image/x-panasonic-rw2",
@@ -930,14 +926,14 @@ export class FileTypeParser {
     }
 
     // ASF_Header_Object first 80 bytes
-    if (this.check([0x30, 0x26, 0xb2, 0x75, 0x8e, 0x66, 0xcf, 0x11, 0xa6, 0xd9])) {
+    if (check(this.buffer, [0x30, 0x26, 0xb2, 0x75, 0x8e, 0x66, 0xcf, 0x11, 0xa6, 0xd9])) {
       await tokenizer.ignore(30);
       // Search for header should be in first 1KB of file.
       while (tokenizer.position + 24 < tokenizer.fileInfo.size) {
         const header = await readHeader(tokenizer);
         let payload = header.size - 24;
         if (
-          checkUtil(
+          check(
             header.id,
             [0x91, 0x07, 0xdc, 0xb7, 0xb7, 0xa9, 0xcf, 0x11, 0x8e, 0xe6, 0x00, 0xc0, 0x0c, 0x20, 0x53, 0x65]
           )
@@ -947,7 +943,7 @@ export class FileTypeParser {
           payload -= await tokenizer.readBuffer(typeId);
 
           if (
-            checkUtil(
+            check(
               typeId,
               [0x40, 0x9e, 0x69, 0xf8, 0x4d, 0x5b, 0xcf, 0x11, 0xa8, 0xfd, 0x00, 0x80, 0x5f, 0x5c, 0x44, 0x2b]
             )
@@ -960,7 +956,7 @@ export class FileTypeParser {
           }
 
           if (
-            checkUtil(
+            check(
               typeId,
               [0xc0, 0xef, 0x19, 0xbc, 0x4d, 0x5b, 0xcf, 0x11, 0xa8, 0xfd, 0x00, 0x80, 0x5f, 0x5c, 0x44, 0x2b]
             )
@@ -985,7 +981,7 @@ export class FileTypeParser {
       };
     }
 
-    if (this.check([0xab, 0x4b, 0x54, 0x58, 0x20, 0x31, 0x31, 0xbb, 0x0d, 0x0a, 0x1a, 0x0a])) {
+    if (check(this.buffer, [0xab, 0x4b, 0x54, 0x58, 0x20, 0x31, 0x31, 0xbb, 0x0d, 0x0a, 0x1a, 0x0a])) {
       return {
         ext: "ktx",
         mime: "image/ktx",
@@ -993,8 +989,8 @@ export class FileTypeParser {
     }
 
     if (
-      (this.check([0x7e, 0x10, 0x04]) || this.check([0x7e, 0x18, 0x04])) &&
-      this.check([0x30, 0x4d, 0x49, 0x45], { offset: 4 })
+      (check(this.buffer, [0x7e, 0x10, 0x04]) || check(this.buffer, [0x7e, 0x18, 0x04])) &&
+      check(this.buffer, [0x30, 0x4d, 0x49, 0x45], { offset: 4 })
     ) {
       return {
         ext: "mie",
@@ -1002,14 +998,14 @@ export class FileTypeParser {
       };
     }
 
-    if (this.check([0x27, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], { offset: 2 })) {
+    if (check(this.buffer, [0x27, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], { offset: 2 })) {
       return {
         ext: "shp",
         mime: "application/x-esri-shape",
       };
     }
 
-    if (this.check([0x00, 0x00, 0x00, 0x0c, 0x6a, 0x50, 0x20, 0x20, 0x0d, 0x0a, 0x87, 0x0a])) {
+    if (check(this.buffer, [0x00, 0x00, 0x00, 0x0c, 0x6a, 0x50, 0x20, 0x20, 0x0d, 0x0a, 0x87, 0x0a])) {
       // JPEG-2000 family
       await tokenizer.ignore(20);
       const type = await tokenizer.readToken(new Latin1StringType(4));
@@ -1040,8 +1036,8 @@ export class FileTypeParser {
     }
 
     if (
-      this.check([0xff, 0x0a]) ||
-      this.check([0x00, 0x00, 0x00, 0x0c, 0x4a, 0x58, 0x4c, 0x20, 0x0d, 0x0a, 0x87, 0x0a])
+      check(this.buffer, [0xff, 0x0a]) ||
+      check(this.buffer, [0x00, 0x00, 0x00, 0x0c, 0x4a, 0x58, 0x4c, 0x20, 0x0d, 0x0a, 0x87, 0x0a])
     ) {
       return {
         ext: "jxl",
@@ -1050,8 +1046,8 @@ export class FileTypeParser {
     }
 
     if (
-      this.check([0xfe, 0xff, 0, 60, 0, 63, 0, 120, 0, 109, 0, 108]) || // UTF-16-BOM-LE
-      this.check([0xff, 0xfe, 60, 0, 63, 0, 120, 0, 109, 0, 108, 0]) // UTF-16-BOM-LE
+      check(this.buffer, [0xfe, 0xff, 0, 60, 0, 63, 0, 120, 0, 109, 0, 108]) || // UTF-16-BOM-LE
+      check(this.buffer, [0xff, 0xfe, 60, 0, 63, 0, 120, 0, 109, 0, 108, 0]) // UTF-16-BOM-LE
     ) {
       return {
         ext: "xml",
@@ -1060,35 +1056,35 @@ export class FileTypeParser {
     }
 
     // -- Unsafe signatures --
-    if (this.check([0x0, 0x0, 0x1, 0xba]) || this.check([0x0, 0x0, 0x1, 0xb3])) {
+    if (check(this.buffer, [0x0, 0x0, 0x1, 0xba]) || check(this.buffer, [0x0, 0x0, 0x1, 0xb3])) {
       return {
         ext: "mpg",
         mime: "video/mpeg",
       };
     }
 
-    if (this.check([0x00, 0x01, 0x00, 0x00, 0x00])) {
+    if (check(this.buffer, [0x00, 0x01, 0x00, 0x00, 0x00])) {
       return {
         ext: "ttf",
         mime: "font/ttf",
       };
     }
 
-    if (this.check([0x00, 0x00, 0x01, 0x00])) {
+    if (check(this.buffer, [0x00, 0x00, 0x01, 0x00])) {
       return {
         ext: "ico",
         mime: "image/x-icon",
       };
     }
 
-    if (this.check([0x00, 0x00, 0x02, 0x00])) {
+    if (check(this.buffer, [0x00, 0x00, 0x02, 0x00])) {
       return {
         ext: "cur",
         mime: "image/x-icon",
       };
     }
 
-    if (this.check([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1])) {
+    if (check(this.buffer, [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1])) {
       // Detected Microsoft Compound File Binary File (MS-CFB) Format.
       return {
         ext: "cfb",
@@ -1103,15 +1099,15 @@ export class FileTypeParser {
     });
 
     // -- 15-byte signatures --
-    if (this.checkString("BEGIN:")) {
-      if (this.checkString("VCARD", { offset: 6 })) {
+    if (checkString(this.buffer, "BEGIN:")) {
+      if (checkString(this.buffer, "VCARD", { offset: 6 })) {
         return {
           ext: "vcf",
           mime: "text/vcard",
         };
       }
 
-      if (this.checkString("VCALENDAR", { offset: 6 })) {
+      if (checkString(this.buffer, "VCALENDAR", { offset: 6 })) {
         return {
           ext: "ics",
           mime: "text/calendar",
@@ -1120,28 +1116,28 @@ export class FileTypeParser {
     }
 
     // `raf` is here just to keep all the raw image detectors together.
-    if (this.checkString("FUJIFILMCCD-RAW")) {
+    if (checkString(this.buffer, "FUJIFILMCCD-RAW")) {
       return {
         ext: "raf",
         mime: "image/x-fujifilm-raf",
       };
     }
 
-    if (this.checkString("Extended Module:")) {
+    if (checkString(this.buffer, "Extended Module:")) {
       return {
         ext: "xm",
         mime: "audio/x-xm",
       };
     }
 
-    if (this.checkString("Creative Voice File")) {
+    if (checkString(this.buffer, "Creative Voice File")) {
       return {
         ext: "voc",
         mime: "audio/x-voc",
       };
     }
 
-    if (this.check([0x04, 0x00, 0x00, 0x00]) && this.buffer.length >= 16) {
+    if (check(this.buffer, [0x04, 0x00, 0x00, 0x00]) && this.buffer.length >= 16) {
       // Rough & quick check Pickle/ASAR
       const jsonSize = UINT32_LE.get(this.buffer, 12);
       if (jsonSize > 12 && this.buffer.length >= jsonSize + 16) {
@@ -1162,14 +1158,14 @@ export class FileTypeParser {
       }
     }
 
-    if (this.check([0x06, 0x0e, 0x2b, 0x34, 0x02, 0x05, 0x01, 0x01, 0x0d, 0x01, 0x02, 0x01, 0x01, 0x02])) {
+    if (check(this.buffer, [0x06, 0x0e, 0x2b, 0x34, 0x02, 0x05, 0x01, 0x01, 0x0d, 0x01, 0x02, 0x01, 0x01, 0x02])) {
       return {
         ext: "mxf",
         mime: "application/mxf",
       };
     }
 
-    if (this.checkString("SCRM", { offset: 44 })) {
+    if (checkString(this.buffer, "SCRM", { offset: 44 })) {
       return {
         ext: "s3m",
         mime: "audio/x-s3m",
@@ -1177,7 +1173,7 @@ export class FileTypeParser {
     }
 
     // Raw MPEG-2 transport stream (188-byte packets)
-    if (this.check([0x47]) && this.check([0x47], { offset: 188 })) {
+    if (check(this.buffer, [0x47]) && check(this.buffer, [0x47], { offset: 188 })) {
       return {
         ext: "mts",
         mime: "video/mp2t",
@@ -1185,7 +1181,7 @@ export class FileTypeParser {
     }
 
     // Blu-ray Disc Audio-Video (BDAV) MPEG-2 transport stream has 4-byte TP_extra_header before each 188-byte packet
-    if (this.check([0x47], { offset: 4 }) && this.check([0x47], { offset: 196 })) {
+    if (check(this.buffer, [0x47], { offset: 4 }) && check(this.buffer, [0x47], { offset: 196 })) {
       return {
         ext: "mts",
         mime: "video/mp2t",
@@ -1193,7 +1189,7 @@ export class FileTypeParser {
     }
 
     if (
-      this.check([0x42, 0x4f, 0x4f, 0x4b, 0x4d, 0x4f, 0x42, 0x49], {
+      check(this.buffer, [0x42, 0x4f, 0x4f, 0x4b, 0x4d, 0x4f, 0x42, 0x49], {
         offset: 60,
       })
     ) {
@@ -1203,7 +1199,7 @@ export class FileTypeParser {
       };
     }
 
-    if (this.check([0x44, 0x49, 0x43, 0x4d], { offset: 128 })) {
+    if (check(this.buffer, [0x44, 0x49, 0x43, 0x4d], { offset: 128 })) {
       return {
         ext: "dcm",
         mime: "application/dicom",
@@ -1211,10 +1207,13 @@ export class FileTypeParser {
     }
 
     if (
-      this.check([
-        0x4c, 0x00, 0x00, 0x00, 0x01, 0x14, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0xc0, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x46,
-      ])
+      check(
+        this.buffer,
+        [
+          0x4c, 0x00, 0x00, 0x00, 0x01, 0x14, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0xc0, 0x00, 0x00, 0x00, 0x00, 0x00,
+          0x00, 0x46,
+        ]
+      )
     ) {
       return {
         ext: "lnk",
@@ -1222,7 +1221,12 @@ export class FileTypeParser {
       };
     }
 
-    if (this.check([0x62, 0x6f, 0x6f, 0x6b, 0x00, 0x00, 0x00, 0x00, 0x6d, 0x61, 0x72, 0x6b, 0x00, 0x00, 0x00, 0x00])) {
+    if (
+      check(
+        this.buffer,
+        [0x62, 0x6f, 0x6f, 0x6b, 0x00, 0x00, 0x00, 0x00, 0x6d, 0x61, 0x72, 0x6b, 0x00, 0x00, 0x00, 0x00]
+      )
+    ) {
       return {
         ext: "alias",
         mime: "application/x.apple.alias", // Invented by us
@@ -1230,10 +1234,10 @@ export class FileTypeParser {
     }
 
     if (
-      this.check([0x4c, 0x50], { offset: 34 }) &&
-      (this.check([0x00, 0x00, 0x01], { offset: 8 }) ||
-        this.check([0x01, 0x00, 0x02], { offset: 8 }) ||
-        this.check([0x02, 0x00, 0x02], { offset: 8 }))
+      check(this.buffer, [0x4c, 0x50], { offset: 34 }) &&
+      (check(this.buffer, [0x00, 0x00, 0x01], { offset: 8 }) ||
+        check(this.buffer, [0x01, 0x00, 0x02], { offset: 8 }) ||
+        check(this.buffer, [0x02, 0x00, 0x02], { offset: 8 }))
     ) {
       return {
         ext: "eot",
@@ -1241,7 +1245,12 @@ export class FileTypeParser {
       };
     }
 
-    if (this.check([0x06, 0x06, 0xed, 0xf5, 0xd8, 0x1d, 0x46, 0xe5, 0xbd, 0x31, 0xef, 0xe7, 0xfe, 0x74, 0xb7, 0x1d])) {
+    if (
+      check(
+        this.buffer,
+        [0x06, 0x06, 0xed, 0xf5, 0xd8, 0x1d, 0x46, 0xe5, 0xbd, 0x31, 0xef, 0xe7, 0xfe, 0x74, 0xb7, 0x1d]
+      )
+    ) {
       return {
         ext: "indd",
         mime: "application/x-indesign",
@@ -1263,10 +1272,13 @@ export class FileTypeParser {
     }
 
     if (
-      this.check([
-        0xff, 0xfe, 0xff, 0x0e, 0x53, 0x00, 0x6b, 0x00, 0x65, 0x00, 0x74, 0x00, 0x63, 0x00, 0x68, 0x00, 0x55, 0x00,
-        0x70, 0x00, 0x20, 0x00, 0x4d, 0x00, 0x6f, 0x00, 0x64, 0x00, 0x65, 0x00, 0x6c, 0x00,
-      ])
+      check(
+        this.buffer,
+        [
+          0xff, 0xfe, 0xff, 0x0e, 0x53, 0x00, 0x6b, 0x00, 0x65, 0x00, 0x74, 0x00, 0x63, 0x00, 0x68, 0x00, 0x55, 0x00,
+          0x70, 0x00, 0x20, 0x00, 0x4d, 0x00, 0x6f, 0x00, 0x64, 0x00, 0x65, 0x00, 0x6c, 0x00,
+        ]
+      )
     ) {
       return {
         ext: "skp",
@@ -1274,7 +1286,7 @@ export class FileTypeParser {
       };
     }
 
-    if (this.checkString("-----BEGIN PGP MESSAGE-----")) {
+    if (checkString(this.buffer, "-----BEGIN PGP MESSAGE-----")) {
       return {
         ext: "pgp",
         mime: "application/pgp-encrypted",
@@ -1282,10 +1294,10 @@ export class FileTypeParser {
     }
 
     // Check MPEG 1 or 2 Layer 3 header, or 'layer 0' for ADTS (MPEG sync-word 0xFFE)
-    if (this.buffer.length >= 2 && this.check([0xff, 0xe0], { offset: 0, mask: [0xff, 0xe0] })) {
-      if (this.check([0x10], { offset: 1, mask: [0x16] })) {
+    if (this.buffer.length >= 2 && check(this.buffer, [0xff, 0xe0], { offset: 0, mask: [0xff, 0xe0] })) {
+      if (check(this.buffer, [0x10], { offset: 1, mask: [0x16] })) {
         // Check for (ADTS) MPEG-2
-        if (this.check([0x08], { offset: 1, mask: [0x08] })) {
+        if (check(this.buffer, [0x08], { offset: 1, mask: [0x08] })) {
           return {
             ext: "aac",
             mime: "audio/aac",
@@ -1301,7 +1313,7 @@ export class FileTypeParser {
 
       // MPEG 1 or 2 Layer 3 header
       // Check for MPEG layer 3
-      if (this.check([0x02], { offset: 1, mask: [0x06] })) {
+      if (check(this.buffer, [0x02], { offset: 1, mask: [0x06] })) {
         return {
           ext: "mp3",
           mime: "audio/mpeg",
@@ -1309,7 +1321,7 @@ export class FileTypeParser {
       }
 
       // Check for MPEG layer 2
-      if (this.check([0x04], { offset: 1, mask: [0x06] })) {
+      if (check(this.buffer, [0x04], { offset: 1, mask: [0x06] })) {
         return {
           ext: "mp2",
           mime: "audio/mpeg",
@@ -1317,7 +1329,7 @@ export class FileTypeParser {
       }
 
       // Check for MPEG layer 1
-      if (this.check([0x06], { offset: 1, mask: [0x06] })) {
+      if (check(this.buffer, [0x06], { offset: 1, mask: [0x06] })) {
         return {
           ext: "mp1",
           mime: "audio/mpeg",
@@ -1361,7 +1373,7 @@ export class FileTypeParser {
     if (version === 42) {
       // TIFF file header
       if (ifdOffset >= 6) {
-        if (this.checkString("CR", { offset: 8 })) {
+        if (checkString(this.buffer, "CR", { offset: 8 })) {
           return {
             ext: "cr2",
             mime: "image/x-canon-cr2",
@@ -1370,7 +1382,8 @@ export class FileTypeParser {
 
         if (
           ifdOffset >= 8 &&
-          (this.check([0x1c, 0x00, 0xfe, 0x00], { offset: 8 }) || this.check([0x1f, 0x00, 0x0b, 0x00], { offset: 8 }))
+          (check(this.buffer, [0x1c, 0x00, 0xfe, 0x00], { offset: 8 }) ||
+            check(this.buffer, [0x1f, 0x00, 0x0b, 0x00], { offset: 8 }))
         ) {
           return {
             ext: "nef",
