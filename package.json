@@ -88,6 +88,7 @@
     "lint:md": "remark -u preset-lint-recommended .",
     "test": "run-s test:vitest",
     "test:vitest": "vitest --run",
+    "test:bench": "vitest bench --run",
     "test:coverage": "vitest --run --coverage",
     "watch:test": "vitest --watch",
     "watch:typescript": "tsc -p tsconfig.check.json -w"
@@ -108,6 +109,7 @@
     "eslint-plugin-strict-null-checks": "^0.0.19",
     "eslint-plugin-unicorn": "^43.0.2",
     "jsdom": "^20.0.0",
+    "music-metadata": "^8.1.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.7.1",
     "remark-cli": "^11.0.0",

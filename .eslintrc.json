@@ -182,7 +182,7 @@
 
   "overrides": [
     {
-      "files": ["test/**/*.ts", "**/*.test.ts"],
+      "files": ["test/**/*.ts", "**/*.test.ts", "**/*.bench.ts"],
       "env": { "node": true },
       "rules": {
         "import/no-extraneous-dependencies": ["error", { "devDependencies": true }],

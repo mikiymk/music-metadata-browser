@@ -4,5 +4,5 @@
   "compilerOptions": {
     "noEmit": true
   },
-  "include": ["lib/**/*.ts", "test/**/*.ts", "doc-gen/**/*.ts"]
+  "include": ["lib/**/*.ts", "test/**/*.ts","bench/**/*.ts", "doc-gen/**/*.ts"]
 }
