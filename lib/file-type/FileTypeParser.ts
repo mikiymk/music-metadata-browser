@@ -118,7 +118,7 @@ export class FileTypeParser {
     }
 
     if (checkString(this.buffer, "ID3")) {
-      await tokenizer.ignore(6); // Skip ID3 header until the header size
+      tokenizer.ignore(6); // Skip ID3 header until the header size
       const id3HeaderLength = await tokenizer.readToken(uint32SyncSafeToken);
       if (tokenizer.position + id3HeaderLength > tokenizer.fileInfo.size) {
         // Guess file type based on ID3 header for backward compatibility
@@ -128,7 +128,7 @@ export class FileTypeParser {
         };
       }
 
-      await tokenizer.ignore(id3HeaderLength);
+      tokenizer.ignore(id3HeaderLength);
       return detectFileTypeFromTokenizer(tokenizer); // Skip ID3 header, recursion
     }
 
@@ -214,7 +214,7 @@ export class FileTypeParser {
           };
 
           zipHeader.filename = await tokenizer.readToken(new Utf8StringType(zipHeader.filenameLength));
-          await tokenizer.ignore(zipHeader.extraFieldLength);
+          tokenizer.ignore(zipHeader.extraFieldLength);
 
           // Assumes signed `.xpi` from addons.mozilla.org
           if (zipHeader.filename === "META-INF/mozilla.rsa") {
@@ -307,10 +307,10 @@ export class FileTypeParser {
 
               nextHeaderIndex = indexOf(this.buffer, Uint8Array.of(0x50, 0x4b, 0x03, 0x04));
               // Move position to the next header if found, skip the whole buffer otherwise
-              await tokenizer.ignore(nextHeaderIndex >= 0 ? nextHeaderIndex : this.buffer.length);
+              tokenizer.ignore(nextHeaderIndex >= 0 ? nextHeaderIndex : this.buffer.length);
             }
           } else {
-            await tokenizer.ignore(zipHeader.compressedSize);
+            tokenizer.ignore(zipHeader.compressedSize);
           }
         }
       } catch (error) {
@@ -327,7 +327,7 @@ export class FileTypeParser {
 
     if (checkString(this.buffer, "OggS")) {
       // This is an OGG container
-      await tokenizer.ignore(28);
+      tokenizer.ignore(28);
       const type = new Uint8Array(8);
       tokenizer.readBuffer(type);
 
@@ -529,7 +529,7 @@ export class FileTypeParser {
     }
 
     if (checkString(this.buffer, "%PDF")) {
-      await tokenizer.ignore(1350);
+      tokenizer.ignore(1350);
       const maxBufferSize = 10 * 1024 * 1024;
       const buffer = new Uint8Array(Math.min(maxBufferSize, tokenizer.fileInfo.size));
       tokenizer.readBuffer(buffer, { mayBeLess: true });
@@ -810,7 +810,7 @@ export class FileTypeParser {
     }
 
     if (checkString(this.buffer, "!<arch>")) {
-      await tokenizer.ignore(8);
+      tokenizer.ignore(8);
       const str = await tokenizer.readToken(new Latin1StringType(13));
       if (str === "debian-binary") {
         return {
@@ -833,7 +833,7 @@ export class FileTypeParser {
       // Offset calculated as follows:
       // - 8 bytes: PNG signature
       // - 4 (length) + 4 (chunk type) + 13 (chunk data) + 4 (CRC): IHDR chunk
-      await tokenizer.ignore(8); // ignore PNG signature
+      tokenizer.ignore(8); // ignore PNG signature
 
       do {
         const chunk = await readChunkHeader(tokenizer);
@@ -853,7 +853,7 @@ export class FileTypeParser {
               mime: "image/apng",
             };
           default:
-            await tokenizer.ignore(chunk.length + 4); // Ignore chunk-data + CRC
+            tokenizer.ignore(chunk.length + 4); // Ignore chunk-data + CRC
         }
       } while (tokenizer.position + 8 < tokenizer.fileInfo.size);
 
@@ -923,7 +923,7 @@ export class FileTypeParser {
 
     // ASF_Header_Object first 80 bytes
     if (check(this.buffer, [0x30, 0x26, 0xb2, 0x75, 0x8e, 0x66, 0xcf, 0x11, 0xa6, 0xd9])) {
-      await tokenizer.ignore(30);
+      tokenizer.ignore(30);
       // Search for header should be in first 1KB of file.
       while (tokenizer.position + 24 < tokenizer.fileInfo.size) {
         const header = await readHeader(tokenizer);
@@ -967,7 +967,7 @@ export class FileTypeParser {
           break;
         }
 
-        await tokenizer.ignore(payload);
+        tokenizer.ignore(payload);
       }
 
       // Default to ASF generic extension
@@ -1003,7 +1003,7 @@ export class FileTypeParser {
 
     if (check(this.buffer, [0x00, 0x00, 0x00, 0x0c, 0x6a, 0x50, 0x20, 0x20, 0x0d, 0x0a, 0x87, 0x0a])) {
       // JPEG-2000 family
-      await tokenizer.ignore(20);
+      tokenizer.ignore(20);
       const type = await tokenizer.readToken(new Latin1StringType(4));
       switch (type) {
         case "jp2 ":
@@ -1388,7 +1388,7 @@ export class FileTypeParser {
         }
       }
 
-      await this.tokenizer.ignore(ifdOffset);
+      this.tokenizer.ignore(ifdOffset);
       const fileType = await this.readTiffIFD(false);
       return (
         fileType ?? {
@@ -1458,7 +1458,7 @@ async function readChildren(tokenizer: BufferTokenizer, level: number, children:
       return rawValue.replace(/\00.*$/g, ""); // Return DocType
     }
 
-    await tokenizer.ignore(element.len); // ignore payload
+    tokenizer.ignore(element.len); // ignore payload
     --children;
   }
 }
