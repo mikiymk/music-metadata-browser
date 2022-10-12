@@ -1,12 +1,13 @@
+import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-import { parseFile as origParseFile } from "music-metadata";
+import { parseBuffer as origParseBuffer } from "music-metadata";
 import { bench, describe } from "vitest";
 
-import { parseFile as myParseFile } from "../lib";
+import { parseBuffer as myParseBuffer } from "../lib";
 import { samplePath } from "../test/util";
 
-const _: [string, string[]][] = [
+const cases: [string, string[]][] = [
   ["aac", ["aac", "adts-mpeg4.aac"]],
   ["aiff", ["aiff", "M1F1-int8-AFsp.aif"]],
   ["ape", ["monkeysaudio.ape"]],
@@ -14,7 +15,7 @@ const _: [string, string[]][] = [
   ["dsf", ["dsf", "2L-110_stereo-5644k-1b_04_0.1-sec.dsf"]],
   ["flac", ["flac.flac"]],
   ["matroska", ["matroska", "alac-in-matroska-short.mka"]],
-  ["mp3/layer1", ["mp3", "layer1", "fl1.mp1"]],
+  // ["mp3/layer1", ["mp3", "layer1", "fl1.mp1"]],
   ["mp3/layer2", ["mp3", "layer2", "fl10.mp2"]],
   ["mp3/layer3", ["mp3", "layer3", "compl.mp3"]],
   ["mp4", ["mp4", "id4.m4a"]],
@@ -27,17 +28,18 @@ const _: [string, string[]][] = [
   ["wavpack", ["wavpack", "MusicBrainz - Beth Hart - Sinner's Prayer.wv"]],
 ];
 
-describe("aac file", () => {
+describe.each(cases)("%s file", async (_, pathes) => {
+  const filePath = join(samplePath, ...pathes);
+  const fileBuffer = Uint8Array.from(await readFile(filePath));
+
   bench("original music-metadata", async () => {
-    const filePath = join(samplePath, "aac", "adts-mpeg4.aac");
-    await origParseFile(filePath, {
+    await origParseBuffer(fileBuffer, undefined, {
       duration: true,
     });
   });
 
   bench("my music-metadata", async () => {
-    const filePath = join(samplePath, "aac", "adts-mpeg4.aac");
-    await myParseFile(filePath, {
+    await myParseBuffer(fileBuffer, undefined, {
       duration: true,
     });
   });
