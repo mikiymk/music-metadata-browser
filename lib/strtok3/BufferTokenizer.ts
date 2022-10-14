@@ -55,7 +55,11 @@ export class BufferTokenizer extends AbstractTokenizer {
     }
   }
 
-  public override async close(): Promise<void> {
+  public override ignore(length: number): number {
+    return super.ignore(length) as number;
+  }
+
+  public override close(): void {
     // empty
   }
 }

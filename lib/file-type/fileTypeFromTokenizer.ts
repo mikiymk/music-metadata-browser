@@ -1,8 +1,8 @@
 import { EndOfStreamError } from "../peek-readable/EndOfFileStream";
 
-import { FileTypeParser } from "./FileTypeParser";
+import { parseFileType } from "./FileTypeParser";
 
-import type { ITokenizer } from "../strtok3/types";
+import type { BufferTokenizer } from "../strtok3/BufferTokenizer";
 import type { FileTypeResult } from "./type";
 
 /**
@@ -31,12 +31,12 @@ import type { FileTypeResult } from "./type";
  * //=> {ext: 'mp3', mime: 'audio/mpeg'}
  * ```
  */
-export async function fileTypeFromTokenizer(tokenizer: ITokenizer): Promise<FileTypeResult | undefined> {
+export const detectFileTypeFromTokenizer = (tokenizer: BufferTokenizer): FileTypeResult | undefined => {
   try {
-    return new FileTypeParser().parse(tokenizer);
+    return parseFileType(tokenizer);
   } catch (error) {
     if (!(error instanceof EndOfStreamError)) {
       throw error;
     }
   }
-}
+};

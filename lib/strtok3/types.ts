@@ -1,5 +1,7 @@
 import type { IGetToken } from "../token-types";
 
+export type Awaitable<T> = T | Promise<T>;
+
 export interface IFileInfo {
   /**
    * File size in bytes
@@ -66,7 +68,7 @@ export interface ITokenizer {
    * @param options - Read behaviour options
    * @returns Promise with number of bytes read
    */
-  peekBuffer(buffer: Uint8Array, options?: IReadChunkOptions): number | Promise<number>;
+  peekBuffer(buffer: Uint8Array, options?: IReadChunkOptions): Awaitable<number>;
 
   /**
    * Peek (read ahead) buffer from tokenizer
@@ -74,7 +76,7 @@ export interface ITokenizer {
    * @param options - Additional read options
    * @returns Promise with number of bytes read
    */
-  readBuffer(buffer: Uint8Array, options?: IReadChunkOptions): number | Promise<number>;
+  readBuffer(buffer: Uint8Array, options?: IReadChunkOptions): Awaitable<number>;
 
   /**
    * Peek a token from the tokenizer-stream.
@@ -82,38 +84,38 @@ export interface ITokenizer {
    * @param position - Offset where to begin reading within the file. If position is null, data will be read from the current file position.
    * @param maybeless - If set, will not throw an EOF error if the less then the requested length could be read.
    */
-  peekToken<T>(token: IGetToken<T>, position?: number | null, maybeless?: boolean): Promise<T>;
+  peekToken<T>(token: IGetToken<T>, position?: number | null, maybeless?: boolean): Awaitable<T>;
 
   /**
    * Read a token from the tokenizer-stream.
    * @param token - Token to peek from the tokenizer-stream.
    * @param position - Offset where to begin reading within the file. If position is null, data will be read from the current file position.
    */
-  readToken<T>(token: IGetToken<T>, position?: number): Promise<T>;
+  readToken<T>(token: IGetToken<T>, position?: number): Awaitable<T>;
 
   /**
    * Peek a numeric token from the stream
    * @param token - Numeric token
    * @returns Promise with number
    */
-  peekNumber(token: IGetToken<number>): Promise<number>;
+  peekNumber(token: IGetToken<number>): Awaitable<number>;
 
   /**
    * Read a numeric token from the stream
    * @param token - Numeric token
    * @returns Promise with number
    */
-  readNumber(token: IGetToken<number>): Promise<number>;
+  readNumber(token: IGetToken<number>): Awaitable<number>;
 
   /**
    * Ignore given number of bytes
    * @param length - Number of bytes ignored
    */
-  ignore(length: number): Promise<number>;
+  ignore(length: number): Awaitable<number>;
 
   /**
    * Clean up resources.
    * It does not close the stream for StreamReader, but is does close the file-descriptor.
    */
-  close(): Promise<void>;
+  close(): Awaitable<void>;
 }

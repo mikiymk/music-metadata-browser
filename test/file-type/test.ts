@@ -1,16 +1,10 @@
 import { Buffer } from "node:buffer";
-import { readFileSync, createReadStream } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { test, expect, describe } from "vitest";
 
-import { fileTypeFromBuffer } from "../../lib/file-type/fileTypeFromBuffer";
-import { fileTypeFromFile } from "../../lib/file-type/fileTypeFromFile";
-import { fileTypeFromStream } from "../../lib/file-type/fileTypeFromStream";
-import { fileTypeStream } from "../../lib/file-type/fileTypeStream";
-import { SourceStream } from "../util";
-
-import { streamToBuffer } from "./util";
+import { detectFileType } from "../../lib/file-type/fileTypeFromBuffer";
 
 import type { FileExtension } from "../../lib/file-type/type";
 
@@ -194,8 +188,8 @@ const falsePositives: Partial<Record<FileExtension, string[]>> = {
   png: ["fixture-corrupt"],
 };
 
-async function checkBufferLike(type: FileExtension, bufferLike: Uint8Array | ArrayBuffer | Buffer) {
-  const fileType = await fileTypeFromBuffer(bufferLike);
+function checkBufferLike(type: FileExtension, bufferLike: Uint8Array | Buffer) {
+  const fileType = detectFileType(bufferLike);
   expect(fileType!.ext).toBe(type);
   expect(fileType!.mime).toBeTypeOf("string");
 }
@@ -210,83 +204,43 @@ const falsePositivesCases = Object.entries(falsePositives).flatMap(([type, typen
 
 describe.each(cases)("%s.%s", (name, type) => {
   const filePath = join(__dirname, "fixture", `${name}.${type}`);
-  test("fromFile", async () => {
-    const fileType = await fileTypeFromFile(filePath);
-    expect(fileType!.ext).toBe(type);
-    expect(fileType!.mime).toBeTypeOf("string");
-  });
 
-  test("fromBuffer Buffer", async () => {
+  test("fromBuffer Buffer", () => {
     const chunk = readFileSync(filePath);
-    await checkBufferLike(type, chunk);
+    checkBufferLike(type, chunk);
   });
 
-  test("fromBuffer Uint8Array", async () => {
+  test("fromBuffer Uint8Array", () => {
     const chunk = readFileSync(filePath);
-    await checkBufferLike(type, new Uint8Array(chunk));
-  });
-
-  test.skip("fromBuffer ArrayBuffer.slice", async () => {
-    const chunk = readFileSync(filePath);
-    await checkBufferLike(type, chunk.buffer.slice(chunk.byteOffset, chunk.byteOffset + chunk.byteLength));
-  });
-
-  test("fromStream", async () => {
-    const fileType = await fileTypeFromStream(createReadStream(filePath));
-
-    expect(fileType, `identify ${name}.${type}`).toBeTruthy();
-    expect(fileType!.ext, "fileType.ext").toBe(type);
-    expect(fileType!.mime, "fileType.mime").toBeTypeOf("string");
-  });
-
-  test("fileTypeStream", async () => {
-    const readableStream = await fileTypeStream(createReadStream(filePath));
-    const fileStream = createReadStream(filePath);
-
-    const [bufferA, bufferB] = await Promise.all([streamToBuffer(readableStream), streamToBuffer(fileStream)]);
-
-    expect(bufferA.equals(bufferB)).toBe(true);
+    checkBufferLike(type, new Uint8Array(chunk));
   });
 });
 
 describe.each(falsePositivesCases)("%s.%s", (name, type) => {
   const filePath = join(__dirname, "fixture", `${name}.${type}`);
 
-  test(`false positive - from file`, async () => {
-    await expect(fileTypeFromFile(filePath)).resolves.toBeUndefined();
+  test(`false positive - from buffer Buffer`, () => {
+    const chunk = readFileSync(filePath);
+    expect(detectFileType(chunk)).toBeUndefined();
   });
 
-  test(`false positive - from buffer Buffer`, async () => {
+  test(`false positive - from buffer Uint8Array`, () => {
     const chunk = readFileSync(filePath);
-    await expect(fileTypeFromBuffer(chunk)).resolves.toBeUndefined();
-  });
-
-  test(`false positive - from buffer Uint8Array`, async () => {
-    const chunk = readFileSync(filePath);
-    await expect(fileTypeFromBuffer(new Uint8Array(chunk))).resolves.toBeUndefined();
-  });
-
-  test.skip(`false positive - from buffer ArrayBufferLike`, async () => {
-    const chunk = readFileSync(filePath);
-    await expect(fileTypeFromBuffer(chunk.buffer)).resolves.toBeUndefined();
+    expect(detectFileType(new Uint8Array(chunk))).toBeUndefined();
   });
 });
 
-test("validate the input argument type", async () => {
-  await expect(fileTypeFromBuffer(Buffer.from("x"))).resolves.not.toThrow();
-  await expect(fileTypeFromBuffer(new Uint8Array())).resolves.not.toThrow();
-  await expect(fileTypeFromBuffer(new ArrayBuffer(0))).resolves.not.toThrow();
+test("validate the input argument type", () => {
+  expect(() => detectFileType(Buffer.from("x"))).not.toThrow();
+  expect(() => detectFileType(new Uint8Array())).not.toThrow();
 });
 
-test("odd file sizes", async () => {
+test("odd file sizes", () => {
   const oddFileSizes = [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 255, 256, 257, 511, 512, 513];
 
   for (const size of oddFileSizes) {
     const buffer = Buffer.alloc(size);
-    const stream = new SourceStream(buffer);
 
-    await expect(fileTypeFromBuffer(buffer), `fromBuffer: File size: ${size} bytes`).resolves.not.toThrow();
-
-    await expect(fileTypeFromStream(stream), `fromStream: File size: ${size} bytes`).resolves.not.toThrow();
+    expect(() => detectFileType(buffer), `fromBuffer: File size: ${size} bytes`).not.toThrow();
   }
 });

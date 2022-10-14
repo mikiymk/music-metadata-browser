@@ -93,3 +93,16 @@ describe("throw or return error", () => {
     if (result !== 1 && !(result instanceof Error)) throw result;
   });
 });
+
+describe("spread map or array from", () => {
+  const str = Array.from({ length: 1000 }, (_, i) => i).join("");
+
+  bench("spread map", () => {
+    [...str].map((c) => c.codePointAt(0));
+  });
+
+  bench("array from", () => {
+    // eslint-disable-next-line unicorn/prefer-spread
+    Array.from(str, (c) => c.codePointAt(0));
+  });
+});

@@ -1,7 +1,7 @@
 import { EndOfStreamError } from "../peek-readable/EndOfFileStream";
 
 import type { IToken, IGetToken } from "../token-types";
-import type { ITokenizer, IFileInfo, IReadChunkOptions } from "./types";
+import type { ITokenizer, IFileInfo, IReadChunkOptions, Awaitable } from "./types";
 
 interface INormalizedReadChunkOptions extends IReadChunkOptions {
   offset: number;
@@ -33,7 +33,7 @@ export abstract class AbstractTokenizer implements ITokenizer {
    * @param options - Additional read options
    * @returns Promise with number of bytes read
    */
-  public abstract readBuffer(buffer: Uint8Array, options?: IReadChunkOptions): number | Promise<number>;
+  public abstract readBuffer(buffer: Uint8Array, options?: IReadChunkOptions): Awaitable<number>;
 
   /**
    * Peek (read ahead) buffer from tokenizer
@@ -41,7 +41,7 @@ export abstract class AbstractTokenizer implements ITokenizer {
    * @param options - Peek behaviour options
    * @returns Promise with number of bytes read
    */
-  public abstract peekBuffer(uint8Array: Uint8Array, options?: IReadChunkOptions): number | Promise<number>;
+  public abstract peekBuffer(uint8Array: Uint8Array, options?: IReadChunkOptions): Awaitable<number>;
 
   /**
    * Read a token from the tokenizer-stream
@@ -96,19 +96,19 @@ export abstract class AbstractTokenizer implements ITokenizer {
    * @param length - Number of bytes to ignore
    * @returns resolves the number of bytes ignored, equals length if this available, otherwise the number of bytes available
    */
-  public ignore(length: number): Promise<number> {
+  public ignore(length: number): Awaitable<number> {
     if (this.fileInfo.size !== undefined) {
       const bytesLeft = this.fileInfo.size - this.position;
       if (length > bytesLeft) {
         this.position += bytesLeft;
-        return Promise.resolve(bytesLeft);
+        return bytesLeft;
       }
     }
     this.position += length;
-    return Promise.resolve(length);
+    return length;
   }
 
-  public async close(): Promise<void> {
+  public close(): void {
     // empty
   }
 
