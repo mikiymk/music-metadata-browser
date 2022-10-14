@@ -23,9 +23,7 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
   const buffer = new Uint8Array(minimumBytes);
 
   // Keep reading until EOF if the file size is unknown.
-  if (tokenizer.fileInfo.size === undefined) {
-    tokenizer.fileInfo.size = Number.MAX_SAFE_INTEGER;
-  }
+  const fileSize = tokenizer.fileInfo.size ?? Number.MAX_SAFE_INTEGER;
 
   tokenizer.peekBuffer(buffer, { length: 12, mayBeLess: true });
 
@@ -120,7 +118,7 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
   if (checkString(buffer, "ID3")) {
     tokenizer.ignore(6); // Skip ID3 header until the header size
     const id3HeaderLength = readUnitFromBufferTokenizer(tokenizer, u32beSyncsafe);
-    if (tokenizer.position + id3HeaderLength > tokenizer.fileInfo.size) {
+    if (tokenizer.position + id3HeaderLength > fileSize) {
       // Guess file type based on ID3 header for backward compatibility
       return {
         ext: "mp3",
@@ -196,7 +194,7 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
   if (check(buffer, [0x50, 0x4b, 0x3, 0x4])) {
     // Local file header signature
     try {
-      while (tokenizer.position + 30 < tokenizer.fileInfo.size) {
+      while (tokenizer.position + 30 < fileSize) {
         tokenizer.readBuffer(buffer, { length: 30 });
 
         // https://en.wikipedia.org/wiki/Zip_(file_format)#File_headers
@@ -302,7 +300,7 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
         if (zipHeader.compressedSize === 0) {
           let nextHeaderIndex = -1;
 
-          while (nextHeaderIndex < 0 && tokenizer.position < tokenizer.fileInfo.size) {
+          while (nextHeaderIndex < 0 && tokenizer.position < fileSize) {
             tokenizer.peekBuffer(buffer, { mayBeLess: true });
 
             nextHeaderIndex = indexOf(buffer, Uint8Array.of(0x50, 0x4b, 0x03, 0x04));
@@ -525,7 +523,7 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
   if (checkString(buffer, "%PDF")) {
     tokenizer.ignore(1350);
     const maxBufferSize = 10 * 1024 * 1024;
-    const pdfBuffer = new Uint8Array(Math.min(maxBufferSize, tokenizer.fileInfo.size));
+    const pdfBuffer = new Uint8Array(Math.min(maxBufferSize, fileSize));
     tokenizer.readBuffer(pdfBuffer, { mayBeLess: true });
 
     // Check if this is an Adobe Illustrator file
@@ -849,7 +847,7 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
         default:
           tokenizer.ignore(chunk.length + 4); // Ignore chunk-data + CRC
       }
-    } while (tokenizer.position + 8 < tokenizer.fileInfo.size);
+    } while (tokenizer.position + 8 < fileSize);
 
     return {
       ext: "png",
@@ -919,7 +917,7 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
   if (check(buffer, [0x30, 0x26, 0xb2, 0x75, 0x8e, 0x66, 0xcf, 0x11, 0xa6, 0xd9])) {
     tokenizer.ignore(30);
     // Search for header should be in first 1KB of file.
-    while (tokenizer.position + 24 < tokenizer.fileInfo.size) {
+    while (tokenizer.position + 24 < fileSize) {
       const header = readHeader(tokenizer);
       let payload = header.size - 24;
       if (
@@ -1084,7 +1082,7 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
 
   // Increase sample size from 12 to 256.
   tokenizer.peekBuffer(buffer, {
-    length: Math.min(256, tokenizer.fileInfo.size),
+    length: Math.min(256, fileSize),
     mayBeLess: true,
   });
 
@@ -1235,7 +1233,7 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
 
   // Increase sample size from 256 to 512
   tokenizer.peekBuffer(buffer, {
-    length: Math.min(512, tokenizer.fileInfo.size),
+    length: Math.min(512, fileSize),
     mayBeLess: true,
   });
 
