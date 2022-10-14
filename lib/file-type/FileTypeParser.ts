@@ -2,11 +2,14 @@ import { indexOf, isSubArray, readUintBE } from "../compat/buffer";
 import { decodeLatin1, decodeUtf8 } from "../compat/text-decoder";
 import { encodeUtf8 } from "../compat/text-encoder";
 import { u32beSyncsafe } from "../parse-unit/id3v2/syncsafe";
-import { i32be, u16be, u16le, u64le, u8 } from "../parse-unit/primitive/integer";
+import { i32be, u16be, u16le, u32be, u32le, u64le, u8 } from "../parse-unit/primitive/integer";
 import { latin1, utf8 } from "../parse-unit/primitive/string";
-import { peekUnitFromBufferTokenizer, readUnitFromBufferTokenizer } from "../parse-unit/utility/read-unit";
+import {
+  peekUnitFromBufferTokenizer,
+  readUnitFromBuffer,
+  readUnitFromBufferTokenizer,
+} from "../parse-unit/utility/read-unit";
 import { EndOfStreamError } from "../peek-readable/EndOfFileStream";
-import { UINT32_LE, UINT16_LE, UINT16_BE, UINT32_BE } from "../token-types";
 
 import { detectFileTypeFromTokenizer } from "./fileTypeFromTokenizer";
 import { tarHeaderChecksumMatches, check, checkString } from "./util";
@@ -204,10 +207,10 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
           filenameLength: number;
           extraFieldLength: number;
         } = {
-          compressedSize: UINT32_LE.get(buffer, 18),
-          uncompressedSize: UINT32_LE.get(buffer, 22),
-          filenameLength: UINT16_LE.get(buffer, 26),
-          extraFieldLength: UINT16_LE.get(buffer, 28),
+          compressedSize: readUnitFromBuffer(u32le, buffer, 18),
+          uncompressedSize: readUnitFromBuffer(u32le, buffer, 22),
+          filenameLength: readUnitFromBuffer(u16le, buffer, 26),
+          extraFieldLength: readUnitFromBuffer(u16le, buffer, 28),
         };
 
         zipHeader.filename = readUnitFromBufferTokenizer(tokenizer, utf8(zipHeader.filenameLength));
@@ -1126,7 +1129,7 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
 
   if (check(buffer, [0x04, 0x00, 0x00, 0x00]) && buffer.length >= 16) {
     // Rough & quick check Pickle/ASAR
-    const jsonSize = UINT32_LE.get(buffer, 12);
+    const jsonSize = readUnitFromBuffer(u32le, buffer, 12);
     if (jsonSize > 12 && buffer.length >= jsonSize + 16) {
       try {
         const header = decodeUtf8(buffer.slice(16, jsonSize + 16));
@@ -1344,8 +1347,8 @@ const readTiffHeader = (
   buffer: Uint8Array,
   bigEndian: boolean
 ): FileTypeResult | undefined => {
-  const version = (bigEndian ? UINT16_BE : UINT16_LE).get(buffer, 2);
-  const ifdOffset = (bigEndian ? UINT32_BE : UINT32_LE).get(buffer, 4);
+  const version = readUnitFromBuffer(bigEndian ? u16be : u16le, buffer, 2);
+  const ifdOffset = readUnitFromBuffer(bigEndian ? u32be : u32le, buffer, 4);
 
   if (version === 42) {
     // TIFF file header
