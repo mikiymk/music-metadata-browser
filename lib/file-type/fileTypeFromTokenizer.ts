@@ -1,6 +1,6 @@
 import { EndOfStreamError } from "../peek-readable/EndOfFileStream";
 
-import { FileTypeParser } from "./FileTypeParser";
+import { parseFileType } from "./FileTypeParser";
 
 import type { BufferTokenizer } from "../strtok3/BufferTokenizer";
 import type { FileTypeResult } from "./type";
@@ -33,7 +33,7 @@ import type { FileTypeResult } from "./type";
  */
 export const detectFileTypeFromTokenizer = (tokenizer: BufferTokenizer): FileTypeResult | undefined => {
   try {
-    return new FileTypeParser().parse(tokenizer);
+    return parseFileType(tokenizer);
   } catch (error) {
     if (!(error instanceof EndOfStreamError)) {
       throw error;
