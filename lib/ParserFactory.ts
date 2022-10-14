@@ -114,7 +114,7 @@ export class ParserFactory {
         parserId = this.getParserIdForExtension(tokenizer.fileInfo.path);
       }
       if (!parserId) {
-        const guessedType = await detectFileType(buf);
+        const guessedType = detectFileType(buf);
         if (!guessedType) {
           throw new Error("Failed to determine audio format");
         }

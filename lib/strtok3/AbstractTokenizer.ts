@@ -96,7 +96,7 @@ export abstract class AbstractTokenizer implements ITokenizer {
    * @param length - Number of bytes to ignore
    * @returns resolves the number of bytes ignored, equals length if this available, otherwise the number of bytes available
    */
-  public ignore(length: number): number {
+  public ignore(length: number): Awaitable<number> {
     if (this.fileInfo.size !== undefined) {
       const bytesLeft = this.fileInfo.size - this.position;
       if (length > bytesLeft) {

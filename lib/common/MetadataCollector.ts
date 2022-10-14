@@ -154,14 +154,16 @@ export class MetadataCollector implements INativeMetadataCollector {
         }
         break;
 
-      case "picture":
-        void this.postFixPicture(tag.value as IPicture).then((picture) => {
-          if (picture !== null) {
-            tag.value = picture;
-            this.setGenericTag(tagType, tag);
-          }
-        });
+      case "picture": {
+        const picture = this.postFixPicture(tag.value as IPicture);
+
+        if (picture !== null) {
+          tag.value = picture;
+          this.setGenericTag(tagType, tag);
+        }
+
         return;
+      }
 
       case "totaltracks":
         this.common.track.of = CommonTagMapper.toIntOrNull(tag.value as string);
@@ -261,11 +263,12 @@ export class MetadataCollector implements INativeMetadataCollector {
   /**
    * Fix some common issues with picture object
    * @param picture Picture
+   * @returns
    */
-  private async postFixPicture(picture: IPicture): Promise<IPicture | null> {
+  private postFixPicture(picture: IPicture): IPicture | null {
     if (picture.data && picture.data.length > 0) {
       if (!picture.format) {
-        const fileType = await detectFileType(picture.data);
+        const fileType = detectFileType(picture.data);
         if (fileType) {
           picture.format = fileType.mime;
         } else {
