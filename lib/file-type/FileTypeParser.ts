@@ -58,7 +58,7 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
   if (check(buffer, [0x25, 0x21])) {
     tokenizer.peekBuffer(buffer, { length: 24, mayBeLess: true });
 
-    if (checkString(buffer, "PS-Adobe-", { offset: 2 }) && checkString(buffer, " EPSF-", { offset: 14 })) {
+    if (checkString(buffer, "PS-Adobe-", 2) && checkString(buffer, " EPSF-", 14)) {
       return {
         ext: "eps",
         mime: "application/eps",
@@ -137,7 +137,7 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
     };
   }
 
-  if ((buffer[0] === 0x43 || buffer[0] === 0x46) && check(buffer, [0x57, 0x53], { offset: 1 })) {
+  if ((buffer[0] === 0x43 || buffer[0] === 0x46) && check(buffer, [0x57, 0x53], 1)) {
     return {
       ext: "swf",
       mime: "application/x-shockwave-flash",
@@ -159,7 +159,7 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
     };
   }
 
-  if (checkString(buffer, "WEBP", { offset: 8 })) {
+  if (checkString(buffer, "WEBP", 8)) {
     return {
       ext: "webp",
       mime: "image/webp",
@@ -181,7 +181,7 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
     };
   }
 
-  if (checkString(buffer, "icns", { offset: 0 })) {
+  if (checkString(buffer, "icns", 0)) {
     return {
       ext: "icns",
       mime: "image/icns",
@@ -400,7 +400,7 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
   // `ftyp` box must contain a brand major identifier, which must consist of ISO 8859-1 printable characters.
   // Here we check for 8859-1 printable characters (for simplicity, it's a mask which also catches one non-printable character).
   if (
-    checkString(buffer, "ftyp", { offset: 4 }) &&
+    checkString(buffer, "ftyp", 4) &&
     (buffer[8] & 0x60) !== 0x00 // Brand major, first character ASCII?
   ) {
     // They all can have MIME `video/mp4` except `application/mp4` special-case which is hard to detect.
@@ -462,20 +462,14 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
     };
   }
 
-  if (
-    checkString(buffer, "wOFF") &&
-    (check(buffer, [0x00, 0x01, 0x00, 0x00], { offset: 4 }) || checkString(buffer, "OTTO", { offset: 4 }))
-  ) {
+  if (checkString(buffer, "wOFF") && (check(buffer, [0x00, 0x01, 0x00, 0x00], 4) || checkString(buffer, "OTTO", 4))) {
     return {
       ext: "woff",
       mime: "font/woff",
     };
   }
 
-  if (
-    checkString(buffer, "wOF2") &&
-    (check(buffer, [0x00, 0x01, 0x00, 0x00], { offset: 4 }) || checkString(buffer, "OTTO", { offset: 4 }))
-  ) {
+  if (checkString(buffer, "wOF2") && (check(buffer, [0x00, 0x01, 0x00, 0x00], 4) || checkString(buffer, "OTTO", 4))) {
     return {
       ext: "woff2",
       mime: "font/woff2",
@@ -601,14 +595,14 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
 
   // RIFF file format which might be AVI, WAV, QCP, etc
   if (check(buffer, [0x52, 0x49, 0x46, 0x46])) {
-    if (check(buffer, [0x41, 0x56, 0x49], { offset: 8 })) {
+    if (check(buffer, [0x41, 0x56, 0x49], 8)) {
       return {
         ext: "avi",
         mime: "video/vnd.avi",
       };
     }
 
-    if (check(buffer, [0x57, 0x41, 0x56, 0x45], { offset: 8 })) {
+    if (check(buffer, [0x57, 0x41, 0x56, 0x45], 8)) {
       return {
         ext: "wav",
         mime: "audio/vnd.wave",
@@ -616,7 +610,7 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
     }
 
     // QLCM, QCP file
-    if (check(buffer, [0x51, 0x4c, 0x43, 0x4d], { offset: 8 })) {
+    if (check(buffer, [0x51, 0x4c, 0x43, 0x4d], 8)) {
       return {
         ext: "qcp",
         mime: "audio/qcelp",
@@ -717,18 +711,18 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
   }
 
   if (
-    checkString(buffer, "-lh0-", { offset: 2 }) ||
-    checkString(buffer, "-lh1-", { offset: 2 }) ||
-    checkString(buffer, "-lh2-", { offset: 2 }) ||
-    checkString(buffer, "-lh3-", { offset: 2 }) ||
-    checkString(buffer, "-lh4-", { offset: 2 }) ||
-    checkString(buffer, "-lh5-", { offset: 2 }) ||
-    checkString(buffer, "-lh6-", { offset: 2 }) ||
-    checkString(buffer, "-lh7-", { offset: 2 }) ||
-    checkString(buffer, "-lzs-", { offset: 2 }) ||
-    checkString(buffer, "-lz4-", { offset: 2 }) ||
-    checkString(buffer, "-lz5-", { offset: 2 }) ||
-    checkString(buffer, "-lhd-", { offset: 2 })
+    checkString(buffer, "-lh0-", 2) ||
+    checkString(buffer, "-lh1-", 2) ||
+    checkString(buffer, "-lh2-", 2) ||
+    checkString(buffer, "-lh3-", 2) ||
+    checkString(buffer, "-lh4-", 2) ||
+    checkString(buffer, "-lh5-", 2) ||
+    checkString(buffer, "-lh6-", 2) ||
+    checkString(buffer, "-lh7-", 2) ||
+    checkString(buffer, "-lzs-", 2) ||
+    checkString(buffer, "-lz4-", 2) ||
+    checkString(buffer, "-lz5-", 2) ||
+    checkString(buffer, "-lhd-", 2)
   ) {
     return {
       ext: "lzh",
@@ -739,7 +733,7 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
   // MPEG program stream (PS or MPEG-PS)
   if (check(buffer, [0x00, 0x00, 0x01, 0xba])) {
     //  MPEG-PS, MPEG-1 Part 1
-    if (check(buffer, [0x21], { offset: 4, mask: [0xf1] })) {
+    if (check(buffer, [0x21], 4, [0xf1])) {
       return {
         ext: "mpg",
         mime: "video/MP1S",
@@ -747,7 +741,7 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
     }
 
     // MPEG-PS, MPEG-2 Part 1
-    if (check(buffer, [0x44], { offset: 4, mask: [0xc4] })) {
+    if (check(buffer, [0x44], 4, [0xc4])) {
       return {
         ext: "mpg",
         mime: "video/MP2P",
@@ -876,10 +870,10 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
 
   // `mov` format variants
   if (
-    check(buffer, [0x66, 0x72, 0x65, 0x65], { offset: 4 }) || // `free`
-    check(buffer, [0x6d, 0x64, 0x61, 0x74], { offset: 4 }) || // `mdat` MJPEG
-    check(buffer, [0x6d, 0x6f, 0x6f, 0x76], { offset: 4 }) || // `moov`
-    check(buffer, [0x77, 0x69, 0x64, 0x65], { offset: 4 }) // `wide`
+    check(buffer, [0x66, 0x72, 0x65, 0x65], 4) || // `free`
+    check(buffer, [0x6d, 0x64, 0x61, 0x74], 4) || // `mdat` MJPEG
+    check(buffer, [0x6d, 0x6f, 0x6f, 0x76], 4) || // `moov`
+    check(buffer, [0x77, 0x69, 0x64, 0x65], 4) // `wide`
   ) {
     return {
       ext: "mov",
@@ -887,7 +881,7 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
     };
   }
 
-  if (check(buffer, [0xef, 0xbb, 0xbf]) && checkString(buffer, "<?xml", { offset: 3 })) {
+  if (check(buffer, [0xef, 0xbb, 0xbf]) && checkString(buffer, "<?xml", 3)) {
     // UTF-8-BOM
     return {
       ext: "xml",
@@ -983,7 +977,7 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
 
   if (
     (check(buffer, [0x7e, 0x10, 0x04]) || check(buffer, [0x7e, 0x18, 0x04])) &&
-    check(buffer, [0x30, 0x4d, 0x49, 0x45], { offset: 4 })
+    check(buffer, [0x30, 0x4d, 0x49, 0x45], 4)
   ) {
     return {
       ext: "mie",
@@ -991,7 +985,7 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
     };
   }
 
-  if (check(buffer, [0x27, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], { offset: 2 })) {
+  if (check(buffer, [0x27, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], 2)) {
     return {
       ext: "shp",
       mime: "application/x-esri-shape",
@@ -1093,14 +1087,14 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
 
   // -- 15-byte signatures --
   if (checkString(buffer, "BEGIN:")) {
-    if (checkString(buffer, "VCARD", { offset: 6 })) {
+    if (checkString(buffer, "VCARD", 6)) {
       return {
         ext: "vcf",
         mime: "text/vcard",
       };
     }
 
-    if (checkString(buffer, "VCALENDAR", { offset: 6 })) {
+    if (checkString(buffer, "VCALENDAR", 6)) {
       return {
         ext: "ics",
         mime: "text/calendar",
@@ -1158,7 +1152,7 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
     };
   }
 
-  if (checkString(buffer, "SCRM", { offset: 44 })) {
+  if (checkString(buffer, "SCRM", 44)) {
     return {
       ext: "s3m",
       mime: "audio/x-s3m",
@@ -1166,7 +1160,7 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
   }
 
   // Raw MPEG-2 transport stream (188-byte packets)
-  if (check(buffer, [0x47]) && check(buffer, [0x47], { offset: 188 })) {
+  if (check(buffer, [0x47]) && check(buffer, [0x47], 188)) {
     return {
       ext: "mts",
       mime: "video/mp2t",
@@ -1174,25 +1168,21 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
   }
 
   // Blu-ray Disc Audio-Video (BDAV) MPEG-2 transport stream has 4-byte TP_extra_header before each 188-byte packet
-  if (check(buffer, [0x47], { offset: 4 }) && check(buffer, [0x47], { offset: 196 })) {
+  if (check(buffer, [0x47], 4) && check(buffer, [0x47], 196)) {
     return {
       ext: "mts",
       mime: "video/mp2t",
     };
   }
 
-  if (
-    check(buffer, [0x42, 0x4f, 0x4f, 0x4b, 0x4d, 0x4f, 0x42, 0x49], {
-      offset: 60,
-    })
-  ) {
+  if (check(buffer, [0x42, 0x4f, 0x4f, 0x4b, 0x4d, 0x4f, 0x42, 0x49], 60)) {
     return {
       ext: "mobi",
       mime: "application/x-mobipocket-ebook",
     };
   }
 
-  if (check(buffer, [0x44, 0x49, 0x43, 0x4d], { offset: 128 })) {
+  if (check(buffer, [0x44, 0x49, 0x43, 0x4d], 128)) {
     return {
       ext: "dcm",
       mime: "application/dicom",
@@ -1222,10 +1212,10 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
   }
 
   if (
-    check(buffer, [0x4c, 0x50], { offset: 34 }) &&
-    (check(buffer, [0x00, 0x00, 0x01], { offset: 8 }) ||
-      check(buffer, [0x01, 0x00, 0x02], { offset: 8 }) ||
-      check(buffer, [0x02, 0x00, 0x02], { offset: 8 }))
+    check(buffer, [0x4c, 0x50], 34) &&
+    (check(buffer, [0x00, 0x00, 0x01], 8) ||
+      check(buffer, [0x01, 0x00, 0x02], 8) ||
+      check(buffer, [0x02, 0x00, 0x02], 8))
   ) {
     return {
       ext: "eot",
@@ -1277,10 +1267,10 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
   }
 
   // Check MPEG 1 or 2 Layer 3 header, or 'layer 0' for ADTS (MPEG sync-word 0xFFE)
-  if (buffer.length >= 2 && check(buffer, [0xff, 0xe0], { offset: 0, mask: [0xff, 0xe0] })) {
-    if (check(buffer, [0x10], { offset: 1, mask: [0x16] })) {
+  if (buffer.length >= 2 && check(buffer, [0xff, 0xe0], 0, [0xff, 0xe0])) {
+    if (check(buffer, [0x10], 1, [0x16])) {
       // Check for (ADTS) MPEG-2
-      if (check(buffer, [0x08], { offset: 1, mask: [0x08] })) {
+      if (check(buffer, [0x08], 1, [0x08])) {
         return {
           ext: "aac",
           mime: "audio/aac",
@@ -1296,7 +1286,7 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
 
     // MPEG 1 or 2 Layer 3 header
     // Check for MPEG layer 3
-    if (check(buffer, [0x02], { offset: 1, mask: [0x06] })) {
+    if (check(buffer, [0x02], 1, [0x06])) {
       return {
         ext: "mp3",
         mime: "audio/mpeg",
@@ -1304,7 +1294,7 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
     }
 
     // Check for MPEG layer 2
-    if (check(buffer, [0x04], { offset: 1, mask: [0x06] })) {
+    if (check(buffer, [0x04], 1, [0x06])) {
       return {
         ext: "mp2",
         mime: "audio/mpeg",
@@ -1312,7 +1302,7 @@ export const parseFileType = (tokenizer: BufferTokenizer): FileTypeResult | unde
     }
 
     // Check for MPEG layer 1
-    if (check(buffer, [0x06], { offset: 1, mask: [0x06] })) {
+    if (check(buffer, [0x06], 1, [0x06])) {
       return {
         ext: "mp1",
         mime: "audio/mpeg",
@@ -1360,7 +1350,7 @@ const readTiffHeader = (
   if (version === 42) {
     // TIFF file header
     if (ifdOffset >= 6) {
-      if (checkString(buffer, "CR", { offset: 8 })) {
+      if (checkString(buffer, "CR", 8)) {
         return {
           ext: "cr2",
           mime: "image/x-canon-cr2",
@@ -1369,8 +1359,7 @@ const readTiffHeader = (
 
       if (
         ifdOffset >= 8 &&
-        (check(buffer, [0x1c, 0x00, 0xfe, 0x00], { offset: 8 }) ||
-          check(buffer, [0x1f, 0x00, 0x0b, 0x00], { offset: 8 }))
+        (check(buffer, [0x1c, 0x00, 0xfe, 0x00], 8) || check(buffer, [0x1f, 0x00, 0x0b, 0x00], 8))
       ) {
         return {
           ext: "nef",

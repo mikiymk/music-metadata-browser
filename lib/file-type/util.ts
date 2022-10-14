@@ -50,14 +50,11 @@ export const uint32SyncSafeToken: IGetToken<number> = {
  *
  * @param buffer
  * @param headers
- * @param options
- * @param options.mask
- * @param options.offset
+ * @param offset
+ * @param mask
  * @returns
  */
-export const check = (buffer: Uint8Array, headers: any[], options?: { mask?: number[]; offset: number }): boolean => {
-  const { mask, offset = 0 } = { ...options };
-
+export const check = (buffer: Uint8Array, headers: number[], offset = 0, mask?: number[]): boolean => {
   for (const [index, header] of headers.entries()) {
     // If a bitmask is set
     if (mask) {
@@ -73,6 +70,6 @@ export const check = (buffer: Uint8Array, headers: any[], options?: { mask?: num
   return true;
 };
 
-export const checkString = (buffer: Uint8Array, header: string, options?: { offset: number }) => {
-  return check(buffer, stringToBytes(header), options);
+export const checkString = (buffer: Uint8Array, header: string, offset?: number) => {
+  return check(buffer, stringToBytes(header), offset);
 };
